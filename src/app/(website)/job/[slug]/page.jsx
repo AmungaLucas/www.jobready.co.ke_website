@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Script from "next/script";
+import { db } from "@/lib/db";
 import JobDetailHeader from "../_components/JobDetailHeader";
 import JobDetailBody from "../_components/JobDetailBody";
 import JobDetailSidebar from "../_components/JobDetailSidebar";
@@ -14,13 +15,81 @@ import {
   generateMeta,
 } from "@/lib/seo";
 
-// ─── Data Fetching ─────────────────────────────────────────
+// ─── Data Fetching (direct Prisma — no API route indirection) ─
 async function fetchJob(slug) {
-  const res = await fetch(`/api/jobs/${slug}`, { cache: "no-store" });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const job = await db.job.findUnique({
+      where: { slug },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            logoColor: true,
+            tagline: true,
+            industry: true,
+            city: true,
+            country: true,
+            website: true,
+            isVerified: true,
+            employeeSize: true,
+            foundedYear: true,
+          },
+        },
+        _count: {
+          select: { applications: true },
+        },
+      },
+    });
+
+    if (!job) return null;
+
+    // Increment view count (fire and forget)
+    db.job
+      .update({
+        where: { id: job.id },
+        data: { viewsCount: { increment: 1 } },
+      })
+      .catch(() => {});
+
+    // Fetch similar jobs (same category, different job, active, published)
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const similarJobs = await db.job.findMany({
+      where: {
+        id: { not: job.id },
+        category: job.category,
+        isActive: true,
+        publishedAt: { not: null, lte: now },
+        OR: [{ deadline: null }, { deadline: { gte: today } }],
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 5,
+      include: {
+        company: {
+          select: {
+            name: true,
+            slug: true,
+            logo: true,
+            logoColor: true,
+            isVerified: true,
+          },
+        },
+      },
+    });
+
+    return { job, similarJobs };
+  } catch (error) {
+    console.error("[fetchJob] Error:", error);
+    return null;
+  }
 }
+
+// Force dynamic rendering (no caching)
+export const dynamic = "force-dynamic";
 
 // ─── SEO ───────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
@@ -57,6 +126,7 @@ export default async function JobDetailPage({ params }) {
   // API returns company.employeeSize but components expect company.size
   const normalizedJob = {
     ...job,
+    applicationCount: job._count?.applications || 0,
     company: {
       ...company,
       size: company.employeeSize,

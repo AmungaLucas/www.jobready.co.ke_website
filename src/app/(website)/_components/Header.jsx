@@ -151,7 +151,7 @@ export default function Header({ activeNav }) {
   return (
     <>
       <header className="bg-white border-b border-gray-200 sticky top-0 z-[100] shadow-sm">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex items-center justify-between h-[68px] md:h-[68px] h-14">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 md:h-[68px]">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-extrabold text-primary no-underline hover:opacity-90 transition-opacity md:text-2xl md:text-[1.5rem]">
             <LogoSvg size={32} />
