@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import {
+  findOrCreateUser,
+  isProfileComplete,
+  getMissingProfileFields,
+  linkWalkInOrders,
+} from "@/lib/account-merge";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { phone, otp } = body;
+    const { phone, otp, name, email: userEmail } = body;
 
     // --- Validation ---
     if (!phone || typeof phone !== "string") {
@@ -13,7 +19,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
     if (!otp || typeof otp !== "string" || !/^\d{6}$/.test(otp)) {
       return NextResponse.json(
         { error: "A valid 6-digit OTP is required" },
@@ -39,7 +44,6 @@ export async function POST(request) {
       );
     }
 
-    // Check if OTP matches
     if (authAccount.accessToken !== otp) {
       return NextResponse.json(
         { error: "Invalid OTP. Please try again." },
@@ -47,7 +51,6 @@ export async function POST(request) {
       );
     }
 
-    // Check if OTP is expired
     if (authAccount.expiresAt && new Date() > authAccount.expiresAt) {
       return NextResponse.json(
         { error: "OTP has expired. Please request a new one." },
@@ -55,49 +58,59 @@ export async function POST(request) {
       );
     }
 
-    // --- Find or create user ---
-    // Check if a user with this phone already exists
-    let user = await db.user.findUnique({
-      where: { phone: normalizedPhone },
+    // --- Find or create user using merge logic ---
+    const realEmail =
+      userEmail && userEmail.trim() ? userEmail.toLowerCase().trim() : null;
+    const {
+      user: foundUser,
+      merged,
+      isNewUser,
+    } = await findOrCreateUser({
+      phone: normalizedPhone,
+      email: realEmail,
+      name: name?.trim() || null,
+      provider: "phone",
     });
 
-    if (!user) {
-      // Create a new user with phone only (no email yet)
-      user = await db.user.create({
-        data: {
-          email: `${normalizedPhone}@phone.jobready.co.ke`, // placeholder email
-          phone: normalizedPhone,
-          name: "Phone User",
-          phoneVerified: true,
-        },
-      });
+    // Update user data from this OTP session
+    const updateData = {
+      phoneVerified: true,
+      phone: normalizedPhone, // ensure phone is set
+      lastLoginAt: new Date(),
+    };
 
-      // ── Link existing walk-in orders to this new user ──
-      await db.order.updateMany({
-        where: { phone: normalizedPhone, userId: null },
-        data: { userId: user.id },
-      });
-    } else {
-      // Update existing user to mark phone as verified
-      user = await db.user.update({
-        where: { id: user.id },
-        data: {
-          phoneVerified: true,
-          lastLoginAt: new Date(),
-        },
-      });
-
-      // ── Link any unlinked walk-in orders matching this phone ──
-      const linkedCount = await db.order.updateMany({
-        where: { phone: normalizedPhone, userId: null },
-        data: { userId: user.id },
-      });
-      if (linkedCount.count > 0) {
-        console.log(`[Verify OTP] Linked ${linkedCount.count} existing orders to user ${user.id}`);
-      }
+    // If user provided name and current name is placeholder, update it
+    if (
+      name?.trim() &&
+      (!foundUser.name || foundUser.name === "Phone User")
+    ) {
+      updateData.name = name.trim();
     }
 
-    // --- Link phone auth account to user if not already ---
+    // If user provided email and current email is placeholder, update it
+    if (
+      realEmail &&
+      (!foundUser.email ||
+        foundUser.email.startsWith("phone_") ||
+        foundUser.email.includes("@phone.jobready.co.ke"))
+    ) {
+      // Check if another user already has this email
+      const existingEmailUser = await db.user.findUnique({
+        where: { email: realEmail },
+      });
+      if (!existingEmailUser || existingEmailUser.id === foundUser.id) {
+        updateData.email = realEmail;
+      }
+      // If email is taken by another user, the merge already handled it in findOrCreateUser
+    }
+
+    // Apply updates
+    let user = await db.user.update({
+      where: { id: foundUser.id },
+      data: updateData,
+    });
+
+    // --- Link auth account to user ---
     if (authAccount.userId !== user.id) {
       await db.authAccount.update({
         where: { id: authAccount.id },
@@ -105,18 +118,55 @@ export async function POST(request) {
       });
     }
 
-    // --- Clear the OTP (delete the phone auth account record) ---
-    await db.authAccount.delete({
-      where: { id: authAccount.id },
-    });
+    // --- Link walk-in orders ---
+    await linkWalkInOrders(user.id, user.email, normalizedPhone);
 
-    // --- Return success with user info ---
+    // --- Recompute profileComplete ---
+    const complete = isProfileComplete(user);
+    if (complete !== user.profileComplete) {
+      user = await db.user.update({
+        where: { id: user.id },
+        data: { profileComplete: complete },
+      });
+    }
+
+    // --- Create permanent phone auth account if not exists ---
+    const existingPhoneAuth = await db.authAccount.findFirst({
+      where: {
+        userId: user.id,
+        provider: "phone",
+        providerAccountId: normalizedPhone,
+      },
+    });
+    if (!existingPhoneAuth) {
+      await db.authAccount.create({
+        data: {
+          userId: user.id,
+          provider: "phone",
+          providerAccountId: normalizedPhone,
+        },
+      });
+    }
+
+    // --- Delete the OTP auth account (if it's different from the permanent one) ---
+    if (authAccount.id !== existingPhoneAuth?.id) {
+      await db.authAccount
+        .delete({ where: { id: authAccount.id } })
+        .catch(() => {});
+    }
+
+    // --- Return success ---
     const { passwordHash: _, ...userWithoutPassword } = user;
+    const missingFields = getMissingProfileFields(user);
 
     return NextResponse.json(
       {
         message: "Phone verified successfully",
         user: userWithoutPassword,
+        profileComplete: user.profileComplete,
+        merged,
+        isNewUser,
+        missingFields,
       },
       { status: 200 }
     );
@@ -124,11 +174,10 @@ export async function POST(request) {
     console.error("[Verify OTP API] Error:", error);
 
     if (error.code === "P2002") {
-      // Unique constraint violation (e.g., email already taken)
       const field = error.meta?.target?.[0];
       if (field === "email") {
         return NextResponse.json(
-          { error: "Could not create account. Please sign up with email first." },
+          { error: "This email is already linked to another account. Please sign in with that account." },
           { status: 409 }
         );
       }

@@ -2,6 +2,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import {
+  isProfileComplete,
+  linkWalkInOrders,
+} from "@/lib/account-merge";
 
 export const authOptions = {
   // Use JWT strategy for scalability (no database sessions)
@@ -23,6 +27,7 @@ export const authOptions = {
         token.role = user.role;
         token.emailVerified = user.emailVerified;
         token.phoneVerified = user.phoneVerified;
+        token.profileComplete = user.profileComplete || false;
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
       }
@@ -40,6 +45,7 @@ export const authOptions = {
         session.user.role = token.role;
         session.user.emailVerified = token.emailVerified;
         session.user.phoneVerified = token.phoneVerified;
+        session.user.profileComplete = token.profileComplete || false;
       }
       return session;
     },
@@ -111,13 +117,15 @@ export const authOptions = {
           });
 
           // ── Link any unlinked walk-in orders matching this email ──
-          try {
-            await db.order.updateMany({
-              where: { email, userId: null },
-              data: { userId: existingUser.id },
+          await linkWalkInOrders(existingUser.id, email, existingUser.phone);
+
+          // ── Recompute profileComplete ──
+          const complete = isProfileComplete(existingUser);
+          if (complete !== existingUser.profileComplete) {
+            await db.user.update({
+              where: { id: existingUser.id },
+              data: { profileComplete: complete },
             });
-          } catch (linkErr) {
-            console.error("[Auth] Order linking failed:", linkErr.message);
           }
 
           // Attach user ID to the user object so jwt callback picks it up
@@ -129,6 +137,7 @@ export const authOptions = {
           user.role = existingUser.role;
           user.emailVerified = existingUser.emailVerified;
           user.phoneVerified = existingUser.phoneVerified;
+          user.profileComplete = complete;
         } else {
           // Create new user from Google profile
           const newUser = await db.user.create({
@@ -156,6 +165,9 @@ export const authOptions = {
             },
           });
 
+          // Compute profileComplete for the new user
+          const complete = isProfileComplete(newUser);
+
           // Attach to user object for jwt callback
           user.id = newUser.id;
           user.name = newUser.name;
@@ -165,6 +177,7 @@ export const authOptions = {
           user.role = newUser.role;
           user.emailVerified = newUser.emailVerified;
           user.phoneVerified = newUser.phoneVerified;
+          user.profileComplete = complete;
         }
       }
 
@@ -220,6 +233,7 @@ export const authOptions = {
             role: user.role,
             emailVerified: user.emailVerified,
             phoneVerified: true,
+            profileComplete: user.profileComplete || isProfileComplete(user),
           };
         }
 
@@ -266,6 +280,7 @@ export const authOptions = {
           role: user.role,
           emailVerified: user.emailVerified,
           phoneVerified: user.phoneVerified,
+          profileComplete: user.profileComplete || isProfileComplete(user),
         };
       },
     }),

@@ -54,25 +54,14 @@ export async function POST(request) {
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // --- Upsert OTP in AuthAccount ---
-    // First, find or create the user for this phone number
-    let user = await db.user.findUnique({
+    // --- Find existing user by phone (don't create one) ---
+    const existingUser = await db.user.findUnique({
       where: { phone: normalizedPhone },
     });
 
-    if (!user) {
-      // Create a minimal user record for phone-based auth
-      user = await db.user.create({
-        data: {
-          phone: normalizedPhone,
-          name: "Phone User",
-          email: `phone_${normalizedPhone}@jobready.co.ke`, // placeholder email
-          passwordHash: null, // No password — phone-only auth
-        },
-      });
-    }
-
-    // Upsert the OTP auth account, linked to the user
+    // --- Upsert OTP in AuthAccount ---
+    // userId is nullable — set to existing user's ID if found, otherwise null.
+    // The user is only created when the OTP is verified (in verify-otp route).
     await db.authAccount.upsert({
       where: {
         providerAccountId: normalizedPhone,
@@ -82,12 +71,13 @@ export async function POST(request) {
         providerAccountId: normalizedPhone,
         accessToken: otp,       // Store OTP in accessToken field
         expiresAt: otpExpiry,
-        userId: user.id,
+        userId: existingUser?.id || null,
       },
       update: {
         provider: "phone",      // Ensure provider stays "phone"
         accessToken: otp,
         expiresAt: otpExpiry,
+        userId: existingUser?.id || null,
       },
     });
 

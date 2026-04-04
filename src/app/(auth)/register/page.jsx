@@ -73,8 +73,10 @@ function RegisterForm() {
       errs.email = "Please enter a valid email address";
     }
 
-    // Phone (optional)
-    if (phone.trim()) {
+    // Phone (required)
+    if (!phone.trim()) {
+      errs.phone = "Phone number is required";
+    } else {
       const rawPhone = phone.trim();
       if (!/^7\d{8}$/.test(rawPhone)) {
         errs.phone = "Enter a valid number (e.g. 7XXXXXXXX)";
@@ -112,7 +114,7 @@ function RegisterForm() {
 
     setLoading(true);
     try {
-      const fullPhone = phone.trim() ? `254${phone.trim()}` : null;
+      const fullPhone = `254${phone.trim()}`;
 
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -232,10 +234,7 @@ function RegisterForm() {
             htmlFor="reg-phone"
             className="text-sm font-medium text-gray-700 mb-1.5 block"
           >
-            Phone Number{" "}
-            <span className="text-xs text-gray-400 font-normal">
-              (optional)
-            </span>
+            Phone Number <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500 text-sm font-medium">

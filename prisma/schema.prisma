@@ -52,6 +52,7 @@ model User {
   // Verification
   emailVerified  Boolean   @default(false)
   phoneVerified  Boolean   @default(false)
+  profileComplete Boolean  @default(false)            // true when user has real name + real email + phone
   lastLoginAt    DateTime?
 
   // Timestamps
@@ -81,8 +82,8 @@ model User {
 
 model AuthAccount {
   id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider         String                              // "google" | "email" | "phone"
   providerAccountId String   @unique                   // Google sub, phone number, email
   accessToken      String?                              // OAuth token (encrypted)

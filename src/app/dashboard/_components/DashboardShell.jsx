@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useSession, SessionProvider } from "next-auth/react";
 import { SidebarProvider, SidebarInset, SidebarRail } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import DashboardHeader from "./DashboardHeader";
+import CompleteProfileModal from "./CompleteProfileModal";
+import DashboardBanners from "./DashboardBanners";
+
 function DashboardShellInner({ children }) {
   const { data: session, status } = useSession();
 
@@ -23,6 +27,11 @@ function DashboardShellInner({ children }) {
       }
     : null;
 
+  // Profile modal: show when profile is incomplete, dismissible
+  const [profileDismissed, setProfileDismissed] = useState(false);
+  const showProfileModal =
+    session?.user && !session.user.profileComplete && !profileDismissed;
+
   // Show loading while session loads (guard against race where status is set but session is still null)
   if (status === "loading" || !session?.user) {
     return (
@@ -34,11 +43,17 @@ function DashboardShellInner({ children }) {
 
   return (
     <SidebarProvider>
+      {showProfileModal && (
+        <CompleteProfileModal
+          onComplete={() => setProfileDismissed(true)}
+        />
+      )}
       <AppSidebar user={user} />
       <SidebarInset>
         <DashboardHeader user={user} />
         <div className="flex flex-1 flex-col">
           <div className="flex-1 p-4 md:p-6 lg:p-8">
+            <DashboardBanners />
             {children}
           </div>
         </div>

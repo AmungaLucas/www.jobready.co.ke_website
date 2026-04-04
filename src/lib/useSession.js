@@ -25,8 +25,10 @@ export function useAuth() {
       email: session.user.email,
       phone: session.user.phone,
       avatar: session.user.avatar,
+      role: session.user.role || "JOB_SEEKER",
       emailVerified: session.user.emailVerified || false,
       phoneVerified: session.user.phoneVerified || false,
+      profileComplete: session.user.profileComplete || false,
     };
   }, [session]);
 
