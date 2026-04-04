@@ -83,7 +83,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { name, bio, location, linkedinUrl, education, skills } = body;
+    const { name, bio, location, linkedinUrl, education, skills, phone } = body;
 
     // Build update data — only include fields that are provided
     const updateData = {};
@@ -95,6 +95,28 @@ export async function PUT(request) {
         );
       }
       updateData.name = name.trim();
+    }
+
+    if (phone !== undefined) {
+      if (typeof phone !== "string") {
+        return NextResponse.json(
+          { error: "Phone number must be a string" },
+          { status: 400 }
+        );
+      }
+      const normalizedPhone = phone.replace(/[\s\-\+]/g, "");
+      if (normalizedPhone && !/^(254|0)\d{9}$/.test(normalizedPhone)) {
+        return NextResponse.json(
+          { error: "Phone must be a valid Kenyan number (e.g. 2547XXXXXXXX)" },
+          { status: 400 }
+        );
+      }
+      const finalPhone = normalizedPhone.startsWith("0")
+        ? "254" + normalizedPhone.substring(1)
+        : normalizedPhone;
+      updateData.phone = finalPhone || null;
+      // Reset verification if phone changed
+      updateData.phoneVerified = false;
     }
 
     if (bio !== undefined) {

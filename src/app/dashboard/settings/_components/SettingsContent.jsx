@@ -56,6 +56,9 @@ export default function SettingsContent() {
         </p>
       </div>
 
+      {/* OTP Verification Modal Overlay */}
+      <PhoneVerificationDialog />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
           <TabsTrigger value="account" className="text-sm gap-2">
@@ -96,6 +99,192 @@ export default function SettingsContent() {
           <DangerZone />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// ── Phone Verification Dialog (global state) ─────────
+let globalPhoneVerify = { open: false, phone: "", onVerified: null };
+export function triggerPhoneVerification(phone, onVerified) {
+  globalPhoneVerify = { open: true, phone, onVerified };
+  window.dispatchEvent(new CustomEvent("phone-verify-change"));
+}
+
+function PhoneVerificationDialog() {
+  const [state, setState] = useState({ open: false, phone: "" });
+  const [otp, setOtp] = useState("".padEnd(6, ""));
+  const [step, setStep] = useState("idle"); // idle | sending | sent | verifying | done | error
+  const [errorMsg, setErrorMsg] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [onVerified, setOnVerified] = useState(null);
+
+  useEffect(() => {
+    const handler = () => {
+      setState({ ...globalPhoneVerify });
+      setOnVerified(() => globalPhoneVerify.onVerified);
+      if (globalPhoneVerify.open) {
+        setStep("idle");
+        setOtp("".padEnd(6, ""));
+        setErrorMsg("");
+        setCountdown(0);
+      }
+    };
+    window.addEventListener("phone-verify-change", handler);
+    return () => window.removeEventListener("phone-verify-change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [countdown]);
+
+  const handleSendOtp = async () => {
+    if (!state.phone) return;
+    const normalized = state.phone.replace(/[\s\-\+]/g, "");
+    const finalPhone = normalized.startsWith("0")
+      ? "254" + normalized.substring(1)
+      : normalized;
+
+    setStep("sending");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: finalPhone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.error || "Failed to send OTP");
+        setStep("idle");
+        return;
+      }
+      setStep("sent");
+      setCountdown(60);
+    } catch {
+      setErrorMsg("Network error. Please try again.");
+      setStep("idle");
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    const cleanOtp = otp.replace(/\s/g, "");
+    if (cleanOtp.length !== 6) {
+      setErrorMsg("Enter the complete 6-digit code");
+      return;
+    }
+    const normalized = state.phone.replace(/[\s\-\+]/g, "");
+    const finalPhone = normalized.startsWith("0")
+      ? "254" + normalized.substring(1)
+      : normalized;
+
+    setStep("verifying");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: finalPhone, otp: cleanOtp }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.error || "Verification failed");
+        setStep("sent");
+        return;
+      }
+      setStep("done");
+      toast.success("Phone number verified successfully!");
+      if (onVerified) onVerified();
+      setTimeout(() => {
+        globalPhoneVerify = { open: false, phone: "", onVerified: null };
+        window.dispatchEvent(new CustomEvent("phone-verify-change"));
+      }, 1500);
+    } catch {
+      setErrorMsg("Network error. Please try again.");
+      setStep("sent");
+    }
+  };
+
+  const handleClose = () => {
+    globalPhoneVerify = { open: false, phone: "", onVerified: null };
+    window.dispatchEvent(new CustomEvent("phone-verify-change"));
+  };
+
+  if (!state.open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+        {step === "done" ? (
+          <div className="text-center py-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="text-emerald-500" size={32} />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Phone Verified!</h3>
+            <p className="text-sm text-gray-500">Your phone number has been successfully verified.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">Verify Phone Number</h3>
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+
+            {step === "idle" && (
+              <div>
+                <p className="text-sm text-gray-500 mb-4">
+                  We&apos;ll send a 6-digit code to <span className="font-semibold text-gray-800">+{state.phone}</span>
+                </p>
+                <Button onClick={handleSendOtp} className="w-full" disabled={step === "sending"}>
+                  {step === "sending" ? "Sending..." : "Send Verification Code"}
+                </Button>
+              </div>
+            )}
+
+            {(step === "sent" || step === "verifying") && (
+              <form onSubmit={handleVerify}>
+                <p className="text-sm text-gray-500 mb-4">
+                  Enter the code sent to <span className="font-semibold text-gray-800">+{state.phone}</span>
+                </p>
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6).padEnd(6, " "))}
+                    className="w-full text-center text-2xl tracking-[0.5em] font-mono border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1a56db]/20 focus:border-[#1a56db]"
+                    autoFocus
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={step === "verifying"}>
+                  {step === "verifying" ? "Verifying..." : "Verify Code"}
+                </Button>
+                <div className="text-center mt-4">
+                  <p className="text-sm text-gray-500">
+                    Didn&apos;t get it?{" "}
+                    {countdown > 0 ? (
+                      <span className="text-gray-400">Resend in {countdown}s</span>
+                    ) : (
+                      <button type="button" onClick={handleSendOtp} className="text-[#1a56db] hover:underline font-medium">
+                        Resend Code
+                      </button>
+                    )}
+                  </p>
+                </div>
+              </form>
+            )}
+
+            {errorMsg && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
+                <p className="text-sm text-red-600">{errorMsg}</p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -151,12 +340,18 @@ function AccountSettings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const normalizedPhone = form.phone.replace(/[\s\-\+]/g, "");
+      const finalPhone = normalizedPhone
+        ? (normalizedPhone.startsWith("0") ? "254" + normalizedPhone.substring(1) : normalizedPhone)
+        : null;
+
       const res = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: `${form.firstName} ${form.lastName}`.trim(),
           bio: user?.bio,
+          phone: finalPhone,
         }),
       });
       if (!res.ok) throw new Error("Failed to save profile");
@@ -261,9 +456,32 @@ function AccountSettings() {
               <Phone className="size-4 text-muted-foreground" />
               Phone Number
             </Label>
-            <Badge variant="outline" className={user?.phoneVerified ? "text-xs bg-emerald-50 text-emerald-700 border-emerald-200" : "text-xs bg-amber-50 text-amber-700 border-amber-200"}>
-              {user?.phoneVerified ? "Verified" : "Unverified"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={user?.phoneVerified ? "text-xs bg-emerald-50 text-emerald-700 border-emerald-200" : "text-xs bg-amber-50 text-amber-700 border-amber-200"}>
+                {user?.phoneVerified ? "Verified" : "Unverified"}
+              </Badge>
+              {form.phone && !user?.phoneVerified && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7"
+                  onClick={() => {
+                    const normalized = form.phone.replace(/[\s\-\+]/g, "");
+                    if (/^(254|0)\d{9}$/.test(normalized)) {
+                      const finalPhone = normalized.startsWith("0") ? "254" + normalized.substring(1) : normalized;
+                      triggerPhoneVerification(finalPhone, () => {
+                        setUser((prev) => prev ? { ...prev, phoneVerified: true } : prev);
+                      });
+                    } else {
+                      toast.error("Enter a valid Kenyan phone number first (e.g. 2547XXXXXXXX)");
+                    }
+                  }}
+                >
+                  Verify
+                </Button>
+              )}
+            </div>
           </div>
           <Input
             id="phone"
@@ -271,6 +489,9 @@ function AccountSettings() {
             value={form.phone}
             onChange={(e) => updateField("phone", e.target.value)}
           />
+          <p className="text-xs text-muted-foreground">
+            Enter your Kenyan phone number. Click &quot;Verify&quot; to confirm ownership via SMS.
+          </p>
         </div>
 
         <Separator />
