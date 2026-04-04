@@ -86,7 +86,7 @@ export async function POST(request) {
     // with the Safaricom callback.
     // NOTE: We only update if the payment is still PENDING in the DB —
     // this prevents overwriting a SUCCESS that the callback already set.
-    const isFinalResult = status === "SUCCESS" || status === "CANCELLED" || status === "TIMEOUT";
+    const isFinalResult = status === "SUCCESS" || status === "CANCELLED" || status === "TIMEOUT" || status === "FAILED";
 
     if (paymentId && isFinalResult) {
       try {
