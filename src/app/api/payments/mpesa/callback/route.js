@@ -238,18 +238,35 @@ export async function POST(request) {
       }, 10000); // 10 seconds delay
     }
 
-    // ── 4b. Update Payment record (skip if 4999 — handled above) ──
-    const updatedPayment = await db.payment.update({
-      where: { id: payment.id },
-      data: {
-        status: paymentStatus,
-        mpesaReceiptNumber: mpesaReceiptNumber || null,
-        resultDesc: ResultDesc || RESULT_DESCRIPTIONS[ResultCode] || "Unknown error",
-        resultCode: String(ResultCode),
-        mpesaCallbackData: body, // Store full callback for audit
-        ...(mpesaAmount && { amount: mpesaAmount }),
-      },
-    });
+    // ── 4b. Update Payment record ──
+    // Idempotency: if the payment is already SUCCESS (set by STK Query or
+    // a previous callback), don't overwrite it with FAILED/CANCELLED/etc.
+    if (payment.status === "SUCCESS" && paymentStatus !== "SUCCESS") {
+      console.log(
+        `[M-Pesa Callback] Payment ${payment.id} is already SUCCESS — ignoring ${paymentStatus} callback (code: ${ResultCode})`
+      );
+      // Still return success to Safaricom
+      return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+    }
+
+    // For 4999, we already handled it above (kept as PENDING + auto-retry)
+    // Only update the DB for non-4999 results
+    const shouldUpdateDB = String(ResultCode) !== "4999";
+
+    let updatedPayment = payment;
+    if (shouldUpdateDB) {
+      updatedPayment = await db.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: paymentStatus,
+          mpesaReceiptNumber: mpesaReceiptNumber || null,
+          resultDesc: ResultDesc || RESULT_DESCRIPTIONS[ResultCode] || "Unknown error",
+          resultCode: String(ResultCode),
+          mpesaCallbackData: body, // Store full callback for audit
+          ...(mpesaAmount && { amount: mpesaAmount }),
+        },
+      });
+    }
 
     console.log("[M-Pesa Callback] Payment updated:", {
       paymentId: payment.id,

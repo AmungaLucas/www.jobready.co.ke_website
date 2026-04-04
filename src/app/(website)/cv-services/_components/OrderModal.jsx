@@ -112,26 +112,28 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, step, onClose]);
 
+  // Minimum polls before we show error — prevents showing false failures
+  // from STK Query returning 4999 or transient errors before user enters PIN
+  const GRACE_POLLS = 5; // ~15 seconds grace period (5 polls × 3 seconds)
+
   // Poll payment status — uses STK Query (direct Safaricom check) as primary mechanism
-  const pollPaymentStatus = useCallback(async (paymentId, checkoutRequestId) => {
+  const pollPaymentStatus = useCallback(async (paymentId, checkoutRequestId, currentPollCount) => {
     if (!paymentId || !checkoutRequestId) return;
 
-    setPollCount((prev) => {
-      const next = prev + 1;
+    const nextPoll = currentPollCount + 1;
+    setPollCount(nextPoll);
+    pollCountRef.current = nextPoll; // Keep ref in sync for interval closure
 
-      // Timeout after 120 seconds (40 polls × 3 seconds)
-      if (next >= 40) {
-        if (pollRef.current) {
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-        }
-        setError("Payment timed out. The M-Pesa prompt may have expired. Please try again.");
-        setStep(STEPS.ERROR);
-        return next;
+    // Timeout after 120 seconds (40 polls × 3 seconds)
+    if (nextPoll >= 40) {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
       }
-
-      return next;
-    });
+      setError("Payment timed out. The M-Pesa prompt may have expired. Please try again.");
+      setStep(STEPS.ERROR);
+      return;
+    }
 
     try {
       // Primary: Query Safaricom directly via STK Query API
@@ -160,7 +162,19 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           }
           setStep(STEPS.SUCCESS);
           return;
-        } else if (queryData.status === "FAILED" || queryData.status === "CANCELLED" || queryData.status === "TIMEOUT") {
+        } else if (
+          queryData.status === "FAILED" ||
+          queryData.status === "CANCELLED" ||
+          queryData.status === "TIMEOUT"
+        ) {
+          // During grace period, don't show errors — the user may not have
+          // entered their PIN yet, and Safaricom may return transient statuses
+          if (nextPoll < GRACE_POLLS) {
+            console.log(
+              `[Payment] Ignoring ${queryData.status} during grace period (poll ${nextPoll}/${GRACE_POLLS}): ${queryData.resultDesc}`
+            );
+            return;
+          }
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
@@ -182,7 +196,11 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           }
           setPaymentData(data);
           setStep(STEPS.SUCCESS);
-        } else if (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "TIMEOUT") {
+        } else if (
+          (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "TIMEOUT") &&
+          nextPoll >= GRACE_POLLS
+        ) {
+          // Only show DB failure after grace period
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
@@ -196,17 +214,24 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
     }
   }, []);
 
+  // Track poll count in a ref so the interval callback always sees latest value
+  const pollCountRef = useRef(0);
+
   // Start polling when payment step is reached
   useEffect(() => {
     if (step === STEPS.PAYMENT && paymentData?.paymentId && paymentData?.checkoutRequestId) {
-      // Initial poll after 3 seconds
-      const initialTimeout = setTimeout(() => {
-        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId);
-      }, 3000);
+      pollCountRef.current = 0;
 
-      // Continue polling every 3 seconds
+      // Initial poll after 8 seconds (give user time to see the M-Pesa prompt
+      // and start entering PIN — reduces false FAILED from 4999 responses)
+      const initialTimeout = setTimeout(() => {
+        pollCountRef.current = 0;
+        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId, pollCountRef.current);
+      }, 8000);
+
+      // Continue polling every 3 seconds after the initial delay
       pollRef.current = setInterval(() => {
-        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId);
+        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId, pollCountRef.current);
       }, 3000);
 
       return () => {
@@ -623,7 +648,7 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
                   : "Checking payment status..."}
               </div>
 
-              {/* Progress bar */}
+              {/* Progress bar — approximate: 8s initial + 40 polls × 3s = ~128s total */}
               <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full transition-all duration-300"
@@ -632,7 +657,9 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
               </div>
 
               <p className="text-xs text-gray-400">
-                This may take a moment. Do not close this window.
+                {pollCount < GRACE_POLLS
+                  ? "Waiting for you to enter your M-Pesa PIN..."
+                  : "Checking payment status... Do not close this window."}
               </p>
             </div>
           )}

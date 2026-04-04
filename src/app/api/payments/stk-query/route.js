@@ -42,6 +42,13 @@ export async function POST(request) {
     const resultDesc = result.ResultDesc || result.ResponseDescription || "Unknown";
 
     // Determine payment status from Safaricom's result
+    // Safaricom STK Query result codes:
+    //   0     — Payment completed successfully
+    //   1     — Insufficient funds
+    //   1032  — Cancelled by user
+    //   1037  — Timeout (user didn't enter PIN)
+    //   4999  — Transaction still under processing (user hasn't entered PIN yet)
+    //   other — Treat as failure only when query itself succeeded
     let status;
     switch (resultCode) {
       case "0":
@@ -53,20 +60,31 @@ export async function POST(request) {
       case "1037":
         status = "TIMEOUT";
         break;
+      case "4999":
+        // Transaction still under processing — user may not have entered PIN yet
+        status = "PENDING";
+        break;
       default:
-        // If ResultCode is present but not 0, it's a failure
-        // If ResponseCode is "0" but no ResultCode, the transaction is still being processed
-        if (resultCode && result.ResponseCode === "0") {
-          status = "FAILED";
-        } else if (result.ResponseCode !== "0") {
+        // Only mark as FAILED if the query itself succeeded (ResponseCode "0")
+        // and we got a definitive failure ResultCode.
+        // If ResponseCode is not "0", the query failed — keep as PENDING.
+        // If no ResultCode, transaction is still processing — keep as PENDING.
+        if (!result.ResponseCode || result.ResponseCode !== "0") {
           status = "PENDING";
+        } else if (resultCode) {
+          // Query API succeeded but Safaricom returned a failure result code
+          status = "FAILED";
         } else {
           status = "PENDING";
         }
         break;
     }
 
+    console.log(`[STK Query] checkoutRequestId=${checkoutRequestId}, resultCode=${resultCode}, mappedStatus=${status}`);
+
     // If we have a paymentId and the result is final, update the DB
+    // IMPORTANT: Only update if the payment is still PENDING.
+    // Never overwrite SUCCESS (set by callback) with FAILED or other status.
     if (paymentId && status !== "PENDING") {
       try {
         const existingPayment = await db.payment.findUnique({
@@ -74,6 +92,7 @@ export async function POST(request) {
         });
 
         if (existingPayment && existingPayment.status === "PENDING") {
+          // Payment is still PENDING — safe to update with the final status
           await db.payment.update({
             where: { id: paymentId },
             data: {
@@ -82,6 +101,8 @@ export async function POST(request) {
               resultCode,
             },
           });
+
+          console.log(`[STK Query] Payment ${paymentId} updated to ${status} (code: ${resultCode})`);
 
           // If success, also update the order
           if (status === "SUCCESS") {
@@ -118,6 +139,11 @@ export async function POST(request) {
               });
             }
           }
+        } else if (existingPayment) {
+          // Payment already has a final status (e.g., SUCCESS from callback) — don't overwrite
+          console.log(
+            `[STK Query] Payment ${paymentId} is already ${existingPayment.status} — not overwriting with ${status}`
+          );
         }
       } catch (dbError) {
         console.error("[STK Query] DB update error:", dbError);

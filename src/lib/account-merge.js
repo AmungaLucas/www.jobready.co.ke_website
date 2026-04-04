@@ -148,6 +148,7 @@ export async function linkWalkInOrders(userId, email, phone) {
   if (conditions.length === 0) return 0;
 
   try {
+    // Link orders with no user (walk-in orders)
     const result = await db.order.updateMany({
       where: {
         userId: null,
@@ -786,13 +787,93 @@ export async function findOrCreateUser({
     `[AccountMerge] new user created: ${newUser.id} (${newEmail})`
   );
 
-  // Link walk-in orders
-  await linkWalkInOrders(newUser.id, normalizedEmail, normalizedPhone);
+  // ── Cross-account order merge ──
+  // If a phone-only user was just created, check if any existing users
+  // have orders with the same phone. If found, merge instead of creating
+  // a duplicate account. This handles the case where:
+  //   1. User placed an order while logged in with Google (userId=Google)
+  //   2. User then signs up with phone (creates new phone-only user)
+  //   3. We need to merge so the phone user gets the Google user's orders
+  let finalUser = newUser;
+  let wasMerged = false;
+
+  if (normalizedPhone) {
+    const phoneConditions = [{ phone: normalizedPhone }];
+    if (normalizedPhone.startsWith("254") && normalizedPhone.length === 12) {
+      phoneConditions.push({ phone: `0${normalizedPhone.substring(3)}` });
+      phoneConditions.push({ phone: `+${normalizedPhone}` });
+    }
+
+    const otherUserOrders = await db.order.findMany({
+      where: {
+        userId: { not: null, not: newUser.id },
+        OR: phoneConditions,
+      },
+      select: { userId: true },
+      distinct: ["userId"],
+    });
+
+    if (otherUserOrders.length > 0) {
+      for (const { userId: otherUserId } of otherUserOrders) {
+        try {
+          const otherUser = await db.user.findUnique({
+            where: { id: otherUserId },
+            include: { authAccounts: true },
+          });
+
+          if (!otherUser) continue;
+
+          console.log(
+            `[AccountMerge] cross-account: new user ${newUser.id} has phone ${normalizedPhone}, found existing user ${otherUser.id} with matching orders — merging`
+          );
+
+          const mergeResult = await mergeUsers(newUser, otherUser);
+          const survivingId = mergeResult.olderUserId;
+
+          finalUser = await db.user.findUnique({
+            where: { id: survivingId },
+            include: { authAccounts: true },
+          });
+
+          wasMerged = true;
+          console.log(
+            `[AccountMerge] cross-account merge: surviving user ${survivingId}`
+          );
+
+          // Link provider to the surviving user
+          await _linkProviderAndUpdate(finalUser, {
+            provider,
+            providerAccountId,
+            accessToken,
+            refreshToken,
+            idToken,
+            scope,
+            expiresAt,
+            name,
+            avatar,
+            normalizedPhone,
+            normalizedEmail,
+            passwordHash,
+          });
+
+          break; // Only merge with one user
+        } catch (mergeErr) {
+          console.error(
+            `[AccountMerge] cross-account merge failed with user ${otherUserId}:`,
+            mergeErr
+          );
+        }
+      }
+    }
+  }
+
+  // Link walk-in orders (orders with userId=null)
+  await linkWalkInOrders(finalUser.id, normalizedEmail, normalizedPhone);
 
   return {
-    user: newUser,
-    created: true,
-    merged: false,
+    user: finalUser,
+    created: !wasMerged,
+    merged: wasMerged,
     linkedProvider: true,
   };
 }
