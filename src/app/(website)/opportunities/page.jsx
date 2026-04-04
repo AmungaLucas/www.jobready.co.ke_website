@@ -13,6 +13,7 @@ import Badge from "../_components/Badge";
 import Pagination from "../_components/Pagination";
 import { generateMeta, generateBreadcrumbJsonLd, generateCollectionPageJsonLd } from "@/lib/seo";
 import { getOpportunityHubs } from "@/config/hub-config";
+import { db } from "@/lib/db";
 
 // ─── SEO ───────────────────────────────────────────────────
 export async function generateMetadata() {
@@ -29,14 +30,59 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Opportunities", href: "/opportunities" },
 ]);
 
-// ─── Data Fetching ─────────────────────────────────────────
+// Force dynamic rendering
+export const dynamic = "force-dynamic";
+
+// ─── Data Fetching (direct Prisma) ─────────────────────────
 async function fetchOpportunities(params = {}) {
-  const query = new URLSearchParams(params);
-  const res = await fetch(`/api/opportunities?${query.toString()}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return { opportunities: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
-  return res.json();
+  try {
+    const now = new Date();
+    const where = {
+      isActive: true,
+      publishedAt: { not: null, lte: now },
+    };
+
+    let orderBy = { publishedAt: "desc" };
+    if (params.sort === "featured") {
+      orderBy = [{ isFeatured: "desc" }, { publishedAt: "desc" }];
+    } else if (params.sort === "deadline") {
+      orderBy = [{ deadline: "asc" }, { publishedAt: "desc" }];
+    }
+
+    const limit = parseInt(params.limit || "20", 10);
+    const total = await db.opportunity.count({ where });
+
+    const opportunities = await db.opportunity.findMany({
+      where,
+      orderBy,
+      take: limit > 50 ? 50 : limit,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        opportunityType: true,
+        category: true,
+        location: true,
+        isRemote: true,
+        deadline: true,
+        organizationName: true,
+        organizationLogo: true,
+        organizationType: true,
+        isFeatured: true,
+        viewsCount: true,
+        publishedAt: true,
+      },
+    });
+
+    return {
+      opportunities,
+      pagination: { page: 1, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  } catch (error) {
+    console.error("[fetchOpportunities] Error:", error);
+    return { opportunities: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
+  }
 }
 
 // ─── Related Hubs (static from hub-config) ─────────────────

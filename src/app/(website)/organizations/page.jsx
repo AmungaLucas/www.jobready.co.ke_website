@@ -1,7 +1,10 @@
+import { db } from "@/lib/db";
 import Link from "next/link";
 import Script from "next/script";
 import { generateMeta, generateBreadcrumbJsonLd, generateCollectionPageJsonLd } from "@/lib/seo";
 import OrganizationsContent from "./_components/OrganizationsContent";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = generateMeta({
   title: "Top Employers in Kenya — Browse Companies Hiring Now",
@@ -24,19 +27,32 @@ const collectionJsonLd = generateCollectionPageJsonLd({
   totalItems: 500,
 });
 
-// ─── Data Fetching ─────────────────────────────────────────
-async function fetchCompanies(params = {}) {
-  const query = new URLSearchParams(params);
-  const res = await fetch(`/api/companies?${query.toString()}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return { companies: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };
-  return res.json();
-}
-
 export default async function OrganizationsPage() {
-  const data = await fetchCompanies({ limit: "50", sort: "featured" });
-  const companies = data.companies || [];
+  // Fetch companies directly from database
+  let companies = [];
+  try {
+    const rawCompanies = await db.company.findMany({
+      where: { isActive: true },
+      orderBy: [{ isVerified: "desc" }, { name: "asc" }],
+      take: 50,
+      include: {
+        _count: {
+          select: {
+            jobs: {
+              where: { isActive: true, publishedAt: { not: null } },
+            },
+          },
+        },
+      },
+    });
+    // Map _count.jobs to jobCount
+    companies = rawCompanies.map((c) => ({
+      ...c,
+      jobCount: c._count.jobs,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch companies:", error);
+  }
 
   return (
     <>

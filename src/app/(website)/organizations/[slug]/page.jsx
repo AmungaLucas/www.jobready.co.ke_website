@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -20,6 +21,8 @@ import { siteConfig } from "@/config/site-config";
 import { FiChevronRight, FiBriefcase } from "react-icons/fi";
 import { HiBuildingOffice } from "react-icons/hi2";
 
+export const dynamic = "force-dynamic";
+
 // Static config — browse industries sidebar (no API for counts)
 const browseIndustries = [
   { name: "Banking & Finance", count: 18 },
@@ -30,24 +33,98 @@ const browseIndustries = [
   { name: "Healthcare", count: 12 },
 ];
 
+// ─── Data Fetching ─────────────────────────────────────────
+async function fetchCompanyData(slug) {
+  try {
+    const today = new Date();
+    const company = await db.company.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: {
+            jobs: {
+              where: { isActive: true, publishedAt: { not: null, lte: today } },
+            },
+          },
+        },
+        jobs: {
+          where: {
+            isActive: true,
+            publishedAt: { not: null, lte: today },
+            OR: [{ deadline: null }, { deadline: { gte: today } }],
+          },
+          take: 10,
+          orderBy: { publishedAt: "desc" },
+          include: {
+            company: {
+              select: { name: true, slug: true, logo: true, logoColor: true, isVerified: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!company) return null;
+
+    const rawJobs = company.jobs;
+    const totalJobs = company._count.jobs;
+    const pagination = {
+      page: 1,
+      limit: 10,
+      total: totalJobs,
+      totalPages: Math.ceil(totalJobs / 10) || 1,
+    };
+
+    // Fetch similar companies (same industry)
+    let similarCompanies = [];
+    try {
+      if (company.industry) {
+        const rawSimilar = await db.company.findMany({
+          where: {
+            id: { not: company.id },
+            isActive: true,
+            industry: company.industry,
+          },
+          take: 5,
+          include: {
+            _count: {
+              select: {
+                jobs: { where: { isActive: true, publishedAt: { not: null } } },
+              },
+            },
+          },
+        });
+        similarCompanies = rawSimilar.map((c) => ({
+          ...c,
+          jobCount: c._count.jobs,
+        }));
+      }
+    } catch {
+      similarCompanies = [];
+    }
+
+    return { company, jobs: rawJobs, pagination, similarCompanies };
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+    return null;
+  }
+}
+
 // ─── Metadata ─────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { slug } = await params;
 
   try {
-    const res = await fetch(`/api/companies/${slug}`, {
-      next: { revalidate: 60 },
+    const company = await db.company.findUnique({
+      where: { slug },
     });
 
-    if (!res.ok) {
+    if (!company) {
       return generateMeta({
         title: "Company Not Found",
         path: `/organizations/${slug}`,
       });
     }
-
-    const data = await res.json();
-    const { company } = data;
 
     return generateMeta({
       title: company.metaTitle
@@ -70,19 +147,15 @@ export async function generateMetadata({ params }) {
 export default async function CompanyProfilePage({ params }) {
   const { slug } = await params;
 
-  // Fetch company data from API
+  // Fetch company data from database
   let companyData;
   try {
-    const res = await fetch(`/api/companies/${slug}`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) {
-      notFound();
-    }
-
-    companyData = await res.json();
+    companyData = await fetchCompanyData(slug);
   } catch {
+    notFound();
+  }
+
+  if (!companyData) {
     notFound();
   }
 

@@ -24,6 +24,7 @@ import DeadlineCard from "./_components/DeadlineCard";
 import AdSlot from "./_components/AdSlot";
 import { generateWebSiteJsonLd } from "@/lib/seo";
 import { normalizeJobs, normalizeOpportunities, formatTimeLeft } from "@/lib/normalize";
+import { db } from "@/lib/db";
 
 // Fallback mock data (used when API returns empty results)
 import {
@@ -80,16 +81,34 @@ const locations = [
   { label: "Remote", href: "/jobs/remote", highlight: true },
 ];
 
-// ─── Data fetcher (with fallback) ─────────────────────────────
-async function fetchApi(url) {
-  try {
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+// Force dynamic rendering (no static generation at build time)
+export const dynamic = "force-dynamic";
+
+// ─── Shared Prisma where clause for active, published jobs ───
+function activeJobsWhere(overrides = {}) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return {
+    AND: [
+      { isActive: true },
+      { publishedAt: { not: null, lte: now } },
+      { OR: [{ deadline: null }, { deadline: { gte: today } }] },
+      ...overrides,
+    ],
+  };
 }
+
+const jobInclude = {
+  company: {
+    select: {
+      name: true,
+      slug: true,
+      logo: true,
+      logoColor: true,
+      isVerified: true,
+    },
+  },
+};
 
 // ─── SEO ──────────────────────────────────────────────────────
 export async function generateMetadata() {
@@ -112,49 +131,88 @@ export async function generateMetadata() {
 
 // ─── PAGE ─────────────────────────────────────────────────────
 export default async function HomePage() {
-  // Fetch data from APIs in parallel
-  const [featuredRes, latestRes, internshipRes, opportunityRes, deadlineRes] =
+  // Fetch all data directly from Prisma (no API route indirection)
+  const [featuredJobs, latestJobs, internshipJobs, deadlineJobs, opportunities] =
     await Promise.allSettled([
-      fetchApi("/api/jobs?sort=featured&limit=5"),
-      fetchApi("/api/jobs?sort=newest&limit=10"),
-      fetchApi("/api/jobs?jobType=INTERNSHIP&limit=5"),
-      fetchApi("/api/opportunities?sort=newest&limit=5"),
-      fetchApi("/api/jobs?sort=deadline&limit=10"),
+      // Featured jobs
+      db.job.findMany({
+        where: activeJobsWhere(),
+        orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+        take: 5,
+        include: jobInclude,
+      }),
+      // Latest jobs
+      db.job.findMany({
+        where: activeJobsWhere(),
+        orderBy: { publishedAt: "desc" },
+        take: 10,
+        include: jobInclude,
+      }),
+      // Internship jobs
+      db.job.findMany({
+        where: activeJobsWhere([{ jobType: "INTERNSHIP" }]),
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        include: jobInclude,
+      }),
+      // Deadline jobs (for urgent deadlines + sidebar)
+      db.job.findMany({
+        where: activeJobsWhere(),
+        orderBy: [{ deadline: "asc" }, { publishedAt: "desc" }],
+        take: 10,
+        include: jobInclude,
+      }),
+      // Opportunities
+      db.opportunity.findMany({
+        where: {
+          isActive: true,
+          publishedAt: { not: null, lte: new Date() },
+        },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          opportunityType: true,
+          category: true,
+          location: true,
+          isRemote: true,
+          deadline: true,
+          organizationName: true,
+          organizationLogo: true,
+          organizationType: true,
+          isFeatured: true,
+          viewsCount: true,
+          publishedAt: true,
+        },
+      }),
     ]);
 
-  const featuredData = featuredRes.status === "fulfilled" ? featuredRes.value : null;
-  const latestData = latestRes.status === "fulfilled" ? latestRes.value : null;
-  const internshipData = internshipRes.status === "fulfilled" ? internshipRes.value : null;
-  const opportunityData = opportunityRes.status === "fulfilled" ? opportunityRes.value : null;
-  const deadlineData = deadlineRes.status === "fulfilled" ? deadlineRes.value : null;
+  const featuredRaw = featuredJobs.status === "fulfilled" ? featuredJobs.value : [];
+  const latestRaw = latestJobs.status === "fulfilled" ? latestJobs.value : [];
+  const internshipRaw = internshipJobs.status === "fulfilled" ? internshipJobs.value : [];
+  const deadlineRaw = deadlineJobs.status === "fulfilled" ? deadlineJobs.value : [];
+  const oppRaw = opportunities.status === "fulfilled" ? opportunities.value : [];
 
   // Normalize jobs with fallback to mock data
-  const featuredJobs = featuredData?.jobs?.length
-    ? normalizeJobs(featuredData.jobs)
-    : mockFeatured;
+  const _featuredJobs = featuredRaw.length ? normalizeJobs(featuredRaw) : mockFeatured;
+  const _latestJobs = latestRaw.length ? normalizeJobs(latestRaw) : mockLatest;
+  const _internshipJobs = internshipRaw.length ? normalizeJobs(internshipRaw) : mockInternship;
 
-  const latestJobs = latestData?.jobs?.length
-    ? normalizeJobs(latestData.jobs)
-    : mockLatest;
-
-  const internshipJobs = internshipData?.jobs?.length
-    ? normalizeJobs(internshipData.jobs)
-    : mockInternship;
-
-  // Trending = first 5 from latest or mock trending
-  const trendingJobs = latestData?.jobs?.length
-    ? normalizeJobs(latestData.jobs).slice(0, 5)
-    : mockTrending;
+  // Trending = first 5 from latest
+  const trendingJobs = latestRaw.length ? normalizeJobs(latestRaw).slice(0, 5) : mockTrending;
 
   // Urgent deadlines: filter jobs with deadline within 7 days
   const now = new Date();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  const urgentJobs = deadlineData?.jobs?.filter((j) => {
+  const urgentJobs = deadlineRaw.filter((j) => {
     if (!j.deadline) return false;
     const dl = new Date(j.deadline);
     return dl > now && dl.getTime() - now.getTime() < sevenDaysMs;
   });
-  const urgentDeadlines = urgentJobs?.length
+  const urgentDeadlines = urgentJobs.length
     ? urgentJobs.slice(0, 3).map((j) => ({
         slug: j.slug,
         title: j.title,
@@ -164,16 +222,14 @@ export default async function HomePage() {
     : mockUrgent;
 
   // Opportunities
-  const opportunities = opportunityData?.opportunities?.length
-    ? normalizeOpportunities(opportunityData.opportunities)
-    : mockOpportunities;
+  const _opportunities = oppRaw.length ? normalizeOpportunities(oppRaw) : mockOpportunities;
 
   // ─── Sidebar data ───────────────────────────────────────
 
-  // Top employers: from featured jobs' companies, deduplicated
+  // Top employers: from latest jobs' companies, deduplicated
   const companyMap = new Map();
-  const allJobsForSidebar = latestData?.jobs?.length
-    ? latestData.jobs
+  const allJobsForSidebar = latestRaw.length
+    ? latestRaw
     : [...mockTrending, ...mockLatest, ...mockFeatured];
   for (const job of allJobsForSidebar) {
     const c = job.company;
@@ -196,8 +252,8 @@ export default async function HomePage() {
       : mockTopEmployers;
 
   // Sidebar featured jobs: take first 4 from featured jobs
-  const sidebarFeaturedJobs = featuredJobs.length > 0
-    ? featuredJobs.slice(0, 4).map((j) => ({
+  const sidebarFeaturedJobs = _featuredJobs.length > 0
+    ? _featuredJobs.slice(0, 4).map((j) => ({
         title: j.title,
         slug: j.slug,
         company: j.company?.name || "",
@@ -206,12 +262,9 @@ export default async function HomePage() {
       }))
     : mockSidebarFeatured;
 
-  // Sidebar deadlines: compute from urgent jobs + deadline jobs
-  const allDeadlineJobs = deadlineData?.jobs?.length
-    ? deadlineData.jobs
-    : [];
-  const sidebarDeadlines = allDeadlineJobs.length > 0
-    ? allDeadlineJobs.slice(0, 5).map((j) => ({
+  // Sidebar deadlines: compute from deadline jobs
+  const sidebarDeadlines = deadlineRaw.length > 0
+    ? deadlineRaw.slice(0, 5).map((j) => ({
         name: j.title,
         timeLeft: formatTimeLeft(j.deadline),
       }))
@@ -314,7 +367,7 @@ export default async function HomePage() {
             {/* 7. LATEST JOBS */}
             <div className="mb-10 md:mb-12">
               <JobCardGrid
-                jobs={latestJobs}
+                jobs={_latestJobs}
                 title="Latest Jobs"
                 icon={FiClock}
                 viewAllHref="/jobs"
@@ -325,10 +378,10 @@ export default async function HomePage() {
             <AdSlot position="inline" />
 
             {/* 9. FEATURED JOBS */}
-            {featuredJobs.length > 0 && (
+            {_featuredJobs.length > 0 && (
               <div className="mb-10 md:mb-12">
                 <JobCardGrid
-                  jobs={featuredJobs}
+                  jobs={_featuredJobs}
                   title="Featured Jobs"
                   icon={FaAward}
                   viewAllHref="/search?sort=featured"
@@ -395,10 +448,10 @@ export default async function HomePage() {
             </div>
 
             {/* 12. INTERNSHIP OPPORTUNITIES */}
-            {internshipJobs.length > 0 && (
+            {_internshipJobs.length > 0 && (
               <div className="mb-10 md:mb-12">
                 <JobCardGrid
-                  jobs={internshipJobs}
+                  jobs={_internshipJobs}
                   title="Internship Opportunities"
                   icon={FaGraduationCap}
                   viewAllHref="/jobs/internships"
@@ -407,7 +460,7 @@ export default async function HomePage() {
             )}
 
             {/* 13. SCHOLARSHIPS & OPPORTUNITIES */}
-            {opportunities.length > 0 && (
+            {_opportunities.length > 0 && (
               <div className="mb-10 md:mb-12">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -434,7 +487,7 @@ export default async function HomePage() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                  {opportunities.map((opp) => (
+                  {_opportunities.map((opp) => (
                     <OpportunityCard
                       key={opp.slug}
                       title={opp.title}

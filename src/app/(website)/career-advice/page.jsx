@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import FeaturedArticle from "./_components/FeaturedArticle";
 import CareerAdviceClient from "./_components/CareerAdviceClient";
@@ -8,6 +9,8 @@ import AdSlot from "@/app/(website)/_components/AdSlot";
 import SidebarCard from "@/app/(website)/_components/SidebarCard";
 import Link from "next/link";
 import { FiChevronRight, FiFileText } from "react-icons/fi";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = generateMeta({
   title: "Career Advice & Job Search Tips for Kenyan Job Seekers",
@@ -67,25 +70,28 @@ const popularTags = [
   "Scholarships",
 ];
 
-// ─── Data Fetching ─────────────────────────────────────────
-async function fetchArticles(params = {}) {
-  const query = new URLSearchParams(params);
-  const res = await fetch(`/api/articles?${query.toString()}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return { articles: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
-  return res.json();
-}
-
 export default async function CareerAdvicePage() {
-  // Fetch featured and all articles in parallel
-  const [featuredData, allData] = await Promise.all([
-    fetchArticles({ sort: "featured", limit: "10" }),
-    fetchArticles({ limit: "20" }),
-  ]);
+  // Fetch articles directly from database
+  let articles = [];
+  try {
+    articles = await db.blogArticle.findMany({
+      where: {
+        isPublished: true,
+        publishedAt: { not: null, lte: new Date() },
+      },
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      take: 20,
+      include: {
+        author: { select: { name: true } },
+        category: { select: { name: true, slug: true, color: true } },
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch articles:", error);
+  }
 
-  const featured = featuredData.articles.find((a) => a.isFeatured) || featuredData.articles[0] || null;
-  const regularArticles = allData.articles.filter((a) => !a.isFeatured);
+  const featured = articles.find((a) => a.isFeatured) || articles[0] || null;
+  const regularArticles = articles.filter((a) => !a.isFeatured);
 
   return (
     <>

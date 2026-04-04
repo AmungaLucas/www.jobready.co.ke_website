@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { generateMeta, generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
@@ -10,19 +11,58 @@ import ShareButtons from "./_components/ShareButtons";
 import { getArticleHtml } from "./_components/article-content";
 import { FiClock, FiEye, FiArrowRight } from "react-icons/fi";
 
+export const dynamic = "force-dynamic";
+
 // ─── Data Fetching ─────────────────────────────────────────
-async function fetchArticle(slug) {
-  const res = await fetch(`/api/articles/${slug}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+async function fetchArticleData(slug) {
+  try {
+    const article = await db.blogArticle.findUnique({
+      where: { slug },
+      include: {
+        author: true,
+        category: true,
+        tags: { include: { tag: true } },
+      },
+    });
+
+    if (!article) return null;
+
+    // Transform tags from ArticleTag[] to BlogTag[]
+    const articleWithTags = {
+      ...article,
+      tags: article.tags.map((t) => t.tag),
+    };
+
+    // Fetch related articles (same category, published)
+    let relatedArticles = [];
+    try {
+      relatedArticles = await db.blogArticle.findMany({
+        where: {
+          id: { not: article.id },
+          categoryId: article.categoryId,
+          isPublished: true,
+          publishedAt: { not: null, lte: new Date() },
+        },
+        take: 5,
+        include: {
+          category: { select: { name: true, color: true } },
+        },
+      });
+    } catch {
+      relatedArticles = [];
+    }
+
+    return { article: articleWithTags, relatedArticles };
+  } catch (error) {
+    console.error("Failed to fetch article:", error);
+    return null;
+  }
 }
 
 // ─── Metadata ──────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const data = await fetchArticle(slug);
+  const data = await fetchArticleData(slug);
 
   if (!data || !data.article) {
     return generateMeta({ title: "Article Not Found" });
@@ -42,7 +82,7 @@ export async function generateMetadata({ params }) {
 // ─── Page ──────────────────────────────────────────────────
 export default async function BlogArticlePage({ params }) {
   const { slug } = await params;
-  const data = await fetchArticle(slug);
+  const data = await fetchArticleData(slug);
 
   if (!data || !data.article) {
     notFound();
