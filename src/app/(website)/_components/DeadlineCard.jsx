@@ -3,7 +3,7 @@ import { Clock, AlertTriangle } from "lucide-react";
 import { formatRelativeDate } from "@/lib/format";
 
 export default function DeadlineCard({ title, slug, company, deadline }) {
-  const href = slug ? `/jobs/${slug}` : "#";
+  const href = slug ? `/job/${slug}` : "#";
   const isExpired = deadline && new Date(deadline) < new Date();
 
   return (

@@ -235,7 +235,7 @@ export function applicationReceiptTemplate({ userName, jobTitle, companyName, sl
         <li>You can track all your applications in your <a href="${BASE_URL}/dashboard/applications">dashboard</a></li>
       </ol>
       <p style="text-align:center;margin-top:8px;">
-        <a href="${BASE_URL}/jobs/${slug}" class="btn">View Job Listing</a>
+        <a href="${BASE_URL}/job/${slug}" class="btn">View Job Listing</a>
       </p>
       <p style="text-align:center;margin-top:4px;">
         <a href="${BASE_URL}/dashboard/applications" style="font-size:14px;color:#1a56db;">Track Your Applications</a>

@@ -340,7 +340,7 @@ export default function MyJobsContent() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-48">
                                 <DropdownMenuItem asChild>
-                                  <Link href={`/jobs/${job.id}`}>
+                                  <Link href={`/job/${job.slug}`}>
                                     <Eye className="mr-2 size-4" />
                                     View Job
                                   </Link>

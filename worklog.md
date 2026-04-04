@@ -2329,3 +2329,35 @@ Stage Summary:
 - OTP generated: 277067 for 254706356633
 - Contact form, newsletter all working (email sending requires valid SMTP credentials)
 - GitHub push: commit b85c6b7
+---
+## Task ID: 10
+### Work Task
+Create 2 new pages for JobReady.co.ke: (1) RSS Feed route at /feed.xml and (2) Opportunity Detail page at /opportunities/[slug].
+
+### Work Summary
+Created 2 files with zero new lint errors. Both files follow existing project patterns (.jsx, Tailwind utility classes, lucide-react icons, shared components).
+
+**1. `src/app/feed.xml/route.js` — RSS Feed Route**
+- Returns RSS 2.0 XML feed with latest 50 active, published jobs from database
+- Includes company name via Prisma `include`, CDATA-wrapped titles and descriptions
+- Atom self-link, `en-ke` language, `lastBuildDate` set to current time
+- `Content-Type: application/xml; charset=utf-8` header
+- Cache-Control: `public, s-maxage=3600, stale-while-revalidate=600`
+- Graceful error handling with 500 response
+
+**2. `src/app/(website)/opportunities/[slug]/page.jsx` — Opportunity Detail Page**
+- Server component that fetches from `/api/opportunities/[slug]` (which returns opportunity + similarOpportunities)
+- `generateMetadata()` for dynamic SEO (title, description, OG, canonical)
+- 4-level breadcrumb JSON-LD: Home > Opportunities > {type}s > {title}
+- WebPage JSON-LD with publisher, dates, etc.
+- Hero section: purple-to-indigo gradient matching hub pages, type badge (color-coded by opportunity type), title, organization name
+- Key details bar: deadline (with days-remaining countdown + expired state), location (with remote badge), category, views
+- Apply button: links to `externalApplyUrl` (primary blue) or WhatsApp (green) — disabled gray state when expired
+- Copy Link button with clipboard API
+- Description rendered with `dangerouslySetInnerHTML` + comprehensive prose Tailwind styles for HTML content
+- Service nudge banner (purple border)
+- Inline AdSlot
+- Related opportunities grid using OpportunityCard component
+- Right sidebar: Organization card (initials avatar + name + type), CVReviewCTA, deadline reminder (red for ≤7 days, amber otherwise), AdSlot sidebar, NewsletterForm, "More Opportunities" links list
+- 404 handling via `notFound()` on fetch failure or null response
+- Responsive: single column on mobile, 2-column on lg

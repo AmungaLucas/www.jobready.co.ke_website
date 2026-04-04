@@ -102,7 +102,7 @@ export default function HomepageSidebar({
                 </div>
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/jobs/${job.slug}`}
+                    href={`/job/${job.slug}`}
                     className="block text-[0.85rem] font-semibold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis hover:text-primary transition-colors no-underline"
                   >
                     {job.title}

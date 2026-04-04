@@ -368,7 +368,7 @@ export default function DashboardOverview() {
                       <div className="flex-1 space-y-1">
                         {item.jobSlug ? (
                           <Link
-                            href={`/jobs/${item.jobSlug}`}
+                            href={`/job/${item.jobSlug}`}
                             className="text-sm leading-snug hover:underline"
                           >
                             {item.message}

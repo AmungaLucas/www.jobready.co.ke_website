@@ -50,7 +50,7 @@ export default async function sitemap() {
   try {
     // Fetch published jobs (limit to most recent 500)
     const jobs = await db.job.findMany({
-      where: { status: "PUBLISHED" },
+      where: { isActive: true, publishedAt: { not: null } },
       select: { slug: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
       take: 500,
@@ -58,7 +58,7 @@ export default async function sitemap() {
 
     // Fetch published articles (limit to most recent 200)
     const articles = await db.blogArticle.findMany({
-      where: { status: "PUBLISHED" },
+      where: { isPublished: true, publishedAt: { not: null } },
       select: { slug: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
       take: 200,

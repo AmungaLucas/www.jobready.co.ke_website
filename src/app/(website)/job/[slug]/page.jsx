@@ -139,7 +139,7 @@ export default async function JobDetailPage({ params }) {
             {/* Pain trigger */}
             <div className="bg-gray-900 text-white rounded-lg p-5 md:p-6 mt-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
               <div className="text-[1.6rem] font-extrabold text-[#f59e0b] leading-none whitespace-nowrap">
-                {normalizedJob.applicantCount || 0}
+                {normalizedJob.applicationCount || 0}
                 <small className="block text-[0.7rem] text-gray-400 font-normal mt-1">
                   applicants
                 </small>
@@ -147,7 +147,7 @@ export default async function JobDetailPage({ params }) {
               <div className="flex-1">
                 <p className="text-[0.85rem] text-gray-300 leading-relaxed">
                   <strong className="text-white">
-                    Stand out from {normalizedJob.applicantCount || 0} applicants.
+                    Stand out from {normalizedJob.applicationCount || 0} applicants.
                   </strong>{" "}
                   A professional CV tailored to this role gets you 3x more
                   interview calls.

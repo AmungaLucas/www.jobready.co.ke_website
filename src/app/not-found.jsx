@@ -10,6 +10,10 @@ import {
   FileText,
   Compass,
 } from "lucide-react";
+import TopBar from "@/app/(website)/_components/TopBar";
+import Header from "@/app/(website)/_components/Header";
+import Footer from "@/app/(website)/_components/Footer";
+import WhatsAppFloat from "@/app/(website)/_components/WhatsAppFloat";
 
 // ── SEO ──────────────────────────────────────────
 export const metadata = generateMeta({
@@ -71,6 +75,8 @@ const quickLinks = [
 export default function NotFound() {
   return (
     <>
+      <TopBar />
+      <Header activeNav="" />
       {/* JSON-LD Structured Data */}
       <Script
         id="breadcrumb-jsonld-404"
@@ -256,6 +262,8 @@ export default function NotFound() {
           </Link>
         </div>
       </section>
+      <Footer />
+      <WhatsAppFloat />
     </>
   );
 }
