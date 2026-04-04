@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -86,16 +87,80 @@ const INITIAL_COMPANY = {
   contactTitle: "HR Manager",
   contactEmail: "careers@safaricom.co.ke",
   contactPhone: "+254 720 000 000",
+  logo: "",
 };
 
 export default function CompanyProfileForm() {
   const [form, setForm] = useState({ ...INITIAL_COMPANY });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setIsSaved(false);
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Client-side validation
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Only JPEG, PNG, GIF, WebP, and SVG are allowed.",
+      });
+      return;
+    }
+
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      toast.error("File too large", {
+        description: "Maximum file size is 2MB.",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const res = await fetch("/api/company/logo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      setForm((prev) => ({ ...prev, logo: data.logo }));
+      toast.success("Logo uploaded", {
+        description: "Your company logo has been updated successfully.",
+      });
+    } catch (error) {
+      toast.error("Upload failed", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsUploading(false);
+      // Reset file input so the same file can be re-selected
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -141,9 +206,23 @@ export default function CompanyProfileForm() {
         <CardContent className="pt-6">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <Avatar className="size-20 rounded-xl">
-              <AvatarFallback className="rounded-xl bg-green-600 text-white text-xl font-bold">
-                SC
-              </AvatarFallback>
+              {form.logo ? (
+                <img
+                  src={form.logo}
+                  alt={form.name}
+                  className="object-cover size-full rounded-xl"
+                />
+              ) : (
+                <AvatarFallback className="rounded-xl bg-green-600 text-white text-xl font-bold">
+                  {form.name
+                    ? form.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .substring(0, 2)
+                    : "SC"}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{form.name || "Your Company"}</h3>
@@ -151,9 +230,30 @@ export default function CompanyProfileForm() {
                 {form.industry || "Industry not set"}
               </p>
               <div className="mt-3 flex items-center gap-3">
-                <Button variant="outline" size="sm">
-                  <Upload className="mr-2 size-4" />
-                  Upload Logo
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <span className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 size-4" />
+                      Upload Logo
+                    </>
+                  )}
                 </Button>
                 <p className="text-xs text-muted-foreground">
                   PNG, JPG or SVG. Max 2MB. Recommended: 400x400px

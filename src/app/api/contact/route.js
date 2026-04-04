@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
+import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendEmail, contactFormTemplate } from "@/lib/email";
+import { siteConfig } from "@/config/site-config";
 
 /**
  * POST /api/contact
  * Handles contact form submissions.
  * Body: { name, email, subject, message }
  *
- * In production, this would:
- * - Send an email to support@jobready.co.ke
- * - Store in a database table
- * - Integrate with a CRM/ticketing system
- *
- * For now, it validates input and returns success.
+ * - Rate limited: 3 submissions per minute per IP
+ * - Sends notification email to support@jobready.co.ke
+ * - Validates all required fields
  */
 export async function POST(request) {
   try {
+    // --- Rate limiting ---
+    const ip = getClientIp(request);
+    const { success, resetAt } = presets.contact(ip);
+    if (!success) {
+      const resp = rateLimitResponse(3, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
+    }
+
     const body = await request.json();
     const { name, email, subject, message } = body;
 
@@ -54,14 +62,36 @@ export async function POST(request) {
       );
     }
 
-    // In production: send email, store in DB, create ticket
-    // For now, log and return success
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedSubject = subject.trim();
+    const trimmedMessage = message.trim();
+
+    // --- Send notification email to support (non-blocking) ---
+    const emailResult = await sendEmail({
+      to: siteConfig.email.support,
+      subject: `[JobReady Contact] ${trimmedSubject}`,
+      replyTo: trimmedEmail,
+      ...contactFormTemplate({
+        name: trimmedName,
+        email: trimmedEmail,
+        subject: trimmedSubject,
+        message: trimmedMessage,
+      }),
+    });
+
+    if (!emailResult.success) {
+      console.error("[POST /api/contact] Email send failed:", emailResult.error);
+      // Still return success to user — don't expose email issues
+    }
+
     console.log("[POST /api/contact] New contact form submission:", {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      subject: subject.trim(),
-      messageLength: message.trim().length,
+      name: trimmedName,
+      email: trimmedEmail,
+      subject: trimmedSubject,
+      messageLength: trimmedMessage.length,
       timestamp: new Date().toISOString(),
+      emailSent: emailResult.success,
     });
 
     return NextResponse.json(

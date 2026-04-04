@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendEmail, newsletterConfirmationTemplate } from "@/lib/email";
 
 /**
  * POST /api/newsletter
@@ -9,12 +11,22 @@ import { db } from "@/lib/db";
  *   type: "job_alerts" | "career_tips" | "opportunity_alerts" | "employer_updates"
  *         Defaults to "career_tips"
  *
+ * Rate limited: 5 subscriptions per minute per IP
+ *
  * Note: NewsletterSubscription has a unique email constraint, so only one
  * subscription per email exists. If the email already exists, the type is
  * updated and isActive is set to true (re-subscribes if previously unsubscribed).
  */
 export async function POST(request) {
   try {
+    // --- Rate limiting ---
+    const ip = getClientIp(request);
+    const { success, resetAt } = presets.newsletter(ip);
+    if (!success) {
+      const resp = rateLimitResponse(5, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
+    }
+
     const body = await request.json();
     const { email, type } = body;
 
@@ -77,6 +89,15 @@ export async function POST(request) {
         isActive: true,
       },
     });
+
+    // --- Send confirmation email (non-blocking) ---
+    sendEmail({
+      to: trimmedEmail,
+      subject: "You're subscribed! — JobReady Kenya",
+      ...newsletterConfirmationTemplate(trimmedEmail, subscriptionType),
+    }).catch((err) =>
+      console.error("[Newsletter] Confirmation email failed:", err.message)
+    );
 
     return NextResponse.json(
       {

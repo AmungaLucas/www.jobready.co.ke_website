@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendEmail, passwordResetTemplate } from "@/lib/email";
 
 export async function POST(request) {
   try {
+    // --- Rate limiting ---
+    const ip = getClientIp(request);
+    const { success, resetAt } = presets.forgotPassword(ip);
+    if (!success) {
+      const resp = rateLimitResponse(3, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
+    }
+
     const body = await request.json();
     const { email } = body;
 
@@ -70,12 +80,15 @@ export async function POST(request) {
     });
 
     // --- Send password reset email ---
-    // TODO: Connect actual email service (Resend, SendGrid, etc.)
-    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
-    console.log(`[Forgot Password] Email: ${trimmedEmail}, Reset URL: ${resetUrl}`);
+    const resetUrl = `${process.env.NEXTAUTH_URL || "https://jobready.co.ke"}/auth/reset-password?token=${resetToken}`;
 
-    // In production, send via email:
-    // await sendEmail(trimmedEmail, "Reset Your JobReady Password", resetTemplate(resetUrl));
+    await sendEmail({
+      to: trimmedEmail,
+      subject: "Reset Your JobReady Password",
+      ...passwordResetTemplate(user.name, resetUrl),
+    });
+
+    console.log(`[Forgot Password] Reset email sent to: ${trimmedEmail}`);
 
     return NextResponse.json(
       {

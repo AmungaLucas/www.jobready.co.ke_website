@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendEmail, welcomeTemplate } from "@/lib/email";
 
 export async function POST(request) {
   try {
+    // --- Rate limiting ---
+    const ip = getClientIp(request);
+    const { success, remaining, resetAt } = presets.register(ip);
+    if (!success) {
+      const resp = rateLimitResponse(5, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
+    }
     const body = await request.json();
     const { name, email, phone, password } = body;
 
@@ -108,6 +117,13 @@ export async function POST(request) {
 
     // --- Return user without passwordHash ---
     const { passwordHash: _, ...userWithoutPassword } = user;
+
+    // --- Send welcome email (non-blocking) ---
+    sendEmail({
+      to: trimmedEmail,
+      subject: "Welcome to JobReady!",
+      ...welcomeTemplate(trimmedName, trimmedEmail),
+    }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
 
     return NextResponse.json(
       {

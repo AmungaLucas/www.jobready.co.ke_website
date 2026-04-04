@@ -2,6 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import {
+  headingsPlugin,
+  listsPlugin,
+  quotePlugin,
+  thematicBreakPlugin,
+  markdownShortcutPlugin,
+  toolbarPlugin,
+} from "@mdxeditor/editor";
+import "@mdxeditor/editor/style.css";
+
+const MDXEditor = dynamic(
+  () => import("@mdxeditor/editor").then((mod) => mod.MDXEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 border rounded-md bg-gray-50 animate-pulse" />
+    ),
+  }
+);
 import {
   Card,
   CardContent,
@@ -13,7 +33,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -37,6 +56,33 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+
+// ── RichTextEditor wrapper ──────────────────────────────
+function RichTextEditor({ value, onChange, placeholder, error }) {
+  return (
+    <div
+      className={`border rounded-md overflow-hidden ${
+        error ? "border-destructive" : ""
+      }`}
+    >
+      <MDXEditor
+        markdown={value || ""}
+        onChange={(md) => onChange(md.markdown)}
+        placeholder={placeholder}
+        plugins={[
+          toolbarPlugin(),
+          headingsPlugin(),
+          listsPlugin(),
+          quotePlugin(),
+          thematicBreakPlugin(),
+          markdownShortcutPlugin(),
+        ]}
+        contentEditableClassName="prose prose-sm max-w-none min-h-[160px] focus:outline-none p-3"
+        className="min-h-[200px]"
+      />
+    </div>
+  );
+}
 
 // ── Options ──────────────────────────────────────────
 const CATEGORIES = [
@@ -413,13 +459,11 @@ export default function PostJobForm() {
               <Label htmlFor="description">
                 Job Description <span className="text-destructive">*</span>
               </Label>
-              <Textarea
-                id="description"
-                placeholder="Describe the role, responsibilities, and what the ideal candidate will do..."
-                rows={6}
+              <RichTextEditor
                 value={form.description}
-                onChange={(e) => updateField("description", e.target.value)}
-                className={errors.description ? "border-destructive" : ""}
+                onChange={(md) => updateField("description", md)}
+                placeholder="Describe the role, responsibilities, and what the ideal candidate will do..."
+                error={errors.description}
               />
               {errors.description && (
                 <p className="text-xs text-destructive">{errors.description}</p>
@@ -428,23 +472,19 @@ export default function PostJobForm() {
 
             <div className="space-y-2">
               <Label htmlFor="requirements">Requirements</Label>
-              <Textarea
-                id="requirements"
-                placeholder="List the required qualifications, skills, and experience..."
-                rows={4}
+              <RichTextEditor
                 value={form.requirements}
-                onChange={(e) => updateField("requirements", e.target.value)}
+                onChange={(md) => updateField("requirements", md)}
+                placeholder="List the required qualifications, skills, and experience..."
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="responsibilities">Responsibilities</Label>
-              <Textarea
-                id="responsibilities"
-                placeholder="List the key responsibilities and day-to-day tasks..."
-                rows={4}
+              <RichTextEditor
                 value={form.responsibilities}
-                onChange={(e) => updateField("responsibilities", e.target.value)}
+                onChange={(md) => updateField("responsibilities", md)}
+                placeholder="List the key responsibilities and day-to-day tasks..."
               />
             </div>
           </CardContent>

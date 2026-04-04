@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendEmail, applicationReceiptTemplate } from "@/lib/email";
 
 // ─── GET /api/jobs/[slug]/apply ───────────────────────────────
 // Check if the current user has applied to this job
@@ -106,6 +108,14 @@ export async function POST(request, { params }) {
         { error: "Job slug is required" },
         { status: 400 }
       );
+    }
+
+    // --- Rate limiting (per authenticated user + IP) ---
+    const ip = getClientIp(request);
+    const { success: rateOk, resetAt } = presets.applyJob(`${session.user.id}:${ip}`);
+    if (!rateOk) {
+      const resp = rateLimitResponse(10, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
     }
 
     // Find job
@@ -224,6 +234,22 @@ export async function POST(request, { params }) {
 
       return app;
     });
+
+    // --- Send application receipt email (non-blocking) ---
+    if (application.user?.email) {
+      sendEmail({
+        to: application.user.email,
+        subject: `Application Submitted: ${application.job?.title || "Job"}`,
+        ...applicationReceiptTemplate({
+          userName: application.user.name,
+          jobTitle: application.job?.title || "a position",
+          companyName: application.job?.company?.name || "the company",
+          slug: application.job?.slug || "",
+        }),
+      }).catch((err) =>
+        console.error("[Apply] Receipt email failed:", err.message)
+      );
+    }
 
     return NextResponse.json({
       message: "Application submitted successfully",
