@@ -26,19 +26,19 @@ export async function GET(request) {
     const conditions = { isActive: true };
 
     if (industry && industry !== "All Industries") {
-      conditions.industry = { contains: industry, mode: "insensitive" };
+      conditions.industry = { contains: industry };
     }
     if (location && location !== "All Locations") {
-      conditions.city = { contains: location, mode: "insensitive" };
+      conditions.city = { contains: location };
     }
     if (size && size !== "All Sizes") {
-      conditions.employeeSize = { contains: size, mode: "insensitive" };
+      conditions.employeeSize = { contains: size };
     }
     if (search) {
       conditions.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { tagline: { contains: search, mode: "insensitive" } },
-        { industry: { contains: search, mode: "insensitive" } },
+        { name: { contains: search } },
+        { tagline: { contains: search } },
+        { industry: { contains: search } },
       ];
     }
 

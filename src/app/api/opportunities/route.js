@@ -42,9 +42,9 @@ export async function GET(request) {
     if (q.trim()) {
       conditions.push({
         OR: [
-          { title: { contains: q.trim(), mode: "insensitive" } },
-          { description: { contains: q.trim(), mode: "insensitive" } },
-          { organizationName: { contains: q.trim(), mode: "insensitive" } },
+          { title: { contains: q.trim() } },
+          { description: { contains: q.trim() } },
+          { organizationName: { contains: q.trim() } },
         ],
       });
     }
@@ -57,7 +57,7 @@ export async function GET(request) {
       conditions.push({ category });
     }
     if (location) {
-      conditions.push({ location: { contains: location, mode: "insensitive" } });
+      conditions.push({ location: { contains: location } });
     }
     if (isRemote === "true") {
       conditions.push({ isRemote: true });

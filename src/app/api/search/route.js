@@ -44,8 +44,9 @@ export async function GET(request) {
     }
 
     // Build the where clause for each model
-    // Using Prisma `contains` for case-insensitive search
-    const searchKeyword = { contains: q, mode: "insensitive" };
+    // MySQL's default collation (utf8mb4_general_ci) is case-insensitive,
+    // so `contains` already performs case-insensitive search.
+    const searchKeyword = { contains: q };
 
     const results = {};
 
@@ -60,7 +61,7 @@ export async function GET(request) {
           ]},
           { isActive: true },
           ...(category ? [{ category }] : []),
-          ...(location ? [{ location: { contains: location, mode: "insensitive" } }] : []),
+          ...(location ? [{ location: { contains: location } }] : []),
           ...(jobType ? [{ jobType }] : []),
         ],
       };
@@ -119,7 +120,7 @@ export async function GET(request) {
           ]},
           { isActive: true },
           ...(category ? [{ category }] : []),
-          ...(location ? [{ location: { contains: location, mode: "insensitive" } }] : []),
+          ...(location ? [{ location: { contains: location } }] : []),
         ],
       };
 

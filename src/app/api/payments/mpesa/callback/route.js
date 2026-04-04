@@ -57,13 +57,16 @@ export async function POST(request) {
 
     console.log("[M-Pesa Callback] Received:", JSON.stringify(body, null, 2));
 
-    const { stkCallback } = body;
+    // Safaricom wraps the callback in a "Body" property:
+    // { Body: { stkCallback: { ... } } }
+    // Also support direct: { stkCallback: { ... } }
+    const stkCallback = body?.Body?.stkCallback || body?.stkCallback;
 
     if (!stkCallback) {
       console.error("[M-Pesa Callback] Missing stkCallback in body");
       return NextResponse.json(
-        { ResultCode: 1, ResultDesc: "Missing stkCallback" },
-        { status: 400 }
+        { ResultCode: 0, ResultDesc: "Accepted — no stkCallback" },
+        { status: 200 }
       );
     }
 

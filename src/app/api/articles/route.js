@@ -29,9 +29,9 @@ export async function GET(request) {
     if (q.trim()) {
       conditions.push({
         OR: [
-          { title: { contains: q.trim(), mode: "insensitive" } },
-          { excerpt: { contains: q.trim(), mode: "insensitive" } },
-          { content: { contains: q.trim(), mode: "insensitive" } },
+          { title: { contains: q.trim() } },
+          { excerpt: { contains: q.trim() } },
+          { content: { contains: q.trim() } },
         ],
       });
     }
