@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   FileText,
@@ -94,6 +95,15 @@ export default function AppSidebar({ user = MOCK_USER }) {
   const { state } = useSidebar();
   const navItems = user.role === "EMPLOYER" ? EMPLOYER_NAV : JOB_SEEKER_NAV;
   const roleLabel = user.role === "EMPLOYER" ? "Employer" : "Job Seeker";
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("[Auth] Sign out error:", err);
+      window.location.href = "/";
+    }
+  };
 
   return (
     <Sidebar collapsible="offcanvas" variant="sidebar">
@@ -174,7 +184,7 @@ export default function AppSidebar({ user = MOCK_USER }) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Sign Out">
-              <button className="text-sidebar-muted-foreground hover:text-destructive">
+              <button onClick={handleSignOut} className="text-sidebar-muted-foreground hover:text-destructive cursor-pointer">
                 <LogOut className="size-4" />
                 <span>Sign Out</span>
               </button>

@@ -62,8 +62,12 @@ function UserMenu() {
 
   const handleSignOut = async () => {
     setOpen(false);
-    await signOut({ redirect: false });
-    router.push("/");
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("[Auth] Sign out error:", err);
+      window.location.href = "/";
+    }
   };
 
   const menuItems = [

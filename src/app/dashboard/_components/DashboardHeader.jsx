@@ -24,6 +24,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { signOut } from "next-auth/react";
 import { User, Settings, LogOut, ChevronRight } from "lucide-react";
 
 // Map dashboard paths to breadcrumb labels
@@ -73,6 +74,15 @@ function buildBreadcrumbs(pathname) {
 
   return crumbs;
 }
+
+const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("[Auth] Sign out error:", err);
+      window.location.href = "/";
+    }
+  };
 
 export default function DashboardHeader({ user = MOCK_USER }) {
   const pathname = usePathname();
@@ -153,7 +163,7 @@ export default function DashboardHeader({ user = MOCK_USER }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleSignOut}>
               <LogOut className="mr-2 size-4" />
               Sign out
             </DropdownMenuItem>

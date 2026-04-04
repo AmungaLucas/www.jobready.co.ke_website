@@ -32,8 +32,12 @@ export default function MobileNav({ isOpen, onClose }) {
 
   const handleSignOut = async () => {
     onClose();
-    await signOut({ redirect: false });
-    router.push("/");
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("[Auth] Sign out error:", err);
+      window.location.href = "/";
+    }
   };
 
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
