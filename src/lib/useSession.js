@@ -61,7 +61,7 @@ export function useAuth() {
     logout: async (options) => {
       return signOut({
         redirect: options?.redirect !== false,
-        callbackUrl: options?.callbackUrl || "/auth/login",
+        callbackUrl: options?.callbackUrl || "/login",
       });
     },
 

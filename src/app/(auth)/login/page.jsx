@@ -287,7 +287,7 @@ function LoginForm() {
 
           <div className="flex items-center justify-end mb-6">
             <Link
-              href="/auth/forgot-password"
+              href="/forgot-password"
               className="text-sm text-[#1a56db] hover:underline font-medium"
             >
               Forgot password?
@@ -317,7 +317,7 @@ function LoginForm() {
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}
             <Link
-              href="/auth/register"
+              href="/register"
               className="text-[#1a56db] hover:underline font-medium"
             >
               Sign Up
@@ -470,7 +470,7 @@ function LoginForm() {
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}
             <Link
-              href="/auth/register"
+              href="/register"
               className="text-[#1a56db] hover:underline font-medium"
             >
               Sign Up

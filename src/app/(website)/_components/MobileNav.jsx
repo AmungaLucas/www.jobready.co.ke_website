@@ -187,7 +187,7 @@ export default function MobileNav({ isOpen, onClose }) {
             </button>
           ) : (
             <Link
-              href="/auth/login"
+              href="/login"
               className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-full text-[0.9rem] font-semibold text-primary bg-transparent border border-primary hover:bg-primary hover:text-white transition-all no-underline"
               onClick={onClose}
             >

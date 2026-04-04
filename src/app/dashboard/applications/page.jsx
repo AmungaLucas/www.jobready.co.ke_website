@@ -175,7 +175,7 @@ export default function ApplicationsPage() {
               {error || "Please sign in to view your applications."}
             </p>
             <Button asChild className="mt-4">
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/login">Sign In</Link>
             </Button>
           </CardContent>
         </Card>

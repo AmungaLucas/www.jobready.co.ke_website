@@ -178,7 +178,7 @@ export default function DashboardOverview() {
             {error || "Please sign in to access your dashboard."}
           </p>
           <Button asChild className="mt-4">
-            <Link href="/auth/login">Sign In</Link>
+            <Link href="/login">Sign In</Link>
           </Button>
         </CardContent>
       </Card>

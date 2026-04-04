@@ -107,7 +107,7 @@ function VerifyPhoneContent() {
             in to your account.
           </p>
           <Link
-            href="/auth/login"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Continue to Sign In
@@ -133,7 +133,7 @@ function VerifyPhoneContent() {
             account settings.
           </p>
           <Link
-            href="/auth/login"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Go to Sign In
@@ -148,7 +148,7 @@ function VerifyPhoneContent() {
     <AuthCard>
       {/* Back link */}
       <Link
-        href="/auth/login"
+        href="/login"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1a56db] transition-colors mb-6 no-underline"
       >
         ← Back to Sign In

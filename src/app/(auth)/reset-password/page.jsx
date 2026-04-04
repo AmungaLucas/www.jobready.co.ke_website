@@ -99,7 +99,7 @@ function ResetPasswordForm() {
     <AuthCard>
       {/* Back link */}
       <Link
-        href="/auth/login"
+        href="/login"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1a56db] transition-colors mb-6 no-underline"
       >
         <FiArrowLeft size={16} />
@@ -120,7 +120,7 @@ function ResetPasswordForm() {
             password.
           </p>
           <Link
-            href="/auth/login?reset=true"
+            href="/login?reset=true"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Continue to Sign In
@@ -140,7 +140,7 @@ function ResetPasswordForm() {
             new one.
           </p>
           <Link
-            href="/auth/forgot-password"
+            href="/forgot-password"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Request New Link

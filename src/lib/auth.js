@@ -162,10 +162,10 @@ export const authOptions = {
     },
   },
 
-  // Custom pages (all under /auth/*)
+  // Custom pages
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/login",
+    signIn: "/login",
+    error: "/login",
   },
 
   // Secret for JWT signing

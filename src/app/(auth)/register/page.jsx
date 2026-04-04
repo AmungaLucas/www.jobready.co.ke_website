@@ -133,7 +133,7 @@ function RegisterForm() {
       }
 
       // Success — redirect to login with success message
-      router.push("/auth/login?registered=true");
+      router.push("/login?registered=true");
     } catch (err) {
       setServerError("Something went wrong. Please check your connection.");
     } finally {
@@ -169,7 +169,7 @@ function RegisterForm() {
             and password.
           </p>
           <Link
-            href="/auth/login"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Continue to Sign In
@@ -365,7 +365,7 @@ function RegisterForm() {
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
           <Link
-            href="/auth/login"
+            href="/login"
             className="text-[#1a56db] hover:underline font-medium"
           >
             Sign In

@@ -138,7 +138,7 @@ export default function BillingContent() {
           <p className="text-muted-foreground mb-6">
             You need to be signed in to access your billing and order history.
           </p>
-          <Link href="/auth/login">
+          <Link href="/login">
             <Button>
               Sign In
             </Button>

@@ -171,7 +171,7 @@ export default function SavedJobsPage() {
               {error || "Please sign in to view your saved jobs."}
             </p>
             <Button asChild className="mt-4">
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/login">Sign In</Link>
             </Button>
           </CardContent>
         </Card>

@@ -198,7 +198,7 @@ export default function Header({ activeNav }) {
               <UserMenu />
             ) : (
               <Link
-                href="/auth/login"
+                href="/login"
                 className="hidden md:inline-flex items-center gap-1.5 px-4 py-[7px] rounded-full text-[0.85rem] font-semibold text-gray-600 bg-transparent border border-gray-200 hover:bg-gray-50 hover:text-gray-800 transition-all no-underline"
               >
                 Sign In

@@ -92,7 +92,7 @@ function VerifyEmailContent() {
             in and access all features of your account.
           </p>
           <Link
-            href="/auth/login"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
           >
             Continue to Sign In
@@ -116,7 +116,7 @@ function VerifyEmailContent() {
           {result?.message || "The verification link is invalid or has expired."}
         </p>
         <Link
-          href="/auth/login"
+          href="/login"
           className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors no-underline"
         >
           Go to Sign In
