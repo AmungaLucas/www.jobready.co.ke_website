@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 // ─── Data Fetching (direct Prisma) ───────────────────────
 async function fetchOpportunity(slug) {
   try {
+    if (!slug) return null;
+
     const opportunity = await db.opportunity.findUnique({
       where: { slug },
     });
@@ -27,34 +29,39 @@ async function fetchOpportunity(slug) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const similarOpportunities = await db.opportunity.findMany({
-      where: {
-        id: { not: opportunity.id },
-        opportunityType: opportunity.opportunityType,
-        isActive: true,
-        publishedAt: { not: null, lte: now },
-        OR: [{ deadline: null }, { deadline: { gte: today } }],
-      },
-      orderBy: { publishedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        excerpt: true,
-        opportunityType: true,
-        category: true,
-        location: true,
-        isRemote: true,
-        deadline: true,
-        organizationName: true,
-        organizationLogo: true,
-        organizationType: true,
-        isFeatured: true,
-        viewsCount: true,
-        publishedAt: true,
-      },
-    });
+    let similarOpportunities = [];
+    try {
+      similarOpportunities = await db.opportunity.findMany({
+        where: {
+          id: { not: opportunity.id },
+          opportunityType: opportunity.opportunityType,
+          isActive: true,
+          publishedAt: { not: null, lte: now },
+          OR: [{ deadline: null }, { deadline: { gte: today } }],
+        },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          opportunityType: true,
+          category: true,
+          location: true,
+          isRemote: true,
+          deadline: true,
+          organizationName: true,
+          organizationLogo: true,
+          organizationType: true,
+          isFeatured: true,
+          viewsCount: true,
+          publishedAt: true,
+        },
+      });
+    } catch (err) {
+      console.error("[fetchOpportunity] Similar query failed:", err);
+    }
 
     return { opportunity, similarOpportunities };
   } catch (error) {
@@ -64,31 +71,37 @@ async function fetchOpportunity(slug) {
 }
 
 export async function generateMetadata({ params }) {
-  const { hubSlug, slug } = await params;
-
-  const data = await fetchOpportunity(slug);
-  if (data?.opportunity) {
-    const opp = data.opportunity;
-    return generateMeta({
-      title: `${opp.title} — ${opp.organizationName || opp.organization || "Opportunity"}`,
-      description: opp.description
-        ? opp.description.replace(/<[^>]+>/g, "").substring(0, 160)
-        : `Apply for ${opp.title} on JobReady Kenya.`,
-      path: `/opportunities/${hubSlug}/${opp.slug}`,
-    });
+  try {
+    const { hubSlug, slug } = await params;
+    const data = await fetchOpportunity(slug);
+    if (data?.opportunity) {
+      const opp = data.opportunity;
+      return generateMeta({
+        title: `${opp.title} — ${opp.organizationName || "Opportunity"}`,
+        description: opp.description
+          ? opp.description.replace(/<[^>]+>/g, "").substring(0, 160)
+          : `Apply for ${opp.title} on JobReady Kenya.`,
+        path: `/opportunities/${hubSlug}/${opp.slug}`,
+      });
+    }
+    return {};
+  } catch {
+    return {};
   }
-
-  return {};
 }
 
 export default async function OpportunityDetailPage({ params }) {
-  const { slug } = await params;
+  try {
+    const { slug } = await params;
+    const data = await fetchOpportunity(slug);
 
-  const data = await fetchOpportunity(slug);
+    if (data?.opportunity) {
+      return <OpportunityDetailContent data={data} />;
+    }
 
-  if (data?.opportunity) {
-    return <OpportunityDetailContent data={data} />;
+    notFound();
+  } catch (error) {
+    console.error("[OpportunityDetailPage] Error:", error);
+    notFound();
   }
-
-  notFound();
 }

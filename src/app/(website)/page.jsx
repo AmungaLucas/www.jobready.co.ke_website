@@ -85,7 +85,7 @@ const locations = [
 export const dynamic = "force-dynamic";
 
 // ─── Shared Prisma where clause for active, published jobs ───
-function activeJobsWhere(overrides = {}) {
+function activeJobsWhere(overrides = []) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return {
