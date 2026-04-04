@@ -21,7 +21,7 @@ const SENDER_ID = process.env.SMS_SENDER_ID || "TALK-SASA";
  * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
 export async function sendSMS({ to, message, senderId }) {
-  // Normalize recipient(s) to array
+  // Normalize: API accepts single recipient (string) or batch via multiple calls
   const recipients = Array.isArray(to) ? to : [to];
 
   // Validate each recipient
@@ -51,39 +51,60 @@ export async function sendSMS({ to, message, senderId }) {
   }
 
   // ── Production: Call Talk-Sasa API ──────────────────
+  // Note: Talk-Sasa API uses "recipient" (singular string), not "recipients" (array)
+  // For multiple recipients, we send individual requests in parallel
   try {
-    const response = await fetch(`${API_URL}/sms/send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_TOKEN}`,
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        recipients: recipients,
-        message: message.trim(),
-        sender_id: from,
-      }),
-      signal: AbortSignal.timeout(15000), // 15s timeout
-    });
+    const results = await Promise.all(
+      recipients.map(async (phone) => {
+        const response = await fetch(`${API_URL}/sms/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_TOKEN}`,
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            recipient: phone,
+            message: message.trim(),
+            sender_id: from,
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
 
-    const data = await response.json();
+        const data = await response.json();
+        return { phone, response, data };
+      })
+    );
 
-    if (response.ok && (data.success || data.status === "success" || data.code === 200)) {
-      console.log(`[SMS Service] Sent to ${recipients.length} recipient(s): ${recipients.join(", ")}`);
+    // Check results
+    const successes = results.filter(
+      (r) => r.response.ok && (r.data.success || r.data.status === "success")
+    );
+    const failures = results.filter(
+      (r) => !r.response.ok || !(r.data.success || r.data.status === "success")
+    );
+
+    if (failures.length === 0) {
+      console.log(`[SMS Service] Sent to ${successes.length} recipient(s): ${recipients.join(", ")}`);
       return {
         success: true,
-        messageId: data.message_id || data.id || `sms-${Date.now()}`,
-        data,
+        messageId: successes[0]?.data?.data?.uid || `sms-${Date.now()}`,
+        data: results.map((r) => r.data),
       };
     }
 
-    // API returned an error
-    const errorMsg = data.message || data.error || data.description || JSON.stringify(data);
-    console.error(`[SMS Service] API error (${response.status}):`, errorMsg);
-    return { success: false, error: `SMS API error: ${errorMsg}` };
+    // Some or all failed
+    const errorMsg = failures
+      .map((f) => f.data.message || f.data.error || JSON.stringify(f.data))
+      .join("; ");
+    console.error(`[SMS Service] API error (${failures.length}/${results.length}):`, errorMsg);
+    return {
+      success: successes.length > 0, // partial success
+      error: successes.length > 0
+        ? `SMS partially sent. Failed: ${errorMsg}`
+        : `SMS API error: ${errorMsg}`,
+    };
   } catch (error) {
-    // Network / timeout error
     if (error.name === "TimeoutError" || error.name === "AbortError") {
       console.error("[SMS Service] Request timed out");
       return { success: false, error: "SMS request timed out. Please try again." };
