@@ -6,9 +6,7 @@ export async function generateMetadata({ params }) {
   const { hubSlug, slug } = await params;
 
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/opportunities/${slug}`, {
+    const res = await fetch(`/api/opportunities/${slug}`, {
       cache: "no-store",
     });
 
@@ -36,9 +34,7 @@ export default async function OpportunityDetailPage({ params }) {
   const { hubSlug, slug } = await params;
 
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/opportunities/${slug}`, {
+    const res = await fetch(`/api/opportunities/${slug}`, {
       cache: "no-store",
     });
 

@@ -35,8 +35,7 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jobready.co.ke";
-    const res = await fetch(`${baseUrl}/api/companies/${slug}`, {
+    const res = await fetch(`/api/companies/${slug}`, {
       next: { revalidate: 60 },
     });
 
@@ -74,8 +73,7 @@ export default async function CompanyProfilePage({ params }) {
   // Fetch company data from API
   let companyData;
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jobready.co.ke";
-    const res = await fetch(`${baseUrl}/api/companies/${slug}`, {
+    const res = await fetch(`/api/companies/${slug}`, {
       next: { revalidate: 60 },
     });
 

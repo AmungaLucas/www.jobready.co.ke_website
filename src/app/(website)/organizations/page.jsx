@@ -27,8 +27,7 @@ const collectionJsonLd = generateCollectionPageJsonLd({
 // ─── Data Fetching ─────────────────────────────────────────
 async function fetchCompanies(params = {}) {
   const query = new URLSearchParams(params);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/companies?${query.toString()}`, {
+  const res = await fetch(`/api/companies?${query.toString()}`, {
     cache: "no-store",
   });
   if (!res.ok) return { companies: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };

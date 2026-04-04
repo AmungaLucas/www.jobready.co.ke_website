@@ -83,8 +83,7 @@ const locations = [
 // ─── Data fetcher (with fallback) ─────────────────────────────
 async function fetchApi(url) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jobready.co.ke";
-    const res = await fetch(`${baseUrl}${url}`, { next: { revalidate: 60 } });
+    const res = await fetch(url, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     return res.json();
   } catch {

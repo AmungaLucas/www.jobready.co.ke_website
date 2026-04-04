@@ -94,15 +94,15 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, step, onClose]);
 
-  // Poll payment status
-  const pollPaymentStatus = useCallback(async (paymentId) => {
-    if (!paymentId) return;
+  // Poll payment status — uses STK Query (direct Safaricom check) as primary mechanism
+  const pollPaymentStatus = useCallback(async (paymentId, checkoutRequestId) => {
+    if (!paymentId || !checkoutRequestId) return;
 
     setPollCount((prev) => {
       const next = prev + 1;
 
-      // Timeout after 60 seconds (20 polls × 3 seconds)
-      if (next >= 20) {
+      // Timeout after 120 seconds (40 polls × 3 seconds)
+      if (next >= 40) {
         if (pollRef.current) {
           clearInterval(pollRef.current);
           pollRef.current = null;
@@ -116,11 +116,47 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
     });
 
     try {
+      // Primary: Query Safaricom directly via STK Query API
+      const queryRes = await fetch("/api/payments/stk-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          checkoutRequestId,
+          paymentId,
+        }),
+      });
+
+      if (queryRes.ok) {
+        const queryData = await queryRes.json();
+        setPaymentStatus(queryData.status);
+
+        if (queryData.status === "SUCCESS") {
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+          // Fetch full payment data for success page
+          const payRes = await fetch(`/api/payments/${paymentId}`);
+          if (payRes.ok) {
+            setPaymentData(await payRes.json());
+          }
+          setStep(STEPS.SUCCESS);
+          return;
+        } else if (queryData.status === "FAILED" || queryData.status === "CANCELLED" || queryData.status === "TIMEOUT") {
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+          setError(queryData.resultDesc || "Payment failed. Please try again.");
+          setStep(STEPS.ERROR);
+          return;
+        }
+      }
+
+      // Fallback: Check DB directly (callback may have updated it)
       const res = await fetch(`/api/payments/${paymentId}`);
       if (res.ok) {
         const data = await res.json();
-        setPaymentStatus(data.status);
-
         if (data.status === "SUCCESS") {
           if (pollRef.current) {
             clearInterval(pollRef.current);
@@ -128,7 +164,7 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           }
           setPaymentData(data);
           setStep(STEPS.SUCCESS);
-        } else if (data.status === "FAILED" || data.status === "CANCELLED") {
+        } else if (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "TIMEOUT") {
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
@@ -144,10 +180,24 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
 
   // Start polling when payment step is reached
   useEffect(() => {
-    if (step === STEPS.PAYMENT && paymentData?.paymentId) {
-      pollRef.current = setInterval(() => {
-        pollPaymentStatus(paymentData.paymentId);
+    if (step === STEPS.PAYMENT && paymentData?.paymentId && paymentData?.checkoutRequestId) {
+      // Initial poll after 3 seconds
+      const initialTimeout = setTimeout(() => {
+        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId);
       }, 3000);
+
+      // Continue polling every 3 seconds
+      pollRef.current = setInterval(() => {
+        pollPaymentStatus(paymentData.paymentId, paymentData.checkoutRequestId);
+      }, 3000);
+
+      return () => {
+        clearTimeout(initialTimeout);
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+      };
     }
 
     return () => {
@@ -559,7 +609,7 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
               <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min((pollCount / 20) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((pollCount / 40) * 100, 100)}%` }}
                 />
               </div>
 

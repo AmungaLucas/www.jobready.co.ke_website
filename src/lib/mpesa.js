@@ -181,6 +181,44 @@ export async function initiateSTKPush({ phoneNumber, amount, orderNumber, descri
  * @param {string} phone - Raw phone input
  * @returns {string|null} Formatted phone or null if invalid
  */
+/**
+ * Query the status of an STK Push request directly from Safaricom.
+ * This bypasses the need for the callback endpoint.
+ *
+ * @param {string} checkoutRequestId - The CheckoutRequestID from initiateSTKPush
+ * @returns {Promise<Object>} Safaricom's response with ResultCode and ResultDesc
+ */
+export async function querySTKStatus(checkoutRequestId) {
+  const accessToken = await getAccessToken();
+  const timestamp = getTimestamp();
+  const password = generatePassword(timestamp);
+
+  const url = `${BASE_URL}/mpesa/stkpushquery/v1/query`;
+
+  const body = {
+    BusinessShortCode: SHORTCODE,
+    Password: password,
+    Timestamp: timestamp,
+    CheckoutRequestID: checkoutRequestId,
+  };
+
+  console.log("[M-Pesa STK Query] Querying:", { checkoutRequestId });
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+  console.log("[M-Pesa STK Query] Response:", data);
+
+  return data;
+}
+
 export function formatMpesaPhone(phone) {
   if (!phone) return null;
 

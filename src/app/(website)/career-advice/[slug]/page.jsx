@@ -12,8 +12,7 @@ import { FiClock, FiEye, FiArrowRight } from "react-icons/fi";
 
 // ─── Data Fetching ─────────────────────────────────────────
 async function fetchArticle(slug) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/articles/${slug}`, {
+  const res = await fetch(`/api/articles/${slug}`, {
     cache: "no-store",
   });
   if (!res.ok) return null;

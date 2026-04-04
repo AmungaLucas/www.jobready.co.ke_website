@@ -70,8 +70,7 @@ const popularTags = [
 // ─── Data Fetching ─────────────────────────────────────────
 async function fetchArticles(params = {}) {
   const query = new URLSearchParams(params);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/articles?${query.toString()}`, {
+  const res = await fetch(`/api/articles?${query.toString()}`, {
     cache: "no-store",
   });
   if (!res.ok) return { articles: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
