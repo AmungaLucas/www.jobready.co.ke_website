@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { categories } from "./mock-data";
+
+const categories = [
+  "All",
+  "CV Tips",
+  "Interview Prep",
+  "Salary Guide",
+  "Career Growth",
+  "Industry Insights",
+  "Job Search",
+  "Government Jobs",
+];
 
 export default function ArticleCategoryPills({ activeCategory, onCategoryChange }) {
   return (

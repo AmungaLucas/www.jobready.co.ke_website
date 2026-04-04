@@ -12,8 +12,23 @@ import CVReviewCTA from "../../_components/CVReviewCTA";
 import AdSlot from "../../_components/AdSlot";
 import NewsletterForm from "../../_components/NewsletterForm";
 import SidebarCard from "../../_components/SidebarCard";
-import { trendingJobsSidebar, popularTags } from "./mock-data";
 import { formatJobType, formatExperienceLevel } from "@/lib/format";
+
+// Static search terms — not DB data
+const popularTags = [
+  "CPA-K",
+  "IFRS",
+  "Excel",
+  "QuickBooks",
+  "Banking",
+  "Audit",
+  "Payroll",
+  "Sage",
+  "Python",
+  "Java",
+  "AWS",
+  "Agile",
+];
 
 // ─── Helpers ──────────────────────────────────────────────
 const PAGE_SIZE = 10;
@@ -85,6 +100,23 @@ export default function JobsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState("newest");
   const [filters, setFilters] = useState({ ...defaultFilters });
+  const [trendingJobs, setTrendingJobs] = useState([]);
+
+  // Fetch trending jobs for sidebar
+  useEffect(() => {
+    async function fetchTrending() {
+      try {
+        const res = await fetch("/api/jobs?sort=featured&limit=5");
+        if (res.ok) {
+          const data = await res.json();
+          setTrendingJobs(data.jobs || []);
+        }
+      } catch (err) {
+        console.error("Error fetching trending jobs:", err);
+      }
+    }
+    fetchTrending();
+  }, []);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -232,30 +264,32 @@ export default function JobsContent() {
               </svg>
             )}>
               <div>
-                {trendingJobsSidebar.map((job) => (
-                  <Link
-                    key={job.slug}
-                    href={`/job/${job.slug}`}
-                    className="flex gap-2.5 py-2.5 border-b border-gray-100 last:border-b-0 group"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-[0.65rem] font-bold text-white"
-                      style={{
-                        background: `linear-gradient(135deg, ${job.logoColor}, ${job.logoColor}dd)`,
-                      }}
-                    >
-                      {job.company.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[0.85rem] font-semibold text-gray-800 truncate group-hover:text-[#1a56db] transition-colors leading-tight">
-                        {job.title}
-                      </h4>
-                      <p className="text-[0.72rem] text-gray-500 truncate mt-0.5">
-                        {job.company} &middot; {job.location}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                {trendingJobs.length > 0
+                  ? trendingJobs.map((job) => (
+                      <Link
+                        key={job.slug}
+                        href={`/job/${job.slug}`}
+                        className="flex gap-2.5 py-2.5 border-b border-gray-100 last:border-b-0 group"
+                      >
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-[0.65rem] font-bold text-white"
+                          style={{
+                            background: `linear-gradient(135deg, ${job.company?.logoColor || "#1a56db"}, ${job.company?.logoColor || "#1a56db"}dd)`,
+                          }}
+                        >
+                          {(job.company?.name || "").split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[0.85rem] font-semibold text-gray-800 truncate group-hover:text-[#1a56db] transition-colors leading-tight">
+                            {job.title}
+                          </h4>
+                          <p className="text-[0.72rem] text-gray-500 truncate mt-0.5">
+                            {job.company?.name || ""} &middot; {job.location}
+                          </p>
+                        </div>
+                      </Link>
+                    ))
+                  : <p className="text-[0.82rem] text-gray-400 py-4 text-center">No trending jobs yet</p>}
               </div>
             </SidebarCard>
 

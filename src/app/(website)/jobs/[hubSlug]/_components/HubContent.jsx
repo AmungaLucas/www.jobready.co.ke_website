@@ -22,7 +22,57 @@ import { formatJobType, formatExperienceLevel } from "@/lib/format";
 // ─── Helpers ──────────────────────────────────────────────
 const PAGE_SIZE = 10;
 
-function buildHubQueryString(hubFilters, searchQuery, sortBy, page) {
+/**
+ * Maps sidebar filter values to additional API query params.
+ * Returns an object with extra key/value pairs to merge into the query.
+ */
+function mapSidebarFilter(hubSlug, filterValue) {
+  if (!filterValue) return {};
+
+  const locationHubs = ["nairobi", "mombasa", "kisumu", "nakuru"];
+
+  // Location hubs: filter values are category slugs → map to category enum
+  if (locationHubs.includes(hubSlug)) {
+    const categoryMap = {
+      technology: "TECHNOLOGY",
+      "finance-accounting": "FINANCE_ACCOUNTING",
+      engineering: "ENGINEERING",
+      healthcare: "HEALTHCARE",
+      education: "EDUCATION",
+      "sales-marketing": "MARKETING_COMMUNICATIONS",
+    };
+    if (categoryMap[filterValue]) return { category: categoryMap[filterValue] };
+  }
+
+  // Remote hub: filter values are job types → add jobType on top of isRemote=true
+  if (hubSlug === "remote") {
+    const jobTypeMap = {
+      "full-time": "FULL_TIME",
+      "part-time": "PART_TIME",
+      contract: "CONTRACT",
+    };
+    if (jobTypeMap[filterValue]) return { jobType: jobTypeMap[filterValue] };
+  }
+
+  // Default (category hubs): filter values are job types
+  const defaultJobTypeMap = {
+    "full-time": "FULL_TIME",
+    "part-time": "PART_TIME",
+    contract: "CONTRACT",
+    internship: "INTERNSHIP",
+    remote: null, // handled by isRemote flag below
+  };
+  if (defaultJobTypeMap[filterValue] !== undefined) {
+    if (filterValue === "remote") return { isRemote: "true" };
+    return { jobType: defaultJobTypeMap[filterValue] };
+  }
+
+  // Internships, part-time, entry-level: pass as search term
+  // Values like "paid", "weekend", "trainee" don't map to DB fields directly
+  return { q: filterValue };
+}
+
+function buildHubQueryString(hubFilters, searchQuery, sortBy, page, activeFilter, hubSlug) {
   const params = new URLSearchParams();
 
   // Hub base filters (from hub-config.js — skip null/undefined)
@@ -34,9 +84,22 @@ function buildHubQueryString(hubFilters, searchQuery, sortBy, page) {
     }
   }
 
-  // Search query (debounced)
-  if (searchQuery?.trim()) {
+  // Sidebar sub-filter (mapped from label values to API params)
+  if (activeFilter && hubSlug) {
+    const extraParams = mapSidebarFilter(hubSlug, activeFilter);
+    for (const [key, value] of Object.entries(extraParams)) {
+      if (value && !params.has(key)) {
+        params.set(key, String(value));
+      }
+    }
+  }
+
+  // Search query (debounced) — only set if not already set by sidebar filter
+  if (searchQuery?.trim() && !params.has("q")) {
     params.set("q", searchQuery.trim());
+  } else if (searchQuery?.trim() && params.has("q")) {
+    // Append search query to existing q from sidebar filter
+    params.set("q", params.get("q") + " " + searchQuery.trim());
   }
 
   // Sort
@@ -88,7 +151,7 @@ export default function HubContent({ hub }) {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      const qs = buildHubQueryString(hub.filters, debouncedSearch, sortBy, currentPage);
+      const qs = buildHubQueryString(hub.filters, debouncedSearch, sortBy, currentPage, activeFilter, hub.slug);
       const res = await fetch(`/api/jobs?${qs}`);
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
@@ -104,7 +167,7 @@ export default function HubContent({ hub }) {
     } finally {
       setLoading(false);
     }
-  }, [hub.filters, hub.slug, debouncedSearch, sortBy, currentPage]);
+  }, [hub.filters, hub.slug, debouncedSearch, sortBy, currentPage, activeFilter]);
 
   useEffect(() => {
     fetchJobs();

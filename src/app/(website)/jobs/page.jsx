@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Script from "next/script";
 import { generateMeta, generateCollectionPageJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import JobsContent from "./_components/JobsContent";
@@ -34,7 +35,9 @@ export default function JobsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <JobsContent />
+      <Suspense fallback={<div className="min-h-screen" />}>
+        <JobsContent />
+      </Suspense>
     </>
   );
 }

@@ -507,6 +507,8 @@ Stage Summary:
 - `src/app/(website)/opportunities/[hubSlug]/page.jsx` — Server component with generateStaticParams, dynamic metadata from hub-config, filtered mock data, related hubs sidebar, pagination, service nudge, breadcrumbs
 - `src/app/(website)/opportunities/_components/OpportunityHubHero.jsx` — Hub-specific hero with icon, title, subtitle, description, stats, action button, breadcrumbs overlay
 
+*<response clipped>*
+
 **3. Search Results (`/search`):**
 - `src/app/(website)/search/page.jsx` — Client component with useSearchParams, Suspense boundary, search bar, active filter chips, 3-column layout (filters + results + sidebar), no-query empty state with popular searches
 - `src/app/(website)/search/_components/SearchBar.jsx` — Client component with search input, location dropdown, amber search button, clear query
@@ -1574,3 +1576,135 @@ Files modified:
 - `src/app/(website)/_components/Pagination.jsx` — Works with new controlled state
 
 **ESLint: zero errors on all modified files.**
+
+---
+## Task ID: 8c - api-integration
+### Work Task
+1. Fix Jobs listing sidebar trending jobs to fetch from API instead of mock data
+2. Wire Job Hub pages sidebar filters to API query params
+
+### Work Summary
+
+**Task 1: Fix Jobs listing sidebar trending jobs (`src/app/(website)/jobs/_components/JobsContent.jsx`)**
+- Removed `import { trendingJobsSidebar, popularTags } from "./mock-data"` — no more mock-data dependency for this component
+- Added `const [trendingJobs, setTrendingJobs] = useState([])` state
+- Added `useEffect` on mount to fetch `/api/jobs?sort=featured&limit=5` — API supports `sort=featured` (orders by `isFeatured desc, publishedAt desc`) and returns jobs with `company` relation (`name`, `slug`, `logoColor`, `isVerified`)
+- Moved `popularTags` inline as a static const array (12 search terms: CPA-K, IFRS, Excel, QuickBooks, etc.) — not DB data, just label strings
+- Updated sidebar JSX: `trendingJobsSidebar.map(...)` → `trendingJobs.map(...)` with proper nested company access: `job.company?.name` (was `job.company`), `job.company?.logoColor` (was `job.logoColor`)
+- Added fallback empty state message "No trending jobs yet" when array is empty
+- Used optional chaining (`?.`) throughout for null-safety on API data
+
+**Task 2: Wire Job Hub sidebar filters to API (`src/app/(website)/jobs/[hubSlug]/_components/HubContent.jsx`)**
+- Note: The hub page already fetched from `/api/jobs?${qs}` using `hub.filters` from `hub-config.js` — no mock job data was used. However, the `activeFilter` state (sidebar FilterList selection) was tracked but NOT passed to the API query.
+- Added `mapSidebarFilter(hubSlug, filterValue)` function that converts sidebar filter label values to API query params:
+  - **Location hubs** (nairobi/mombasa/kisumu/nakuru): category slugs → `category` enum (e.g., "technology" → "TECHNOLOGY")
+  - **Remote hub**: job type labels → `jobType` enum on top of base `isRemote=true` filter (e.g., "full-time" → "FULL_TIME")
+  - **Default/category hubs**: job type labels → `jobType` enum (e.g., "full-time" → "FULL_TIME", "remote" → `isRemote=true`)
+  - **Special hubs** (internships, part-time, entry-level): unmappable values (paid, weekend, trainee) → fallback as `q` search term
+- Updated `buildHubQueryString()` to accept `activeFilter` and `hubSlug` params, merging mapped filter params into the query
+- Added search query merging: if sidebar filter sets `q` and user also types a search, they combine as `"filterValue searchTerm"`
+- Added `activeFilter` to `fetchJobs` useCallback dependency array so API refetches when sidebar filter changes
+- Verified `hub-data.js` exports (`getRelatedJobHubs`, `hubSidebarFilters`) remain as static config — they derive from `hub-config.js`, not DB data
+- Verified `page.jsx` for hub route already passes `hub` prop correctly with `filters` from `hub-config.js`
+
+**Files modified:**
+- `src/app/(website)/jobs/_components/JobsContent.jsx` — removed mock import, added trending API fetch, inline popularTags
+- `src/app/(website)/jobs/[hubSlug]/_components/HubContent.jsx` — added `mapSidebarFilter()`, wired `activeFilter` to API query builder
+
+**Files NOT modified (verified correct as-is):**
+- `src/app/(website)/jobs/[hubSlug]/_components/hub-data.js` — static config functions, no DB data
+- `src/app/(website)/jobs/[hubSlug]/page.jsx` — already passes hub object with filters correctly
+- `src/app/(website)/jobs/[hubSlug]/_components/HubSearchBar.jsx` — already wired correctly
+- `src/config/hub-config.js` — read-only reference for filter mapping
+
+**ESLint:** Both modified files pass with zero errors. Pre-existing errors in other files (opportunities hub, require-imports) are unrelated.
+
+---
+## Task ID: 8e - full-stack-developer
+### Work Task
+Wire 3 pages to API data: Organizations Listing (verify), Organization Profile (convert to async + fetch), and Homepage (convert to async + fetch from multiple APIs + update sidebar to props-based). All files must be `.jsx` (no TypeScript).
+
+### Work Summary
+
+**Created 1 new file:**
+
+**1. `/src/lib/normalize.js`** — Data normalization helpers that transform API responses into shapes expected by UI components:
+- `getInitials(name)` — "Safaricom PLC" → "SP"
+- `formatTimeLeft(deadline)` — "5h 23m", "1d 5h", "12d"
+- `normalizeJobForCard(job)` / `normalizeJobs(jobs)` — Formats `jobType` (FULL_TIME → Full-time) and `experienceLevel` (SENIOR → Senior) from DB enum to display strings
+- `normalizeCompany(company, pagination)` — Builds `description` array, `keyDetails` grid, `stats` object, `initials`, `location` from city/country
+- `normalizeSimilarCompanies(companies)` — Adds `initials`, maps `jobCount` → `openJobs`
+- `normalizeOpportunity(opp)` / `normalizeOpportunities(opportunities)` — Adds lowercase `type` for color mapping
+
+**Part 1: Organizations Listing (`/organizations/page.jsx`)** — No changes needed. The `OrganizationsContent.jsx` client component already receives `companies` as props from the parent server component. No `/api/companies` listing route exists, so mock data is kept for this page.
+
+**Part 2: Organization Profile (`/organizations/[slug]/page.jsx`)** — Fully rewired:
+- Removed all mock-data imports (`company`, `companyJobs`, `similarCompanies`)
+- Added `notFound()` import from `next/navigation`
+- `generateMetadata()` now fetches from `/api/companies/${slug}` to build dynamic SEO title/description
+- Page function fetches from `/api/companies/${slug}` with `{ next: { revalidate: 60 } }` ISR caching
+- Returns `notFound()` on 404 or fetch errors
+- Uses `normalizeCompany()` to build description array, keyDetails, stats, initials from raw API company
+- Uses `normalizeJobs()` to format jobType/experienceLevel for JobCard
+- Uses `normalizeSimilarCompanies()` to build sidebar list with initials
+- `browseIndustries` kept as static config (no API for industry counts)
+- Filter pills changed from `<button>` to `<span>` (display-only, no client handler needed)
+- Pagination now dynamically rendered from API `pagination.totalPages`
+- Website link in keyDetails now uses `<a>` with `target="_blank"`
+
+**Part 3: Homepage (`/page.jsx`) + `HomepageSidebar.jsx`** — Fully rewired:
+- `page.jsx` converted from sync server component to async server component
+- Fetches 5 API endpoints in parallel via `Promise.allSettled()`:
+  - `/api/jobs?sort=featured&limit=5` → featuredJobs
+  - `/api/jobs?sort=newest&limit=10` → latestJobs
+  - `/api/jobs?jobType=INTERNSHIP&limit=5` → internshipJobs
+  - `/api/opportunities?sort=newest&limit=5` → opportunities
+  - `/api/jobs?sort=deadline&limit=10` → deadline jobs (filtered for 7-day window)
+- Graceful fallback: if API returns empty/error, falls back to mock-data
+- Sidebar data derived from API responses: topEmployers (deduplicated company map from jobs), sidebarFeaturedJobs (first 4 featured), sidebarDeadlines (computed via `formatTimeLeft`)
+- Categories, trustedLogos, locations kept as static constants in page.jsx
+- Conditional rendering: Featured Jobs, Urgent Deadlines, Internships, Scholarships sections only render if data exists
+- `HomepageSidebar.jsx` converted from importing mock-data to accepting all data as props: `topEmployers`, `sidebarFeaturedJobs`, `sidebarDeadlines`, `locations`
+- HomepageSidebar sections conditionally render when their prop arrays have data
+
+**ESLint:** Zero errors on all changed/new files (9 pre-existing errors in prisma seed files are unrelated).
+
+---
+## Task ID: 8d - api-wiring
+### Work Task
+Wire Opportunities listing, Opportunity hub pages, Career Advice listing, and Career Advice article detail pages to real API endpoints instead of mock data. All files must be .jsx (no TypeScript).
+
+### Work Summary
+Replaced all mock data imports with live API calls across 4 page groups (15 files modified). ESLint passes with zero errors on `src/app`.
+
+**Part 1: Opportunities Listing (`/opportunities`)**
+- `src/app/(website)/opportunities/page.jsx` — Converted to async server component. Fetches featured (`/api/opportunities?sort=featured&limit=10`) and all opportunities (`/api/opportunities?limit=20`) in parallel via `Promise.all`. Related hubs sidebar derived statically from `hub-config.js` using `getOpportunityHubs()`. Collection JSON-LD uses real `totalOpportunities` from API. Passes `totalOpportunities` to hero via prop.
+- `src/app/(website)/opportunities/_components/OpportunitySearchHero.jsx` — Accepts `totalOpportunities` prop instead of importing `opportunityStats` from mock-data. Simplified stats to show only total count from API.
+- `src/app/(website)/opportunities/_components/OpportunityFilters.jsx` — Moved `opportunityTypes` array inline (removed mock-data import). All other logic unchanged.
+
+**Part 2: Opportunity Hub Pages (`/opportunities/[hubSlug]`)**
+- `src/app/(website)/opportunities/[hubSlug]/_components/HubContent.jsx` — Converted from mock data to client-side API fetching. Uses `buildQueryString(hub)` to construct filter params from `hub.filters` (opportunityType, category, location, isRemote). Fetches featured items and paginated results from `/api/opportunities`. Added loading spinner, error state with retry button, and wired `Pagination` component for server-side pagination. Search and sort trigger refetch.
+- `src/app/(website)/opportunities/[hubSlug]/_components/hub-data.js` — Removed `mockHubOpportunities()` function. Kept `getRelatedOpportunityHubs()` as static config derived from `hub-config.js`.
+
+**Part 3: Career Advice Listing (`/career-advice`)**
+- `src/app/(website)/career-advice/page.jsx` — Converted to async server component. Fetches featured (`/api/articles?sort=featured&limit=10`) and all articles (`/api/articles?limit=20`) in parallel. Sidebar categories and popular tags kept as static config (no API needed). `collectionJsonLd.totalItems` comes from API total.
+- `src/app/(website)/career-advice/_components/CareerAdviceClient.jsx` — Removed `categorySlugs` import from mock-data. Category filtering now matches against `a.category?.slug` or `a.category?.name` (API returns `{id, name, slug, color}` objects).
+- `src/app/(website)/career-advice/_components/FeaturedArticle.jsx` — Updated to handle API article shape: `category?.name`, `author?.name`, `author?.initials` computed from name. Handles null/undefined safely with optional chaining.
+- `src/app/(website)/career-advice/_components/PopularArticles.jsx` — Converted to client component that fetches from `/api/articles?sort=popular&limit=5`. Shows loading state. Displays `viewsCount` from API.
+- `src/app/(website)/career-advice/_components/ArticleCategoryPills.jsx` — Moved `categories` array inline (removed mock-data import).
+
+**Part 4: Career Advice Article Detail (`/career-advice/[slug]`)**
+- `src/app/(website)/career-advice/[slug]/page.jsx` — Converted to async server component. Fetches from `/api/articles/${slug}` with `{ cache: "no-store" }`. Calls `notFound()` on 404. Dynamic metadata from API data (title, subtitle/excerpt, publishedTime, modifiedTime). Author data normalized with fallbacks (initials computed from name, bio/social/counts from author object). Falls back to `getArticleHtml()` if `article.content` is empty. Related articles use API data with computed gradient/pill colors.
+- `src/app/(website)/career-advice/[slug]/_components/ArticleHeader.jsx` — Updated for API shape: null-safe access to `author.name`, `author.title`, `author.initials`. Category from string prop. Subtitle, readingTime, viewsCount all optional.
+- `src/app/(website)/career-advice/[slug]/_components/ArticleBody.jsx` — Added null check for `htmlContent` (won't render dangerouslySetInnerHTML if empty).
+- `src/app/(website)/career-advice/[slug]/_components/AuthorBio.jsx` — Full defensive coding: returns null if no author name. All fields accessed via optional chaining. Defaults for initials, bio, linkedin, twitter, stats.
+- `src/app/(website)/career-advice/[slug]/_components/ArticleSidebar.jsx` — Removed unused `activeReaction` state. Kept as pure presentational client component.
+- `src/app/(website)/career-advice/[slug]/_components/ShareButtons.jsx` — Defensive: uses `article?.slug` and `article?.title`.
+- `src/app/(website)/career-advice/[slug]/_components/ArticleTags.jsx` — Handles both string tags and `{name}` objects. Returns null for empty array.
+
+**Technical Notes:**
+- All server-side fetches use `cache: "no-store"` for fresh data
+- `NEXT_PUBLIC_BASE_URL` fallback to `http://localhost:3000` for server-side fetches
+- API response shapes differ from mock data (e.g., `category` is object not string, `author` has different fields) — all components updated for API shape
+- mock-data.js files NOT deleted (kept for reference) — just no longer imported
+- All 15 modified files pass ESLint with zero errors

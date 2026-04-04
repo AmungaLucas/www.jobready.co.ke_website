@@ -1,7 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { opportunityTypes } from "./mock-data";
+
+const opportunityTypes = [
+  "All",
+  "Scholarships",
+  "Grants",
+  "Fellowships",
+  "Bursaries",
+  "Competitions",
+  "Conferences",
+  "Volunteer",
+  "Apprenticeships",
+];
 
 const typeStyles = {
   All: "bg-primary text-white shadow-sm",

@@ -6,19 +6,23 @@ export default function FeaturedArticle({ article }) {
 
   const { slug, title, excerpt, category, author, publishedAt, readingTime } = article;
 
-  const initials = author?.name
-    ? author.name
+  const categoryName = category?.name || category || "";
+  const authorName = author?.name || "";
+  const initials = authorName
+    ? authorName
         .split(" ")
         .map((n) => n[0])
         .join("")
         .toUpperCase()
     : "?";
 
-  const dateStr = new Date(publishedAt).toLocaleDateString("en-KE", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const dateStr = publishedAt
+    ? new Date(publishedAt).toLocaleDateString("en-KE", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
 
   return (
     <div className="my-7">
@@ -38,9 +42,11 @@ export default function FeaturedArticle({ article }) {
           </span>
 
           {/* Category */}
-          <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full text-[0.7rem] font-bold uppercase tracking-wide mb-4 border border-white/25 ml-2">
-            {category}
-          </span>
+          {categoryName && (
+            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full text-[0.7rem] font-bold uppercase tracking-wide mb-4 border border-white/25 ml-2">
+              {categoryName}
+            </span>
+          )}
 
           {/* Title */}
           <h2 className="text-2xl md:text-3xl font-extrabold leading-tight mb-3 tracking-tight group-hover:text-blue-100 transition-colors">
@@ -48,22 +54,26 @@ export default function FeaturedArticle({ article }) {
           </h2>
 
           {/* Excerpt */}
-          <p className="text-sm md:text-base opacity-85 leading-relaxed mb-5 max-w-xl">
-            {excerpt}
-          </p>
+          {excerpt && (
+            <p className="text-sm md:text-base opacity-85 leading-relaxed mb-5 max-w-xl">
+              {excerpt}
+            </p>
+          )}
 
           {/* Meta */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Author */}
-            <div className="flex items-center gap-3">
-              <span className="w-9 h-9 rounded-full bg-amber-500 flex items-center justify-center font-bold text-sm text-amber-900 shrink-0">
-                {initials}
-              </span>
-              <div>
-                <p className="text-sm font-semibold">{author?.name}</p>
-                <p className="text-xs opacity-70">{dateStr}</p>
+            {authorName && (
+              <div className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full bg-amber-500 flex items-center justify-center font-bold text-sm text-amber-900 shrink-0">
+                  {initials}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">{authorName}</p>
+                  {dateStr && <p className="text-xs opacity-70">{dateStr}</p>}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Read button */}
             <span className="inline-flex items-center gap-2 bg-white text-blue-700 px-5 py-2.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-colors sm:ml-auto">

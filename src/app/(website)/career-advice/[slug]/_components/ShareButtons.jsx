@@ -13,8 +13,10 @@ import { FaWhatsapp } from "react-icons/fa";
 
 export default function ShareButtons({ article }) {
   const [copied, setCopied] = useState(false);
-  const url = `${siteConfig.url}/career-advice/${article.slug}`;
-  const text = encodeURIComponent(article.title);
+  const slug = article?.slug || "";
+  const title = article?.title || "";
+  const url = `${siteConfig.url}/career-advice/${slug}`;
+  const text = encodeURIComponent(title);
 
   const shareLinks = [
     {

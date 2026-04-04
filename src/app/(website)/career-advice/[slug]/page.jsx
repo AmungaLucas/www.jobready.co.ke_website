@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { generateMeta, generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import ArticleHeader from "./_components/ArticleHeader";
 import ArticleBody from "./_components/ArticleBody";
@@ -6,26 +7,32 @@ import ArticleSidebar from "./_components/ArticleSidebar";
 import AuthorBio from "./_components/AuthorBio";
 import ArticleTags from "./_components/ArticleTags";
 import ShareButtons from "./_components/ShareButtons";
-import { article as mockArticle, relatedArticles } from "./_components/mock-data";
 import { getArticleHtml } from "./_components/article-content";
 import { FiClock, FiEye, FiArrowRight } from "react-icons/fi";
 
-// Mock slug lookup — in production this would be a DB query
-const allArticles = {
-  "how-to-write-cv-kenya-2026": mockArticle,
-};
+// ─── Data Fetching ─────────────────────────────────────────
+async function fetchArticle(slug) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/articles/${slug}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
 
+// ─── Metadata ──────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const article = allArticles[slug];
+  const data = await fetchArticle(slug);
 
-  if (!article) {
+  if (!data || !data.article) {
     return generateMeta({ title: "Article Not Found" });
   }
 
+  const article = data.article;
   return generateMeta({
     title: article.title,
-    description: article.subtitle,
+    description: article.subtitle || article.excerpt,
     path: `/career-advice/${article.slug}`,
     ogType: "article",
     publishedTime: article.publishedAt,
@@ -33,15 +40,54 @@ export async function generateMetadata({ params }) {
   });
 }
 
+// ─── Page ──────────────────────────────────────────────────
 export default async function BlogArticlePage({ params }) {
   const { slug } = await params;
-  const article = allArticles[slug] || mockArticle; // fallback to mock
-  const articleHtml = getArticleHtml();
+  const data = await fetchArticle(slug);
+
+  if (!data || !data.article) {
+    notFound();
+  }
+
+  const article = data.article;
+  const relatedArticles = data.relatedArticles || [];
+  const articleHtml = article.content || getArticleHtml();
+
+  const categoryName = article.category?.name || "";
+  const categorySlug = article.category?.slug || "";
+  const authorInitials = article.author?.name
+    ? article.author.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "?";
+
+  // Build author object with fallbacks
+  const authorData = {
+    ...article.author,
+    initials: authorInitials,
+    bio: article.author?.bio || "",
+    linkedin: article.author?.linkedinUrl || "",
+    twitter: article.author?.twitterUrl || "",
+    articles: article.author?.articleCount || 0,
+    coached: article.author?.peopleCoached || "0",
+    views: article.author?.totalViews || "0",
+  };
+
+  // Build article object for components
+  const articleForComponents = {
+    ...article,
+    author: authorData,
+    category: categoryName,
+    categorySlug,
+    readingTime: article.readingTime || `${Math.ceil((article.wordCount || 1000) / 200)} min read`,
+  };
 
   const breadcrumbs = [
     { name: "Home", href: "/" },
     { name: "Career Advice", href: "/career-advice" },
-    { name: article.category, href: `/career-advice?category=${article.categorySlug}` },
+    ...(categoryName ? [{ name: categoryName, href: `/career-advice?category=${categorySlug}` }] : []),
     { name: article.title },
   ];
 
@@ -49,15 +95,29 @@ export default async function BlogArticlePage({ params }) {
   const articleJsonLd = generateArticleJsonLd({
     ...article,
     canonicalUrl: `https://jobready.co.ke/career-advice/${article.slug}`,
-    featuredImage: "https://jobready.co.ke/images/blog/cv-writing-kenya-2026.jpg",
+    featuredImage: article.featuredImage || "https://jobready.co.ke/images/blog/default.jpg",
     publishedAt: article.publishedAt,
     updatedAt: article.updatedAt,
     author: {
-      name: article.author.name,
-      linkedinUrl: article.author.linkedin,
-      title: article.author.title,
+      name: article.author?.name || "",
+      linkedinUrl: article.author?.linkedinUrl,
+      title: article.author?.title || "",
     },
-    category: { name: article.category },
+    category: { name: categoryName },
+  });
+
+  // Build related articles with proper display format
+  const relatedWithDisplay = relatedArticles.map((rel) => {
+    const catColor = rel.category?.color || "blue";
+    return {
+      slug: rel.slug,
+      title: rel.title,
+      category: rel.category?.name || "",
+      readingTime: rel.readingTime || `${Math.ceil((rel.wordCount || 800) / 200)} min read`,
+      viewsCount: rel.viewsCount || 0,
+      gradient: `bg-gradient-to-r from-${catColor}-600 to-${catColor}-400`,
+      pillColor: `bg-${catColor}-100 text-${catColor}-700`,
+    };
   });
 
   return (
@@ -73,7 +133,7 @@ export default async function BlogArticlePage({ params }) {
       />
 
       {/* Header */}
-      <ArticleHeader article={article} />
+      <ArticleHeader article={articleForComponents} />
 
       {/* Article Layout */}
       <div className="container">
@@ -82,7 +142,7 @@ export default async function BlogArticlePage({ params }) {
           <div className="min-w-0 max-w-full">
             <div className="bg-white rounded-2xl shadow-sm p-7 md:p-10 min-w-0 overflow-hidden">
               {/* Share Buttons */}
-              <ShareButtons article={article} />
+              <ShareButtons article={articleForComponents} />
 
               {/* Article Body */}
               <ArticleBody
@@ -92,7 +152,9 @@ export default async function BlogArticlePage({ params }) {
             </div>
 
             {/* Tags */}
-            <ArticleTags tags={article.tags} />
+            {article.tags && article.tags.length > 0 && (
+              <ArticleTags tags={article.tags.map((t) => t.name || t)} />
+            )}
 
             {/* Reactions */}
             <div className="bg-white rounded-2xl shadow-sm p-5 mt-4 flex items-center gap-4 flex-wrap">
@@ -114,52 +176,56 @@ export default async function BlogArticlePage({ params }) {
             </div>
 
             {/* Author Bio */}
-            <AuthorBio author={article.author} />
+            <AuthorBio author={authorData} />
           </div>
 
           {/* Sidebar */}
           <aside className="hidden lg:block min-w-0">
-            <ArticleSidebar article={article} />
+            <ArticleSidebar article={articleForComponents} />
           </aside>
         </div>
       </div>
 
       {/* Related Articles */}
-      <div className="container mb-10">
-        <h2 className="text-lg font-extrabold text-gray-900 mb-5 flex items-center gap-2">
-          <FiArrowRight size={20} className="text-blue-600" />
-          Related Articles
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {relatedArticles.map((rel) => (
-            <Link
-              key={rel.slug}
-              href={`/career-advice/${rel.slug}`}
-              className="block bg-white rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md hover:-translate-y-px border-2 border-transparent hover:border-blue-200 no-underline group"
-            >
-              <div className={`h-2 ${rel.gradient}`} />
-              <div className="p-5">
-                <span className={`inline-block px-2.5 py-1 rounded-full text-[0.65rem] font-bold mb-2.5 ${rel.pillColor}`}>
-                  {rel.category}
-                </span>
-                <h3 className="text-sm font-bold text-gray-900 leading-snug mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  {rel.title}
-                </h3>
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <FiClock size={13} />
-                    {rel.readingTime}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FiEye size={13} />
-                    {rel.viewsCount.toLocaleString()} views
-                  </span>
+      {relatedWithDisplay.length > 0 && (
+        <div className="container mb-10">
+          <h2 className="text-lg font-extrabold text-gray-900 mb-5 flex items-center gap-2">
+            <FiArrowRight size={20} className="text-blue-600" />
+            Related Articles
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {relatedWithDisplay.map((rel) => (
+              <Link
+                key={rel.slug}
+                href={`/career-advice/${rel.slug}`}
+                className="block bg-white rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md hover:-translate-y-px border-2 border-transparent hover:border-blue-200 no-underline group"
+              >
+                <div className="h-2 bg-gradient-to-r from-blue-600 to-blue-400" />
+                <div className="p-5">
+                  {rel.category && (
+                    <span className="inline-block px-2.5 py-1 rounded-full text-[0.65rem] font-bold mb-2.5 bg-blue-100 text-blue-700">
+                      {rel.category}
+                    </span>
+                  )}
+                  <h3 className="text-sm font-bold text-gray-900 leading-snug mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {rel.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <FiClock size={13} />
+                      {rel.readingTime}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FiEye size={13} />
+                      {rel.viewsCount.toLocaleString()} views
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

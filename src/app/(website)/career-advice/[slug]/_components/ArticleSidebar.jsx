@@ -3,15 +3,7 @@
 import { useState } from "react";
 
 export default function ArticleSidebar({ article }) {
-  const [activeReaction, setActiveReaction] = useState(null);
   const [saved, setSaved] = useState(false);
-
-  const reactions = [
-    { id: "helpful", emoji: "👍", label: "Helpful", count: 42 },
-    { id: "love", emoji: "❤️", label: "Love it", count: 18 },
-    { id: "insightful", emoji: "💡", label: "Insightful", count: 29 },
-    { id: "mindblowing", emoji: "🤯", label: "Mind-blowing", count: 7 },
-  ];
 
   return (
     <div className="sticky top-[84px]">

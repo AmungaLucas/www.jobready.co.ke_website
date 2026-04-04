@@ -10,12 +10,9 @@ import NewsletterForm from "../_components/NewsletterForm";
 import AdSlot from "../_components/AdSlot";
 import SidebarCard from "../_components/SidebarCard";
 import Badge from "../_components/Badge";
+import Pagination from "../_components/Pagination";
 import { generateMeta, generateBreadcrumbJsonLd, generateCollectionPageJsonLd } from "@/lib/seo";
-import {
-  mockOpportunities,
-  featuredOpportunities,
-  relatedHubs,
-} from "./_components/mock-data";
+import { getOpportunityHubs } from "@/config/hub-config";
 
 // ─── SEO ───────────────────────────────────────────────────
 export async function generateMetadata() {
@@ -32,16 +29,45 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Opportunities", href: "/opportunities" },
 ]);
 
-const collectionJsonLd = generateCollectionPageJsonLd({
-  name: "Opportunities for Kenyans",
-  description: "Scholarships, grants, fellowships, bursaries, competitions, and volunteer opportunities in Kenya.",
-  url: "/opportunities",
-  totalItems: 120,
-});
+// ─── Data Fetching ─────────────────────────────────────────
+async function fetchOpportunities(params = {}) {
+  const query = new URLSearchParams(params);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/opportunities?${query.toString()}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return { opportunities: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
+  return res.json();
+}
+
+// ─── Related Hubs (static from hub-config) ─────────────────
+function getRelatedHubs() {
+  return getOpportunityHubs().map((h) => ({
+    slug: h.slug,
+    name: h.name.replace(/\s*2026\s*$/, "").replace(" for Kenyans", "").replace(" in Kenya", "").replace(" & Abroad", ""),
+    count: "—",
+  }));
+}
 
 // ─── PAGE ──────────────────────────────────────────────────
-export default function OpportunitiesPage() {
-  const latestOpportunities = mockOpportunities.filter((o) => !o.isFeatured);
+export default async function OpportunitiesPage() {
+  // Fetch featured and all opportunities in parallel
+  const [featuredData, allData] = await Promise.all([
+    fetchOpportunities({ sort: "featured", limit: "10" }),
+    fetchOpportunities({ limit: "20" }),
+  ]);
+
+  const featuredOpportunities = featuredData.opportunities.filter((o) => o.isFeatured);
+  const allOpportunities = allData.opportunities;
+  const totalOpportunities = allData.pagination.total;
+  const relatedHubs = getRelatedHubs();
+
+  const collectionJsonLd = generateCollectionPageJsonLd({
+    name: "Opportunities for Kenyans",
+    description: "Scholarships, grants, fellowships, bursaries, competitions, and volunteer opportunities in Kenya.",
+    url: "/opportunities",
+    totalItems: totalOpportunities,
+  });
 
   return (
     <>
@@ -58,7 +84,7 @@ export default function OpportunitiesPage() {
       />
 
       {/* 1. HERO */}
-      <OpportunitySearchHero />
+      <OpportunitySearchHero totalOpportunities={totalOpportunities} />
 
       {/* 2. FILTER TABS */}
       <OpportunityFilters />
@@ -88,7 +114,7 @@ export default function OpportunitiesPage() {
                         slug={opp.slug}
                         organizationName={opp.organizationName}
                         opportunityType={opp.opportunityType}
-                        type={opp.type}
+                        type={opp.opportunityType?.toLowerCase()}
                         deadline={opp.deadline}
                         value={opp.value}
                       />
@@ -104,25 +130,31 @@ export default function OpportunitiesPage() {
                 <h2 className="text-base font-bold text-gray-900">
                   All Opportunities
                   <span className="text-sm font-medium text-gray-400 ml-2">
-                    ({mockOpportunities.length})
+                    ({totalOpportunities})
                   </span>
                 </h2>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                {mockOpportunities.map((opp) => (
-                  <div key={opp.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
-                    <OpportunityCard
-                      title={opp.title}
-                      slug={opp.slug}
-                      organizationName={opp.organizationName}
-                      opportunityType={opp.opportunityType}
-                      type={opp.type}
-                      deadline={opp.deadline}
-                      value={opp.value}
-                    />
+                {allOpportunities.length > 0 ? (
+                  allOpportunities.map((opp) => (
+                    <div key={opp.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+                      <OpportunityCard
+                        title={opp.title}
+                        slug={opp.slug}
+                        organizationName={opp.organizationName}
+                        opportunityType={opp.opportunityType}
+                        type={opp.opportunityType?.toLowerCase()}
+                        deadline={opp.deadline}
+                        value={opp.value}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-16 text-center">
+                    <p className="text-gray-500 text-sm mb-4">No opportunities found. Check back soon!</p>
                   </div>
-                ))}
+                )}
               </div>
 
               {/* Service Nudge */}
@@ -168,7 +200,6 @@ export default function OpportunitiesPage() {
                       {hub.name}
                     </span>
                     <span className="flex items-center gap-1.5 text-[0.72rem] text-gray-400">
-                      {hub.count}
                       <FiChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </Link>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { categorySlugs } from "./mock-data";
 import ArticleCard from "@/app/(website)/_components/ArticleCard";
 import ArticleCategoryPills from "./ArticleCategoryPills";
 import Pagination from "@/app/(website)/_components/Pagination";
@@ -16,11 +15,11 @@ export default function CareerAdviceClient({ articles: initialArticles }) {
   const filtered =
     activeCategory === "All"
       ? initialArticles
-      : initialArticles.filter(
-          (a) =>
-            a.category === activeCategory ||
-            categorySlugs[a.category] === activeCategory
-        );
+      : initialArticles.filter((a) => {
+          const catSlug = a.category?.slug || "";
+          const catName = a.category?.name || "";
+          return catName === activeCategory || catSlug === activeCategory;
+        });
 
   const totalPages = Math.ceil(filtered.length / ARTICLES_PER_PAGE);
   const paged = filtered.slice(
@@ -50,7 +49,7 @@ export default function CareerAdviceClient({ articles: initialArticles }) {
               slug={article.slug}
               excerpt={article.excerpt}
               author={article.author}
-              category={article.category}
+              category={article.category?.name || ""}
               readingTime={article.readingTime}
               publishedAt={article.publishedAt}
             />

@@ -1,4 +1,3 @@
-import { articles, sidebarCategories, popularTags } from "./_components/mock-data";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import FeaturedArticle from "./_components/FeaturedArticle";
 import CareerAdviceClient from "./_components/CareerAdviceClient";
@@ -38,9 +37,56 @@ const blogJsonLd = {
   },
 };
 
-export default function CareerAdvicePage() {
-  const featured = articles.find((a) => a.isFeatured);
-  const regularArticles = articles.filter((a) => !a.isFeatured);
+// Static sidebar categories
+const sidebarCategories = [
+  { name: "CV Writing Tips", slug: "cv-tips", count: "—" },
+  { name: "Interview Preparation", slug: "interview", count: "—" },
+  { name: "Job Search Strategies", slug: "job-search", count: "—" },
+  { name: "Career Growth", slug: "career-growth", count: "—" },
+  { name: "Government Jobs", slug: "government", count: "—" },
+  { name: "Salary & Negotiation", slug: "salary", count: "—" },
+  { name: "Scholarships", slug: "industry", count: "—" },
+];
+
+// Static popular tags
+const popularTags = [
+  "CV Writing",
+  "Job Search",
+  "ATS",
+  "Kenya Jobs",
+  "Interview",
+  "Career Advice",
+  "Safaricom",
+  "Government",
+  "Salary",
+  "Graduate",
+  "LinkedIn",
+  "Cover Letter",
+  "Remote Work",
+  "Internship",
+  "Scholarships",
+];
+
+// ─── Data Fetching ─────────────────────────────────────────
+async function fetchArticles(params = {}) {
+  const query = new URLSearchParams(params);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/articles?${query.toString()}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return { articles: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
+  return res.json();
+}
+
+export default async function CareerAdvicePage() {
+  // Fetch featured and all articles in parallel
+  const [featuredData, allData] = await Promise.all([
+    fetchArticles({ sort: "featured", limit: "10" }),
+    fetchArticles({ limit: "20" }),
+  ]);
+
+  const featured = featuredData.articles.find((a) => a.isFeatured) || featuredData.articles[0] || null;
+  const regularArticles = allData.articles.filter((a) => !a.isFeatured);
 
   return (
     <>
@@ -108,15 +154,12 @@ export default function CareerAdvicePage() {
               <SidebarCard title="Categories">
                 <ul className="list-none">
                   {sidebarCategories.map((cat) => (
-                    <li key={cat.name} className="mb-0.5">
+                    <li key={cat.slug} className="mb-0.5">
                       <Link
-                        href={`/career-advice?category=${cat.name.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`/career-advice?category=${cat.slug}`}
                         className="flex justify-between items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all no-underline"
                       >
                         {cat.name}
-                        <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                          {cat.count}
-                        </span>
                       </Link>
                     </li>
                   ))}

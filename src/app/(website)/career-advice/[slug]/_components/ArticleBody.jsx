@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 export default function ArticleBody({ htmlContent, tableOfContents }) {
   return (
     <>
@@ -16,7 +14,7 @@ export default function ArticleBody({ htmlContent, tableOfContents }) {
           </h4>
           <ol className="list-none pl-0">
             {tableOfContents.map((item, idx) => (
-              <li key={item.id} className="mb-1">
+              <li key={item.id || idx} className="mb-1">
                 <a
                   href={`#${item.id}`}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all no-underline"
@@ -40,10 +38,12 @@ export default function ArticleBody({ htmlContent, tableOfContents }) {
       )}
 
       {/* Article Content */}
-      <div
-        className="prose-content text-[0.95rem] leading-relaxed text-gray-700"
-        dangerouslySetInnerHTML={{ __html: htmlContent }}
-      />
+      {htmlContent && (
+        <div
+          className="prose-content text-[0.95rem] leading-relaxed text-gray-700"
+          dangerouslySetInnerHTML={{ __html: htmlContent }}
+        />
+      )}
     </>
   );
 }

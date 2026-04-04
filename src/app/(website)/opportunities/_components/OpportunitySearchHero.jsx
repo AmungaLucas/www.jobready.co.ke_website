@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiSearch, FiMapPin, FiAward } from "react-icons/fi";
-import { opportunityStats } from "./mock-data";
 
 const locations = [
   "All Locations",
@@ -15,7 +14,7 @@ const locations = [
   "International",
 ];
 
-export default function OpportunitySearchHero() {
+export default function OpportunitySearchHero({ totalOpportunities = 0 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("All Locations");
@@ -90,23 +89,8 @@ export default function OpportunitySearchHero() {
         {/* Stats */}
         <div className="flex items-center gap-6 mt-8 flex-wrap">
           <div className="text-center">
-            <p className="text-xl md:text-2xl font-extrabold">{opportunityStats.totalOpportunities}+</p>
+            <p className="text-xl md:text-2xl font-extrabold">{totalOpportunities}+</p>
             <p className="text-[0.72rem] opacity-70 uppercase tracking-wide">Opportunities</p>
-          </div>
-          <div className="w-px h-8 bg-white/20" />
-          <div className="text-center">
-            <p className="text-xl md:text-2xl font-extrabold">{opportunityStats.thisMonth}</p>
-            <p className="text-[0.72rem] opacity-70 uppercase tracking-wide">Added This Month</p>
-          </div>
-          <div className="w-px h-8 bg-white/20" />
-          <div className="text-center">
-            <p className="text-xl md:text-2xl font-extrabold">{opportunityStats.providers}</p>
-            <p className="text-[0.72rem] opacity-70 uppercase tracking-wide">Providers</p>
-          </div>
-          <div className="w-px h-8 bg-white/20" />
-          <div className="text-center">
-            <p className="text-xl md:text-2xl font-extrabold text-amber-400">{opportunityStats.deadlineSoon}</p>
-            <p className="text-[0.72rem] opacity-70 uppercase tracking-wide">Deadline Soon</p>
           </div>
         </div>
       </div>

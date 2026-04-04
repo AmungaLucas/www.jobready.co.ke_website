@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { FiChevronRight, FiFilter } from "react-icons/fi";
 
@@ -9,51 +9,91 @@ import CVReviewCTA from "../../../_components/CVReviewCTA";
 import NewsletterForm from "../../../_components/NewsletterForm";
 import AdSlot from "../../../_components/AdSlot";
 import SidebarCard from "../../../_components/SidebarCard";
-import { getRelatedOpportunityHubs, mockHubOpportunities } from "./hub-data";
+import Pagination from "../../../_components/Pagination";
+import { getRelatedOpportunityHubs } from "./hub-data";
+
+function buildQueryString(hub) {
+  const params = new URLSearchParams();
+  if (hub.filters?.opportunityType) params.set("opportunityType", hub.filters.opportunityType);
+  if (hub.filters?.category) params.set("category", hub.filters.category);
+  if (hub.filters?.location) params.set("location", hub.filters.location);
+  if (hub.filters?.isRemote) params.set("isRemote", "true");
+  return params.toString();
+}
 
 export default function HubContent({ hub }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("deadline");
   const [currentPage, setCurrentPage] = useState(1);
+  const [opportunities, setOpportunities] = useState([]);
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const itemsPerPage = 9;
 
-  const allOpportunities = useMemo(() => mockHubOpportunities(hub), [hub.slug]);
-
-  const filteredOpportunities = useMemo(() => {
-    let items = [...allOpportunities];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      items = items.filter(
-        (o) => o.title.toLowerCase().includes(q) || o.organizationName?.toLowerCase().includes(q)
-      );
-    }
-    switch (sortBy) {
-      case "deadline":
-        items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-        break;
-      case "newest":
-        items.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
-        break;
-      case "value":
-        items.sort((a, b) => {
-          const aFunded = a.value?.toLowerCase().includes("fully") ? 0 : 1;
-          const bFunded = b.value?.toLowerCase().includes("fully") ? 0 : 1;
-          return aFunded - bFunded;
-        });
-        break;
-    }
-    return items;
-  }, [allOpportunities, searchQuery, sortBy]);
-
-  const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
-  const paginatedItems = filteredOpportunities.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const featuredItems = allOpportunities.filter((o) => o.isFeatured).slice(0, 3);
   const relatedHubs = getRelatedOpportunityHubs(hub.slug);
   const oppType = hub.filters?.opportunityType?.toLowerCase() || "opportunity";
+
+  const fetchOpportunities = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const baseParams = buildQueryString(hub);
+      const params = new URLSearchParams(baseParams);
+      params.set("limit", String(itemsPerPage));
+      params.set("page", String(currentPage));
+      params.set("sort", sortBy);
+
+      if (searchQuery.trim()) {
+        params.set("q", searchQuery.trim());
+      }
+
+      const baseUrl = window.location.origin;
+      const res = await fetch(`/api/opportunities?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch opportunities");
+
+      const data = await res.json();
+      setOpportunities(data.opportunities || []);
+      setTotalCount(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 0);
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+      setOpportunities([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [hub, currentPage, sortBy, searchQuery, itemsPerPage]);
+
+  // Fetch featured items (only on mount, not on search)
+  useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const baseParams = buildQueryString(hub);
+        const params = new URLSearchParams(baseParams);
+        params.set("sort", "featured");
+        params.set("limit", "3");
+
+        const res = await fetch(`/api/opportunities?${params.toString()}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setFeaturedItems((data.opportunities || []).filter((o) => o.isFeatured));
+      } catch {
+        // ignore featured fetch errors
+      }
+    }
+    fetchFeatured();
+  }, [hub]);
+
+  useEffect(() => {
+    fetchOpportunities();
+  }, [fetchOpportunities]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <>
@@ -65,7 +105,7 @@ export default function HubContent({ hub }) {
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="max-w-[720px] mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold mb-4">
-              {allOpportunities.length}+ opportunities
+              {totalCount}+ opportunities
             </div>
 
             <h1 className="text-[1.5rem] md:text-[1.8rem] lg:text-[2.2rem] font-extrabold leading-tight mb-3 tracking-tight">
@@ -113,16 +153,16 @@ export default function HubContent({ hub }) {
               <FiChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none rotate-90" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
                 className="appearance-none w-full sm:w-auto pl-4 pr-9 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all cursor-pointer text-gray-700"
               >
                 <option value="deadline">Deadline Soon</option>
                 <option value="newest">Newest First</option>
-                <option value="value">Highest Value</option>
+                <option value="featured">Featured First</option>
               </select>
             </div>
             <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
-              {filteredOpportunities.length} {oppType}{filteredOpportunities.length !== 1 ? "s" : ""}
+              {totalCount} {oppType}{totalCount !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -140,7 +180,7 @@ export default function HubContent({ hub }) {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                   {featuredItems.map((opp) => (
-                    <OpportunityCard key={opp.id} title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.type} deadline={opp.deadline} value={opp.value} />
+                    <OpportunityCard key={opp.id} title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} value={opp.value} />
                   ))}
                 </div>
               </div>
@@ -149,14 +189,26 @@ export default function HubContent({ hub }) {
             <div>
               <h2 className="text-base font-bold text-gray-900 mb-4">
                 All {oppType.charAt(0).toUpperCase() + oppType.slice(1)}s
-                <span className="text-sm font-medium text-gray-400 ml-2">({filteredOpportunities.length})</span>
+                <span className="text-sm font-medium text-gray-400 ml-2">({totalCount})</span>
               </h2>
 
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                {paginatedItems.length > 0 ? (
-                  paginatedItems.map((opp) => (
+                {loading ? (
+                  <div className="py-16 text-center">
+                    <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-3" />
+                    <p className="text-gray-500 text-sm">Loading opportunities...</p>
+                  </div>
+                ) : error ? (
+                  <div className="py-16 text-center">
+                    <p className="text-red-500 text-sm mb-4">{error}</p>
+                    <button onClick={fetchOpportunities} className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+                      Try again
+                    </button>
+                  </div>
+                ) : opportunities.length > 0 ? (
+                  opportunities.map((opp) => (
                     <div key={opp.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
-                      <OpportunityCard title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.type} deadline={opp.deadline} value={opp.value} />
+                      <OpportunityCard title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} value={opp.value} />
                     </div>
                   ))
                 ) : (
@@ -170,12 +222,12 @@ export default function HubContent({ hub }) {
               </div>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1 mt-8">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button key={page} onClick={() => setCurrentPage(page)} className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${page === currentPage ? "bg-primary text-white shadow-sm" : "text-gray-600 bg-white border border-gray-200 hover:bg-gray-50"}`}>
-                      {page}
-                    </button>
-                  ))}
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               )}
 
@@ -213,7 +265,6 @@ export default function HubContent({ hub }) {
                     <Link key={rh.slug} href={`/opportunities/${rh.slug}`} className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-b-0 hover:text-primary transition-colors group no-underline">
                       <span className="text-[0.85rem] font-medium text-gray-700 group-hover:text-primary">{rh.name}</span>
                       <span className="flex items-center gap-1.5 text-[0.72rem] text-gray-400">
-                        {rh.count}
                         <FiChevronRight className="w-3.5 h-3.5" />
                       </span>
                     </Link>
