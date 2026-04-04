@@ -131,7 +131,18 @@ export async function linkWalkInOrders(userId, email, phone) {
     conditions.push({ email: email.toLowerCase().trim() });
   }
   if (phone) {
+    // Search normalized phone (2547XXXXXXXX)
     conditions.push({ phone });
+
+    // Also search common un-normalized formats for existing orders
+    // e.g. 07XXXXXXXX, +2547XXXXXXXX
+    if (phone.startsWith("254") && phone.length === 12) {
+      conditions.push({ phone: `0${phone.substring(3)}` }); // 07XX...
+      conditions.push({ phone: `+${phone}` });           // +2547XX...
+    } else if (phone.startsWith("0") && phone.length === 10) {
+      conditions.push({ phone: `254${phone.substring(1)}` }); // 2547XX...
+      conditions.push({ phone: `+${phone}` });              // +07XX...
+    }
   }
 
   if (conditions.length === 0) return 0;

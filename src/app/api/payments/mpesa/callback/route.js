@@ -148,12 +148,97 @@ export async function POST(request) {
       case "1037":
         paymentStatus = "TIMEOUT";
         break;
+      case "4999":
+        // Transaction still under processing — keep as PENDING and auto-retry
+        paymentStatus = "PENDING";
+        console.log("[M-Pesa Callback] Result code 4999 — transaction still processing, will auto-retry");
+        break;
       default:
         paymentStatus = "FAILED";
         break;
     }
 
-    // ── 4. Update Payment record ──
+    // ── 4. Schedule auto-retry for 4999 (transaction still processing) ──
+    if (String(ResultCode) === "4999" && payment.status === "PENDING") {
+      // Don't update to FAILED — keep as PENDING
+      // Log but don't update status in DB yet
+      console.log("[M-Pesa Callback] Keeping payment as PENDING for auto-retry");
+
+      // Schedule a delayed STK Query after 10 seconds
+      // This runs in the background without blocking the callback response
+      const paymentId = payment.id;
+      setTimeout(async () => {
+        try {
+          console.log(`[M-Pesa Auto-Retry] Querying STK status for ${CheckoutRequestID}`);
+          const { querySTKStatus } = await import("@/lib/mpesa");
+          const queryResult = await querySTKStatus(CheckoutRequestID);
+
+          const queryResultCode = String(queryResult.ResultCode || "");
+          console.log(`[M-Pesa Auto-Retry] Result: code=${queryResultCode}, desc=${queryResult.ResultDesc}`);
+
+          if (queryResultCode === "0") {
+            // Payment actually succeeded! Process it
+            const callbackMetadata = queryResult.CallbackMetadata;
+            let receiptNo = null;
+            let amount = null;
+            if (callbackMetadata?.Item) {
+              receiptNo = callbackMetadata.Item.find(i => i.Name === "MpesaReceiptNumber")?.Value;
+              amount = callbackMetadata.Item.find(i => i.Name === "Amount")?.Value;
+            }
+
+            // Update payment to SUCCESS
+            await db.payment.update({
+              where: { id: paymentId },
+              data: {
+                status: "SUCCESS",
+                mpesaReceiptNumber: receiptNo,
+                resultDesc: "Payment confirmed via auto-retry",
+                resultCode: "0",
+                ...(amount && { amount }),
+              },
+            });
+
+            // Update order
+            const freshOrder = await db.order.findUnique({ where: { id: payment.orderId } });
+            if (freshOrder) {
+              const newPaid = freshOrder.paidAmount + (amount || payment.amount);
+              const newDue = freshOrder.totalAmount - newPaid;
+              const newPayStatus = newDue <= 0 ? "PAID" : freshOrder.paidAmount > 0 ? "PARTIALLY_PAID" : "UNPAID";
+              await db.order.update({
+                where: { id: freshOrder.id },
+                data: {
+                  paidAmount: newPaid,
+                  balanceDue: Math.max(0, newDue),
+                  paymentStatus: newPayStatus,
+                  ...(newPayStatus === "PAID" ? { confirmedAt: new Date() } : {}),
+                },
+              });
+              await db.orderActivity.create({
+                data: {
+                  orderId: freshOrder.id,
+                  action: "PAYMENT_RECEIVED",
+                  description: `Payment of KSh ${(amount || payment.amount).toLocaleString()} confirmed via auto-retry after 4999${receiptNo ? ` — Receipt: ${receiptNo}` : ""}`,
+                  metadata: { paymentId, checkoutRequestId: CheckoutRequestID, resultCode: "0", autoRetry: true },
+                },
+              });
+              console.log(`[M-Pesa Auto-Retry] Order ${freshOrder.orderNumber} updated: paid=${newPaid}, status=${newPayStatus}`);
+            }
+          } else if (queryResultCode === "1032" || queryResultCode === "1037") {
+            // User cancelled or timed out on retry
+            await db.payment.update({
+              where: { id: paymentId },
+              data: { status: queryResultCode === "1032" ? "CANCELLED" : "TIMEOUT", resultCode: queryResultCode, resultDesc: queryResult.ResultDesc },
+            });
+            console.log(`[M-Pesa Auto-Retry] Payment ${paymentId} marked as ${queryResultCode === "1032" ? "CANCELLED" : "TIMEOUT"}`);
+          }
+          // If still 4999 or other, leave as PENDING — the client polling will catch it
+        } catch (retryError) {
+          console.error("[M-Pesa Auto-Retry] Error:", retryError);
+        }
+      }, 10000); // 10 seconds delay
+    }
+
+    // ── 4b. Update Payment record (skip if 4999 — handled above) ──
     const updatedPayment = await db.payment.update({
       where: { id: payment.id },
       data: {
@@ -271,8 +356,8 @@ export async function POST(request) {
         // Don't fail the callback if email fails
         console.error("[M-Pesa Callback] Email send failed:", emailError.message);
       }
-    } else {
-      // ── Failure OrderActivity ──
+    } else if (paymentStatus !== "PENDING") {
+      // ── Failure OrderActivity (skip for PENDING/4999 — auto-retry handles it) ──
       await db.orderActivity.create({
         data: {
           orderId: payment.orderId,
@@ -304,6 +389,21 @@ export async function POST(request) {
           },
         });
       }
+    } else {
+      // 4999 / PENDING — log activity but don't send failure notification
+      await db.orderActivity.create({
+        data: {
+          orderId: payment.orderId,
+          action: "PAYMENT_PENDING",
+          description: `M-Pesa callback returned 4999 (processing) — auto-retry scheduled`,
+          metadata: {
+            paymentId: payment.id,
+            checkoutRequestId: CheckoutRequestID,
+            resultCode: ResultCode,
+            resultDesc: ResultDesc,
+          },
+        },
+      });
     }
 
     // ── Always return success to Safaricom to avoid retries ──

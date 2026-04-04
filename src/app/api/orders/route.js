@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/slug";
+import { normalizePhone } from "@/lib/account-merge";
 
 /**
  * POST /api/orders
@@ -90,7 +91,7 @@ export async function POST(request) {
         orderNumber,
         userId,
         email: email.toLowerCase().trim(),
-        phone: phone.trim(),
+        phone: normalizePhone(phone) || phone.trim(),
         fullName: fullName.trim(),
         totalAmount,
         balanceDue: totalAmount,
