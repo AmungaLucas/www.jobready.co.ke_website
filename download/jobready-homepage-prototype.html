@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobReady Kenya - Jobs, Internships & Scholarships in Kenya</title>
+    <meta name="description" content="Find jobs, internships, scholarships & government opportunities in Kenya. Updated daily. Get your professional CV done from KSh 500 — JobReady.co.ke">
+    <link rel="canonical" href="https://jobready.co.ke">
+    <meta property="og:title" content="JobReady Kenya - Jobs, Internships & Scholarships in Kenya">
+    <meta property="og:description" content="Kenya's #1 job board. Find jobs, internships, scholarships & career services. Updated daily.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jobready.co.ke">
+    <meta property="og:site_name" content="JobReady Kenya">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JobReady Kenya — Jobs, Internships & Scholarships">
+    <meta name="twitter:description" content="Find your next opportunity on JobReady.co.ke — 2,500+ jobs updated daily">
+
+    <!-- JSON-LD: WebSite + SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "WebSite",
+      "name": "JobReady Kenya",
+      "url": "https://jobready.co.ke",
+      "description": "Kenya's #1 job board — jobs, internships, scholarships & career services.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://jobready.co.ke/jobs?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{overflow-x:hidden}
+        body{overflow-x:hidden}
+        :root{
+            --primary:#1a56db;--primary-dark:#1e40af;--primary-light:#dbeafe;
+            --secondary:#059669;--secondary-dark:#047857;--secondary-light:#d1fae5;
+            --accent:#f59e0b;--accent-light:#fef3c7;
+            --purple:#7c3aed;--purple-light:#ede9fe;
+            --danger:#dc2626;--danger-light:#fee2e2;
+            --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+            --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;
+            --gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;
+            --white:#fff;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.05);--shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+            --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+            --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+            --radius:8px;--radius-lg:12px;--radius-xl:16px;
+        }
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:var(--gray-800);background:var(--gray-50);line-height:1.6;-webkit-font-smoothing:antialiased}
+        a{text-decoration:none;color:var(--primary);transition:color .15s}
+        a:hover{color:var(--primary-dark)}
+        .container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+        /* ===== TOP BAR ===== */
+        .top-bar{background:var(--gray-900);color:var(--gray-300);font-size:.8rem;padding:6px 0}
+        .top-bar .container{display:flex;justify-content:space-between;align-items:center}
+        .top-bar a{color:var(--gray-300);transition:color .15s}
+        .top-bar a:hover{color:var(--white)}
+        .top-bar-links{display:flex;gap:20px}
+
+        /* ===== HEADER ===== */
+        .header{background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+        .header .container{display:flex;align-items:center;justify-content:space-between;height:68px}
+        .logo{display:flex;align-items:center;gap:8px;font-size:1.5rem;font-weight:800;color:var(--primary);text-decoration:none}
+        .logo span{color:var(--gray-800)}
+        .logo:hover span{color:var(--primary-dark)}
+        .nav{display:flex;align-items:center;gap:2px}
+        .nav a{padding:8px 14px;border-radius:var(--radius);font-size:.88rem;font-weight:500;color:var(--gray-600);transition:all .2s;position:relative}
+        .nav a:hover{color:var(--primary);background:var(--gray-50)}
+        .nav a.active{color:var(--primary);font-weight:600}
+        .nav a.active::after{content:'';position:absolute;bottom:-1px;left:14px;right:14px;height:2px;background:var(--primary);border-radius:99px}
+        .nav-actions{display:flex;gap:8px;align-items:center}
+        .nav-wa-link{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:99px;font-size:.82rem;font-weight:600;color:#059669;background:#d1fae5;transition:all .15s;text-decoration:none;border:1.5px solid transparent}
+        .nav-wa-link:hover{background:#a7f3d0;border-color:#059669}
+        .nav-wa-link svg{width:15px;height:15px}
+        .mobile-menu-btn{display:none;width:40px;height:40px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);cursor:pointer;align-items:center;justify-content:center;flex-shrink:0}
+        .mobile-menu-btn svg{width:20px;height:20px;color:var(--gray-700)}
+        .mobile-menu-btn:hover{background:var(--gray-50);border-color:var(--gray-300)}
+        .mobile-nav{display:none}
+        .mobile-nav.open{display:block}
+        .mobile-nav{position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;background:rgba(0,0,0,.4);padding:0}
+        .mobile-nav-inner{background:var(--white);padding:24px;max-width:320px;height:100%;overflow-y:auto;box-shadow:4px 0 24px rgba(0,0,0,.1)}
+        .mobile-nav-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .mobile-nav-close{width:36px;height:36px;border:1.5px solid var(--gray-200);border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-500)}
+        .mobile-nav-close:hover{background:var(--gray-100);color:var(--gray-700)}
+        .mobile-nav-links{list-style:none}
+        .mobile-nav-links li{margin-bottom:4px}
+        .mobile-nav-links a{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius);font-size:.95rem;font-weight:500;color:var(--gray-700);transition:all .15s}
+        .mobile-nav-links a:hover{background:var(--gray-50);color:var(--primary)}
+        .mobile-nav-links a svg{width:18px;height:18px;color:var(--gray-400);flex-shrink:0}
+        .mobile-nav-divider{height:1px;background:var(--gray-100);margin:16px 0}
+        .mobile-nav-cta{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+        .mobile-nav-cta .btn{justify-content:center;padding:12px;font-size:.9rem}
+
+        /* ===== BUTTONS ===== */
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:99px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;font-family:inherit}
+        .btn-primary{background:var(--primary);color:var(--white)}.btn-primary:hover{background:var(--primary-dark)}
+        .btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}.btn-outline:hover{background:var(--primary);color:var(--white)}
+        .btn-success{background:var(--secondary);color:var(--white)}.btn-success:hover{background:var(--secondary-dark)}
+        .btn-purple{background:var(--purple);color:var(--white)}.btn-purple:hover{background:#6d28d9}
+        .btn-ghost{background:transparent;color:var(--gray-600);border:1px solid var(--gray-200)}.btn-ghost:hover{background:var(--gray-50);color:var(--gray-800)}
+        .btn-white{background:var(--white);color:var(--primary);font-weight:700}.btn-white:hover{background:var(--gray-100)}
+        .btn-lg{padding:14px 32px;font-size:1rem;border-radius:var(--radius-lg)}
+        .btn-block{width:100%;justify-content:center}
+
+        /* ===== HERO ===== */
+        .hero{background:linear-gradient(135deg,var(--primary) 0%,#1e3a8a 50%,#1e40af 100%);color:#fff;padding:56px 0 52px;position:relative;overflow:hidden}
+        .hero::before{content:'';position:absolute;top:-50%;right:-20%;width:600px;height:600px;background:radial-gradient(circle,rgba(255,255,255,.06) 0%,transparent 70%);pointer-events:none}
+        .hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.04) 0%,transparent 70%);pointer-events:none}
+        .hero .container{position:relative;z-index:1}
+        .hero-content{max-width:720px;margin:0 auto;text-align:center}
+        .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);padding:6px 16px;border-radius:99px;font-size:.78rem;font-weight:600;margin-bottom:20px;border:1px solid rgba(255,255,255,.2)}
+        .hero-badge svg{width:14px;height:14px}
+        .hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:14px;letter-spacing:-.5px}
+        .hero h1 span{color:#93c5fd}
+        .hero-sub{font-size:1.05rem;opacity:.85;line-height:1.6;margin-bottom:28px;max-width:560px;margin-left:auto;margin-right:auto}
+        .hero-search{display:flex;gap:10px;max-width:680px;margin:0 auto 24px;flex-wrap:wrap}
+        .hero-search-input{flex:1;min-width:200px;padding:14px 18px;border:none;border-radius:var(--radius-lg);font-size:.95rem;background:var(--white);color:var(--gray-800);box-shadow:0 4px 12px rgba(0,0,0,.1);font-family:inherit}
+        .hero-search-input:focus{outline:none;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+        .hero-search-input::placeholder{color:var(--gray-400)}
+        .hero-search-select{padding:14px 16px;border:none;border-radius:var(--radius-lg);font-size:.9rem;background:var(--white);color:var(--gray-700);cursor:pointer;font-family:inherit;min-width:140px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+        .hero-search-btn{padding:14px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-lg);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(0,0,0,.1);font-family:inherit;display:flex;align-items:center;gap:8px}
+        .hero-search-btn:hover{background:#d97706;transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
+        .hero-search-btn svg{width:18px;height:18px}
+        .hero-stats{display:flex;justify-content:center;gap:32px;margin-top:24px}
+        .hero-stat{text-align:center}
+        .hero-stat-num{font-size:1.5rem;font-weight:800;display:block}
+        .hero-stat-label{font-size:.75rem;opacity:.65;text-transform:uppercase;letter-spacing:.5px}
+        .hero-stats-divider{width:1px;background:rgba(255,255,255,.2);align-self:stretch}
+        .hero-quick-links{display:flex;justify-content:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+        .hero-quick-link{padding:6px 14px;background:rgba(255,255,255,.1);border-radius:99px;font-size:.78rem;font-weight:500;color:rgba(255,255,255,.85);transition:all .15s;border:1px solid rgba(255,255,255,.15);cursor:pointer}
+        .hero-quick-link:hover{background:rgba(255,255,255,.2);color:#fff}
+
+        /* ===== TRUSTED BY ===== */
+        .trusted-bar{background:var(--white);border-bottom:1px solid var(--gray-100);padding:20px 0}
+        .trusted-bar-label{font-size:.75rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;font-weight:600;text-align:center;margin-bottom:14px}
+        .trusted-logos{display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;opacity:.5}
+        .trusted-logo{font-size:.85rem;font-weight:700;color:var(--gray-500);padding:6px 16px;border:1px solid var(--gray-200);border-radius:var(--radius);background:var(--gray-50)}
+
+        /* ===== HOME LAYOUT ===== */
+        .home-layout{display:grid;grid-template-columns:1fr 340px;gap:28px;padding:28px 0 60px}
+
+        /* ===== SECTION HEADERS ===== */
+        .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .section-head h2{font-size:1.1rem;font-weight:700;color:var(--gray-900);display:flex;align-items:center;gap:8px}
+        .section-head h2 svg{width:20px;height:20px;color:var(--primary)}
+        .section-head a{font-size:.84rem;font-weight:600;color:var(--primary);display:flex;align-items:center;gap:4px}
+        .section-head a svg{width:14px;height:14px}
+
+        /* ===== DEADLINE STRIP ===== */
+        .deadline-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+        .deadline-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px 18px;border-left:4px solid var(--danger);transition:box-shadow .2s;cursor:pointer}
+        .deadline-card:hover{box-shadow:var(--shadow-md)}
+        .deadline-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+        .deadline-card-title{font-size:.88rem;font-weight:700;color:var(--gray-900);line-height:1.3}
+        .deadline-urgent-tag{background:var(--danger-light);color:var(--danger);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+        .deadline-company{font-size:.78rem;color:var(--gray-500);margin-bottom:6px}
+        .deadline-timer{display:flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:var(--danger)}
+        .deadline-timer svg{width:14px;height:14px}
+
+        /* ===== JOB CARDS (list style) ===== */
+        .job-list-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+        .job-list-card-header{padding:20px 22px 14px}
+        .jl-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--gray-100);transition:background .15s;cursor:pointer}
+        .jl-item:last-child{border-bottom:none}
+        .jl-item:hover{background:var(--gray-50)}
+        .jl-item:hover .jl-title{color:var(--primary)}
+        .jl-logo{width:44px;height:44px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0}
+        .jl-body{flex:1;min-width:0}
+        .jl-title-row{display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+        .jl-title{font-size:.92rem;font-weight:700;color:var(--gray-900);transition:color .15s;line-height:1.35}
+        .jl-company{font-size:.8rem;color:var(--gray-500);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+        .jl-company a{color:var(--gray-600)}.jl-company a:hover{color:var(--primary)}
+        .jl-verified{display:inline-flex;align-items:center;gap:2px;color:var(--secondary);font-size:.68rem;font-weight:600}
+        .jl-verified svg{width:12px;height:12px}
+        .jl-meta{display:flex;gap:14px;font-size:.78rem;color:var(--gray-400);flex-wrap:wrap;align-items:center}
+        .jl-meta svg{width:14px;height:14px;margin-right:2px}
+        .jl-badges{display:flex;gap:6px;margin-left:auto;flex-shrink:0;align-items:center}
+        .jl-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;font-size:.68rem;font-weight:700}
+        .jl-badge-featured{background:var(--accent-light);color:#92400e}
+        .jl-badge-new{background:var(--secondary-light);color:var(--secondary)}
+        .jl-badge-urgent{background:var(--danger-light);color:var(--danger)}
+
+        .jl-save{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gray-200);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-400);transition:all .15s;flex-shrink:0}
+        .jl-save:hover{border-color:var(--accent);color:var(--accent)}
+        .jl-save.saved{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+        .jl-save svg{width:14px;height:14px}
+
+        /* ===== CATEGORY GRID ===== */
+        .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+        .cat-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:20px 16px;text-align:center;cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+        .cat-card:hover{box-shadow:var(--shadow-md);border-color:var(--primary-light);transform:translateY(-2px)}
+        .cat-icon{width:44px;height:44px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+        .cat-icon svg{width:22px;height:22px}
+        .cat-name{font-size:.85rem;font-weight:700;color:var(--gray-800);margin-bottom:3px}
+        .cat-count{font-size:.75rem;color:var(--gray-400)}
+
+        /* ===== OPPORTUNITY CARDS ===== */
+        .opp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        .opp-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+        .opp-card:hover{box-shadow:var(--shadow-md);border-color:var(--primary-light);transform:translateY(-1px)}
+        .opp-card-top{padding:18px 18px 12px}
+        .opp-type{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+        .opp-type-scholarship{color:var(--purple)}
+        .opp-type-bursary{color:var(--primary)}
+        .opp-type-internship{color:var(--secondary)}
+        .opp-title{font-size:.9rem;font-weight:700;color:var(--gray-900);line-height:1.35;margin-bottom:6px}
+        .opp-provider{font-size:.78rem;color:var(--gray-500);margin-bottom:4px}
+        .opp-card-bottom{padding:12px 18px;background:var(--gray-50);border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center}
+        .opp-deadline{font-size:.75rem;color:var(--danger);font-weight:600;display:flex;align-items:center;gap:4px}
+        .opp-deadline svg{width:13px;height:13px}
+        .opp-value{font-size:.75rem;font-weight:600;color:var(--secondary)}
+
+        /* ===== SERVICE NUDGE (mid-page) ===== */
+        .service-nudge{background:var(--white);border:1px solid var(--gray-200);border-left:4px solid var(--primary);border-radius:var(--radius);padding:16px 20px;margin:24px 0;display:flex;align-items:center;gap:16px}
+        .service-nudge-icon{width:40px;height:40px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .service-nudge-icon svg{width:18px;height:18px;color:var(--primary)}
+        .service-nudge-text{flex:1}
+        .service-nudge-text p{font-size:.85rem;color:var(--gray-600);line-height:1.5}
+        .service-nudge-text a{font-weight:600}
+
+        /* ===== AD SLOTS ===== */
+        .ad-leaderboard{background:var(--gray-100);border:1px dashed var(--gray-300);text-align:center;padding:16px;margin-bottom:24px;border-radius:var(--radius);font-size:.78rem;color:var(--gray-400);letter-spacing:.5px;text-transform:uppercase}
+        .ad-inline{background:var(--gray-100);border:1px dashed var(--gray-300);text-align:center;padding:20px;margin:20px 0;border-radius:var(--radius);font-size:.78rem;color:var(--gray-400);letter-spacing:.5px;text-transform:uppercase}
+        .ad-paid{background:var(--gray-100);border:1px dashed var(--gray-300);text-align:center;padding:24px;margin:20px 0;border-radius:var(--radius-lg);font-size:.78rem;color:var(--gray-400);letter-spacing:.5px;text-transform:uppercase}
+
+        /* ===== DOCUMENT WRITING CTA STRIP ===== */
+        .doc-cta-strip{background:linear-gradient(135deg,var(--primary) 0%,#1e3a8a 100%);border-radius:var(--radius-xl);padding:32px 28px;margin:24px 0;color:#fff;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;position:relative;overflow:hidden}
+        .doc-cta-strip::before{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none}
+        .doc-cta-strip h3{font-size:1.15rem;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+        .doc-cta-strip h3 svg{width:20px;height:20px}
+        .doc-cta-strip>p{font-size:.85rem;opacity:.8;line-height:1.5;margin-bottom:18px}
+        .doc-cta-card{background:rgba(255,255,255,.1);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-lg);padding:20px 18px;text-align:center;transition:all .2s;cursor:pointer}
+        .doc-cta-card:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+        .doc-cta-card-icon{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+        .doc-cta-card-icon svg{width:22px;height:22px;color:#fff}
+        .doc-cta-card h4{font-size:.9rem;font-weight:700;margin-bottom:4px}
+        .doc-cta-card p{font-size:.75rem;opacity:.75;margin-bottom:14px;line-height:1.4}
+        .doc-cta-card .btn{background:#fff;color:var(--primary);font-size:.78rem;padding:8px 20px}
+        .doc-cta-card .btn:hover{background:var(--gray-100)}
+        @media(max-width:768px){
+            .doc-cta-strip{grid-template-columns:1fr;padding:24px 18px}
+        }
+
+        /* ===== SECTION SPACING ===== */
+        .section-gap{margin-top:24px}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+        .sidebar-card h3{font-size:.95rem;font-weight:700;color:var(--gray-900);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--gray-100);display:flex;align-items:center;gap:8px}
+        .sidebar-card h3 svg{width:18px;height:18px;color:var(--primary)}
+
+        /* CV Review CTA */
+        .cv-review-card{background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fbbf24;border-radius:var(--radius-lg);padding:22px;margin-bottom:20px;text-align:center}
+        .cv-review-card h3{border:none;margin-bottom:8px;color:#78350f;padding-bottom:0;font-size:1rem;justify-content:center}
+        .cv-review-card h3 svg{color:#b45309}
+        .cv-review-card>p{font-size:.82rem;color:#92400e;margin-bottom:14px;line-height:1.5}
+        .cv-review-card .btn{background:#92400e;color:#fff}.cv-review-card .btn:hover{background:#78350f}
+        .cv-review-price{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px}
+        .cv-review-from{font-size:.75rem;color:#b45309;text-decoration:line-through;opacity:.7}
+        .cv-review-now{font-size:.95rem;font-weight:800;color:#78350f}
+
+        /* Sidebar Featured Jobs */
+        .sb-feat{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100)}
+        .sb-feat:last-of-type{border-bottom:none}
+        .sb-feat-logo{width:38px;height:38px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:700;font-size:.75rem}
+        .sb-feat-info{flex:1;min-width:0}
+        .sb-feat-info h4{font-size:.85rem;font-weight:600;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .sb-feat-info h4 a{color:var(--gray-800)}.sb-feat-info h4 a:hover{color:var(--primary)}
+        .sb-feat-info .sb-feat-company{font-size:.77rem;color:var(--gray-500);margin:2px 0 4px}
+
+        .view-all-link{display:block;text-align:center;padding:12px 0 0;font-size:.84rem;font-weight:600;color:var(--primary);border-top:1px solid var(--gray-100);margin-top:6px}
+
+        /* Top Employers */
+        .sb-employer{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-100)}
+        .sb-employer:last-of-type{border-bottom:none}
+        .sb-employer-logo{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:700;font-size:.72rem}
+        .sb-employer-name{flex:1;font-size:.85rem;font-weight:600;color:var(--gray-800)}
+        .sb-employer-count{font-size:.78rem;font-weight:700;color:var(--accent);background:var(--accent-light);padding:2px 10px;border-radius:99px}
+
+        /* Deadline Clock */
+        .sb-deadline{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-100)}
+        .sb-deadline:last-of-type{border-bottom:none}
+        .sb-deadline-name{font-size:.82rem;color:var(--gray-700);font-weight:500}
+        .sb-deadline-time{font-size:.78rem;font-weight:700;color:var(--danger);display:flex;align-items:center;gap:4px}
+        .sb-deadline-time svg{width:13px;height:13px}
+
+        /* Newsletter */
+        .newsletter-form{display:flex;gap:8px;margin-top:12px}
+        .newsletter-form input{flex:1;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:.85rem;font-family:inherit;color:var(--gray-800)}
+        .newsletter-form input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+        .newsletter-form input::placeholder{color:var(--gray-400)}
+        .newsletter-form button{padding:10px 18px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+        .newsletter-form button:hover{background:var(--primary-dark)}
+        .newsletter-trust{display:flex;align-items:center;gap:5px;justify-content:center;margin-top:10px;font-size:.72rem;color:var(--gray-400)}
+        .newsletter-trust svg{width:13px;height:13px;color:var(--secondary)}
+
+        /* Ad Sidebar */
+        .ad-sidebar{background:var(--gray-100);border:1px dashed var(--gray-300);text-align:center;padding:30px 10px;border-radius:var(--radius);font-size:.75rem;color:var(--gray-400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px}
+
+        /* ===== FOOTER ===== */
+        .footer{background:var(--gray-900);color:var(--gray-300);padding:48px 0 24px;margin-top:0}
+        .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
+        .footer-brand .logo{color:var(--white);margin-bottom:14px;font-size:1.3rem}
+        .footer-brand p{font-size:.87rem;line-height:1.7;opacity:.8}
+        .footer h4{color:var(--white);font-size:.92rem;margin-bottom:14px;font-weight:600}
+        .footer ul{list-style:none}
+        .footer ul li{margin-bottom:7px}
+        .footer ul a{color:var(--gray-400);font-size:.84rem}
+        .footer ul a:hover{color:var(--white)}
+        .footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--gray-500)}
+        .footer-social{display:flex;gap:16px}
+        .footer-social a{color:var(--gray-400);font-size:.83rem}
+
+        /* ===== WHATSAPP FLOAT ===== */
+        .wa-float{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+        .wa-float-btn{width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;border:none;box-shadow:0 4px 12px rgba(37,211,102,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+        .wa-float-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(37,211,102,.5)}
+        .wa-float-btn svg{width:28px;height:28px}
+        .wa-float-tip{background:var(--white);box-shadow:var(--shadow-md);border-radius:var(--radius);padding:8px 14px;font-size:.78rem;color:var(--gray-600);white-space:nowrap;animation:wa-fade 3s ease-in-out infinite}
+        .wa-float-tip span{font-weight:600;color:#25D366}
+        @keyframes wa-fade{0%,100%{opacity:.9}50%{opacity:.5}}
+
+        /* ===== CV MODAL ===== */
+        .cv-modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+        .cv-modal-overlay.active{display:flex}
+        .cv-modal{background:var(--white);border-radius:var(--radius-xl);max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.15)}
+        .cv-modal-header{padding:24px 24px 0;display:flex;justify-content:space-between;align-items:flex-start}
+        .cv-modal-header h3{font-size:1.1rem;font-weight:800;color:var(--gray-900)}
+        .cv-modal-header h3 small{display:block;font-weight:400;font-size:.8rem;color:var(--gray-500);margin-top:2px}
+        .cv-modal-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--gray-200);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-400);transition:all .15s;flex-shrink:0}
+        .cv-modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
+        .cv-modal-body{padding:20px 24px 24px}
+        .cv-modal-step{margin-bottom:18px}
+        .cv-modal-step label{display:block;font-size:.82rem;font-weight:600;color:var(--gray-700);margin-bottom:8px}
+        .cv-modal-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+        .cv-modal-option{padding:12px 8px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .15s;font-size:.82rem;font-weight:600;color:var(--gray-600)}
+        .cv-modal-option:hover{border-color:var(--primary-light);background:var(--primary-light)}
+        .cv-modal-option.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+        .cv-modal-option small{display:block;font-weight:400;color:var(--gray-400);font-size:.7rem;margin-top:2px}
+        .cv-tier{display:none}
+        .cv-tier.show{display:block;margin-top:16px}
+        .cv-tiers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+        .cv-tier-card{border:2px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 10px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+        .cv-tier-card:hover{border-color:var(--primary)}
+        .cv-tier-card.popular{border-color:var(--primary)}
+        .cv-tier-card.popular::before{content:'Popular';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.6rem;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
+        .cv-tier-card.selected{border-color:var(--primary);background:var(--primary-light)}
+        .cv-tier-name{font-size:.8rem;font-weight:700;color:var(--gray-800);margin-bottom:6px}
+        .cv-tier-price{font-size:1.15rem;font-weight:800;color:var(--primary)}
+        .cv-tier-price small{font-size:.65rem;font-weight:400;color:var(--gray-500)}
+        .cv-tier-desc{font-size:.68rem;color:var(--gray-500);line-height:1.4;margin-top:4px}
+        .cv-modal-footer{padding:0 24px 24px}
+        .cv-modal-footer .btn{width:100%;justify-content:center;padding:14px;font-size:.9rem}
+        .cv-modal-wa{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;font-size:.8rem;color:var(--gray-500)}
+        .cv-modal-wa a{color:#25D366;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+        .cv-modal-trust{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:8px;font-size:.7rem;color:var(--gray-400)}
+        .cv-modal-trust svg{width:14px;height:14px;color:var(--secondary)}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1024px){
+            .home-layout{grid-template-columns:1fr}
+            .footer-grid{grid-template-columns:1fr 1fr}
+            .ad-leaderboard{display:none}
+            .hero h1{font-size:1.8rem}
+            .cat-grid{grid-template-columns:repeat(3,1fr)}
+            .opp-grid{grid-template-columns:repeat(2,1fr)}
+        }
+        @media(max-width:768px){
+            .top-bar{display:none}
+            .nav{display:none}
+            .nav-actions .btn{display:none}
+            .nav-wa-link{display:none}
+            .mobile-menu-btn{display:flex}
+            .header .container{height:56px}
+            .logo{font-size:1.25rem}
+            .hero{padding:36px 0 32px}
+            .hero h1{font-size:1.5rem}
+            .hero-sub{font-size:.9rem}
+            .hero-search{flex-direction:column}
+            .hero-search-select{width:100%}
+            .hero-stats{gap:20px}
+            .hero-stat-num{font-size:1.2rem}
+            .hero-quick-links{display:none}
+            .trusted-bar{padding:16px 0}
+            .trusted-logos{gap:16px}
+            .deadline-strip{grid-template-columns:1fr}
+            .cat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+            .opp-grid{grid-template-columns:1fr}
+            .jl-item{padding:12px 0}
+            .jl-badges{margin-left:0;margin-top:6px}
+            .jl-item-inner{display:flex;flex-direction:column}
+            .footer-grid{grid-template-columns:1fr;gap:20px}
+            .footer-bottom{flex-direction:column;gap:10px}
+            .wa-float{bottom:20px;right:16px}
+            .wa-float-btn{width:48px;height:48px}
+            .wa-float-btn svg{width:24px;height:24px}
+            .wa-float-tip{display:none}
+            .service-nudge{flex-direction:column;text-align:center;gap:10px}
+            .service-nudge-text a{display:inline-block;margin-top:6px}
+            .ad-inline{padding:14px}
+            .ad-sidebar{padding:20px 10px}
+        }
+        ::-webkit-scrollbar{width:8px}
+        ::-webkit-scrollbar-track{background:var(--gray-100)}
+        ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:99px}
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-links">
+                <a href="/jobs/internships">Internships</a>
+                <a href="/jobs/government">Govt Jobs</a>
+                <a href="/jobs/remote">Remote</a>
+                <a href="/opportunities/scholarships">Scholarships</a>
+                <a href="/services">CV Writing</a>
+            </div>
+            <div class="top-bar-links">
+                <a href="https://wa.me/254700000000" target="_blank" rel="noopener" style="color:#25D366;font-weight:600">WhatsApp</a>
+                <a href="/blog">Career Advice</a>
+                <a href="/services">Our Services</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container">
+            <a href="/" class="logo">
+                <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#1a56db"/><path d="M8 16l4 4 12-12" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                JobReady<span>.co.ke</span>
+            </a>
+            <nav class="nav">
+                <a href="/jobs" class="active">Jobs</a>
+                <a href="/opportunities">Opportunities</a>
+                <a href="/organizations">Companies</a>
+                <a href="/blog">Career Advice</a>
+                <a href="/services">CV Services</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="https://wa.me/254700000000?text=Hi%20JobReady%2C%20I%20need%20help" target="_blank" rel="noopener" class="nav-wa-link">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.503 3.94 1.394 5.624L0 24l6.518-1.358A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.93 0-3.747-.518-5.307-1.42l-.38-.227-3.938.82.833-3.836-.247-.394A9.773 9.773 0 012.18 12c0-5.422 4.398-9.82 9.82-9.82 5.422 0 9.82 4.398 9.82 9.82 0 5.422-4.398 9.82-9.82 9.82z"/></svg>
+                    WhatsApp
+                </a>
+                <a href="#" class="btn btn-ghost">Sign In</a>
+                <button class="mobile-menu-btn" onclick="document.getElementById('mobileNav').classList.add('open')" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE NAV DRAWER -->
+    <div class="mobile-nav" id="mobileNav" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="mobile-nav-inner">
+            <div class="mobile-nav-header">
+                <a href="/" class="logo" style="font-size:1.3rem">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#1a56db"/><path d="M8 16l4 4 12-12" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    JobReady<span>.co.ke</span>
+                </a>
+                <button class="mobile-nav-close" onclick="document.getElementById('mobileNav').classList.remove('open')" aria-label="Close menu">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <ul class="mobile-nav-links">
+                <li><a href="/jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Jobs</a></li>
+                <li><a href="/opportunities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Opportunities</a></li>
+                <li><a href="/organizations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Companies</a></li>
+                <li><a href="/blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Career Advice</a></li>
+                <li><a href="/services"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>CV Services</a></li>
+                <li><a href="/jobs/internships"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Internships</a></li>
+                <li><a href="/jobs/government"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M9 3v18M15 7v14M21 3v18"/></svg>Government Jobs</a></li>
+                <li><a href="/opportunities/scholarships"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg>Scholarships</a></li>
+            </ul>
+            <div class="mobile-nav-divider"></div>
+            <div class="mobile-nav-cta">
+                <a href="#" class="btn btn-primary" onclick="document.getElementById('cvModal').classList.add('active');document.getElementById('mobileNav').classList.remove('open')">Get Your CV Done</a>
+                <a href="https://wa.me/254700000000" target="_blank" rel="noopener" class="btn btn-success" onclick="document.getElementById('mobileNav').classList.remove('open')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.503 3.94 1.394 5.624L0 24l6.518-1.358A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.93 0-3.747-.518-5.307-1.42l-.38-.227-3.938.82.833-3.836-.247-.394A9.773 9.773 0 012.18 12c0-5.422 4.398-9.82 9.82-9.82 5.422 0 9.82 4.398 9.82 9.82 0 5.422-4.398 9.82-9.82 9.82z"/></svg>
+                    Chat on WhatsApp
+                </a>
+                <a href="#" class="btn btn-outline" onclick="document.getElementById('mobileNav').classList.remove('open')">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    2,500+ jobs updated today
+                </div>
+                <h1>Find Your Next<br><span>Opportunity in Kenya</span></h1>
+                <p class="hero-sub">Browse jobs, internships, scholarships & government positions. Updated daily. Get your professional CV done and land your dream job faster.</p>
+                <div class="hero-search">
+                    <input type="text" class="hero-search-input" placeholder="Job title, keyword, or company...">
+                    <select class="hero-search-select">
+                        <option>All Locations</option>
+                        <option>Nairobi</option>
+                        <option>Mombasa</option>
+                        <option>Kisumu</option>
+                        <option>Nakuru</option>
+                        <option>Remote</option>
+                    </select>
+                    <button class="hero-search-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Search
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">12,400+</span>
+                        <span class="hero-stat-label">Active Jobs</span>
+                    </div>
+                    <div class="hero-stats-divider"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">3,200+</span>
+                        <span class="hero-stat-label">Companies</span>
+                    </div>
+                    <div class="hero-stats-divider"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">25,000+</span>
+                        <span class="hero-stat-label">Job Seekers</span>
+                    </div>
+                </div>
+                <div class="hero-quick-links">
+                    <a href="/jobs/it-technology" class="hero-quick-link">IT & Tech Jobs</a>
+                    <a href="/jobs/internships" class="hero-quick-link">Internships</a>
+                    <a href="/jobs/government" class="hero-quick-link">Government Jobs</a>
+                    <a href="/opportunities/scholarships" class="hero-quick-link">Scholarships</a>
+                    <a href="/jobs/remote" class="hero-quick-link">Remote Jobs</a>
+                    <a href="/jobs/nairobi" class="hero-quick-link">Nairobi Jobs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== TRUSTED BY ===================== -->
+    <section class="trusted-bar">
+        <div class="container">
+            <div class="trusted-bar-label">Trusted by top employers</div>
+            <div class="trusted-logos">
+                <div class="trusted-logo">Safaricom</div>
+                <div class="trusted-logo">Equity Bank</div>
+                <div class="trusted-logo">KCB Group</div>
+                <div class="trusted-logo">KRA</div>
+                <div class="trusted-logo">UNDP Kenya</div>
+                <div class="trusted-logo">Kenya Power</div>
+                <div class="trusted-logo">NCBA</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== AD: LEADERBOARD ===================== -->
+    <div class="container">
+        <div class="ad-leaderboard">Google Ad &mdash; 728 x 90 Leaderboard</div>
+    </div>
+
+    <!-- ===================== MAIN CONTENT ===================== -->
+    <main class="container">
+        <div class="home-layout">
+
+
+            <!-- LEFT COLUMN -->
+            <div class="home-main">
+
+                <!-- ===== 1. TRENDING NOW ===== -->
+                <div class="section-head">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Trending Now
+                    </h2>
+                    <a href="/jobs?sort=trending">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#00a254,#00c853)">SC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row">
+                                    <a href="/job/senior-software-engineer-safaricom-plc" class="jl-title">Senior Software Engineer</a>
+                                    <span class="jl-badge jl-badge-featured">Featured</span>
+                                </div>
+                                <div class="jl-company"><a href="/organization/safaricom-plc">Safaricom PLC</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta">
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Nairobi</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> Full-time</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 2 days left</span>
+                                </div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)">EB</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/marketing-director-equity-bank" class="jl-title">Marketing Director</a></div>
+                                <div class="jl-company"><a href="/organization/equity-bank">Equity Bank Kenya</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta">
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Nairobi</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> Full-time</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 days left</span>
+                                </div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KB</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/data-scientist-kcb" class="jl-title">Data Scientist</a> <span class="jl-badge jl-badge-new">New</span></div>
+                                <div class="jl-company"><a href="/organization/kcb-group">KCB Group</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta">
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Nairobi</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> Full-time</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 1 week left</span>
+                                </div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save saved" title="Saved" style="background:var(--accent-light);border-color:var(--accent);color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#059669,#047857)">KP</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/engineer-trainee-kenya-power" class="jl-title">Engineer Trainee</a> <span class="jl-badge jl-badge-urgent">Urgent</span></div>
+                                <div class="jl-company"><a href="/organization/kenya-power">Kenya Power</a></div>
+                                <div class="jl-meta">
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Nationwide</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> Internship</span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 days left</span>
+                                </div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 2. DON'T MISS OUT — DEADLINE TODAY ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Don't Miss Out &mdash; Application Deadline Today
+                    </h2>
+                    <a href="/jobs?deadline=today">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="deadline-strip">
+                    <div class="deadline-card" onclick="location.href='/job/kra-internship-program'">
+                        <div class="deadline-card-top">
+                            <div class="deadline-card-title">Internship Programme</div>
+                            <span class="deadline-urgent-tag">6h left</span>
+                        </div>
+                        <div class="deadline-company">Kenya Revenue Authority</div>
+                        <div class="deadline-timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ends 6h 23m from now</div>
+                    </div>
+                    <div class="deadline-card" onclick="location.href='/job/undp-consultant'">
+                        <div class="deadline-card-top">
+                            <div class="deadline-card-title">Monitoring & Evaluation Consultant</div>
+                            <span class="deadline-urgent-tag">3h left</span>
+                        </div>
+                        <div class="deadline-company">UNDP Kenya</div>
+                        <div class="deadline-timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ends 3h 15m from now</div>
+                    </div>
+                    <div class="deadline-card" onclick="location.href='/job/county-gov-nakuru'">
+                        <div class="deadline-card-top">
+                            <div class="deadline-card-title">Civil Engineer</div>
+                            <span class="deadline-urgent-tag">12h left</span>
+                        </div>
+                        <div class="deadline-company">County Government of Nakuru</div>
+                        <div class="deadline-timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ends 12h 45m from now</div>
+                    </div>
+                </div>
+
+                <!-- ===== 3. LATEST JOBS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Latest Jobs
+                    </h2>
+                    <a href="/jobs">
+                        View all 12,400+
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#00a254,#00c853)">SC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/software-engineer-safaricom" class="jl-title">Software Engineer &mdash; Backend (Java)</a> <span class="jl-badge jl-badge-new">New</span></div>
+                                <div class="jl-company"><a href="/organization/safaricom-plc">Safaricom PLC</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Posted 2h ago</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">OG</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/graphic-design-intern-ogilvy" class="jl-title">Graphic Design Intern</a></div>
+                                <div class="jl-company"><a href="/organization/ogilvy-kenya">Ogilvy Kenya</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Internship</span><span>Posted 5h ago</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)">CG</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/accountant-county-kiambu" class="jl-title">Accountant</a></div>
+                                <div class="jl-company"><a href="/organization/county-gov-kiambu">County Government of Kiambu</a></div>
+                                <div class="jl-meta"><span>Kiambu</span><span>Full-time</span><span>Posted 8h ago</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">CC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/customer-service-rep" class="jl-title">Customer Service Representative</a></div>
+                                <div class="jl-company"><a href="/organization/call-centres-ke">CCK Call Centres</a></div>
+                                <div class="jl-meta"><span>Mombasa</span><span>Full-time</span><span>Posted 1d ago</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== GOOGLE AD PLACEHOLDER ===== -->
+                <div class="ad-inline">Google Ad &mdash; 728 x 90 In-content</div>
+
+                <!-- ===== 4. FEATURED JOBS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        Featured Jobs
+                    </h2>
+                    <a href="/jobs?sort=featured">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#00a254,#00c853)">SC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/senior-software-engineer-safaricom-plc" class="jl-title">Senior Software Engineer</a> <span class="jl-badge jl-badge-featured">Featured</span></div>
+                                <div class="jl-company"><a href="/organization/safaricom-plc">Safaricom PLC</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>2 days left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)">EB</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/marketing-director-equity-bank" class="jl-title">Marketing Director</a> <span class="jl-badge jl-badge-featured">Featured</span></div>
+                                <div class="jl-company"><a href="/organization/equity-bank">Equity Bank Kenya</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>5 days left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KB</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/data-scientist-kcb" class="jl-title">Data Scientist</a> <span class="jl-badge jl-badge-featured">Featured</span></div>
+                                <div class="jl-company"><a href="/organization/kcb-group">KCB Group</a> <span class="jl-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified</span></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>1 week left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== DOCUMENT WRITING BUSINESS CTAS ===== -->
+                <div class="doc-cta-strip section-gap">
+                    <div style="grid-column:1/-1">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            Professional Document Writing Services
+                        </h3>
+                        <p>Stand out from thousands of applicants. Our expert writers craft ATS-optimized documents tailored to the Kenyan job market &mdash; delivered fast.</p>
+                    </div>
+                    <div class="doc-cta-card" onclick="document.getElementById('cvModal').classList.add('active')">
+                        <div class="doc-cta-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </div>
+                        <h4>CV Writing</h4>
+                        <p>ATS-optimized, tailored to your industry. From KSh 500.</p>
+                        <a href="#" class="btn" onclick="event.stopPropagation();document.getElementById('cvModal').classList.add('active');return false;">Get Started</a>
+                    </div>
+                    <div class="doc-cta-card" onclick="document.getElementById('cvModal').classList.add('active')">
+                        <div class="doc-cta-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <h4>Cover Letter</h4>
+                        <p>Customized for each application. Same-day delivery.</p>
+                        <a href="#" class="btn" onclick="event.stopPropagation();document.getElementById('cvModal').classList.add('active');return false;">Order Now</a>
+                    </div>
+                    <div class="doc-cta-card" onclick="document.getElementById('cvModal').classList.add('active')">
+                        <div class="doc-cta-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                        </div>
+                        <h4>LinkedIn Profile</h4>
+                        <p>Optimize your profile for recruiters. Get noticed.</p>
+                        <a href="#" class="btn" onclick="event.stopPropagation();document.getElementById('cvModal').classList.add('active');return false;">Optimize</a>
+                    </div>
+                </div>
+
+                <!-- ===== PAID ADS PLACEHOLDER ===== -->
+                <div class="ad-paid">Paid Advertisement &mdash; 728 x 90</div>
+
+                <!-- ===== 5. INTERNSHIP OPPORTUNITIES ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        Internship Opportunities
+                    </h2>
+                    <a href="/jobs/internships">
+                        View all 312
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KR</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/kra-internship-program" class="jl-title">Internship Programme</a> <span class="jl-badge jl-badge-urgent">Urgent</span></div>
+                                <div class="jl-company"><a href="/organization/kra">Kenya Revenue Authority</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Internship</span><span>6h left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">OG</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/graphic-design-intern-ogilvy" class="jl-title">Graphic Design Intern</a> <span class="jl-badge jl-badge-new">New</span></div>
+                                <div class="jl-company"><a href="/organization/ogilvy-kenya">Ogilvy Kenya</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Internship</span><span>5 days left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#059669,#047857)">KP</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/engineer-trainee-kenya-power" class="jl-title">Engineer Trainee</a></div>
+                                <div class="jl-company"><a href="/organization/kenya-power">Kenya Power</a></div>
+                                <div class="jl-meta"><span>Nationwide</span><span>Internship</span><span>3 days left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 6. ENTRY LEVEL JOBS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg>
+                        Entry Level Jobs
+                    </h2>
+                    <a href="/jobs/entry-level">
+                        View all 567
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">CC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/customer-service-rep" class="jl-title">Customer Service Representative</a> <span class="jl-badge jl-badge-new">New</span></div>
+                                <div class="jl-company"><a href="/organization/call-centres-ke">CCK Call Centres</a></div>
+                                <div class="jl-meta"><span>Mombasa</span><span>Full-time</span><span>Entry Level</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#ec4899,#db2777)">SA</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/junior-accountant-safaricom" class="jl-title">Junior Accountant</a></div>
+                                <div class="jl-company"><a href="/organization/safaricom-plc">Safaricom PLC</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Entry Level</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)">EB</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/graduate-trainee-equity" class="jl-title">Graduate Management Trainee</a></div>
+                                <div class="jl-company"><a href="/organization/equity-bank">Equity Bank</a></div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Entry Level</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 7. SCHOLARSHIPS & BURSARIES ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg>
+                        Scholarships & Bursaries
+                    </h2>
+                    <a href="/opportunities/scholarships">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="opp-grid">
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-scholarship">Scholarship</div>
+                            <div class="opp-title">Mastercard Foundation Scholars Programme</div>
+                            <div class="opp-provider">Mastercard Foundation</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15 Dec 2026</span>
+                            <span class="opp-value">Full tuition + stipend</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-bursary">Bursary</div>
+                            <div class="opp-title">Kenya Government Bursary 2026</div>
+                            <div class="opp-provider">Ministry of Education</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 30 Nov 2026</span>
+                            <span class="opp-value">Apply via Constituency</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-scholarship">Scholarship</div>
+                            <div class="opp-title">DAAD Scholarships &mdash; Germany</div>
+                            <div class="opp-provider">DAAD &mdash; German Academic Exchange</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15 Jan 2027</span>
+                            <span class="opp-value">Masters / PhD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 8. UNIVERSITY APPLICATIONS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg>
+                        University Applications
+                    </h2>
+                    <a href="/opportunities/university-applications">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="opp-grid">
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type" style="color:var(--accent)">University</div>
+                            <div class="opp-title">University of Nairobi &mdash; Sept 2026 Intake</div>
+                            <div class="opp-provider">University of Nairobi</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 30 Jul 2026</span>
+                            <span class="opp-value">Various programmes</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type" style="color:var(--accent)">University</div>
+                            <div class="opp-title">KUCCPS Placement &mdash; Degree Transfer</div>
+                            <div class="opp-provider">KUCCPS</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15 Aug 2026</span>
+                            <span class="opp-value">Degree programmes</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type" style="color:var(--accent)">University</div>
+                            <div class="opp-title">Kenyatta University &mdash; Postgraduate</div>
+                            <div class="opp-provider">Kenyatta University</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 31 May 2026</span>
+                            <span class="opp-value">Masters / PhD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== GOOGLE AD PLACEHOLDER 2 ===== -->
+                <div class="ad-inline">Google Ad &mdash; 728 x 90 In-content</div>
+
+                <!-- ===== 9. NATIONAL GOVERNMENT JOBS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M9 3v18M15 7v14M21 3v18"/></svg>
+                        National Government Jobs
+                    </h2>
+                    <a href="/jobs/government">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KR</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/tax-auditor-kra" class="jl-title">Tax Auditor</a></div>
+                                <div class="jl-company">Kenya Revenue Authority</div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Deadline: 10 Apr 2026</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#374151,#1f2937)">PS</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/admin-officer-psc" class="jl-title">Administrative Officer</a></div>
+                                <div class="jl-company">Public Service Commission</div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Deadline: 15 Apr 2026</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#059669,#047857)">KP</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/engineer-trainee-kenya-power" class="jl-title">Engineer Trainee</a> <span class="jl-badge jl-badge-urgent">Urgent</span></div>
+                                <div class="jl-company">Kenya Power</div>
+                                <div class="jl-meta"><span>Nationwide</span><span>Internship</span><span>Deadline: 20 Dec 2026</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 10. COUNTY GOVERNMENT JOBS ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        County Government Jobs
+                    </h2>
+                    <a href="/jobs/county-government">
+                        View all 67
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="job-list-card">
+                    <div style="padding:0 22px">
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)">NC</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/it-officer-nairobi-county" class="jl-title">IT Officer</a> <span class="jl-badge jl-badge-new">New</span></div>
+                                <div class="jl-company">Nairobi County Government</div>
+                                <div class="jl-meta"><span>Nairobi</span><span>Full-time</span><span>Deadline: 5 Apr 2026</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#059669,#047857)">NK</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/county-gov-nakuru" class="jl-title">Civil Engineer</a> <span class="jl-badge jl-badge-urgent">Urgent</span></div>
+                                <div class="jl-company">County Government of Nakuru</div>
+                                <div class="jl-meta"><span>Nakuru</span><span>Full-time</span><span>12h left</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                        <div class="jl-item">
+                            <div class="jl-logo" style="background:linear-gradient(135deg,#ec4899,#db2777)">MS</div>
+                            <div class="jl-body">
+                                <div class="jl-title-row"><a href="/job/public-health-mombasa" class="jl-title">Public Health Officer</a></div>
+                                <div class="jl-company">Mombasa County Government</div>
+                                <div class="jl-meta"><span>Mombasa</span><span>Full-time</span><span>Deadline: 18 Apr 2026</span></div>
+                            </div>
+                            <div class="jl-badges"><button class="jl-save" title="Save job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 11. SPONSORSHIP ===== -->
+                <div class="section-head section-gap">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                        Sponsorship Opportunities
+                    </h2>
+                    <a href="/opportunities/sponsorships">
+                        View all
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="opp-grid">
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-scholarship">Fully Funded</div>
+                            <div class="opp-title">Mandela Washington Fellowship 2026</div>
+                            <div class="opp-provider">U.S. Department of State</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 12 Oct 2026</span>
+                            <span class="opp-value">Fully funded</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-scholarship">Fully Funded</div>
+                            <div class="opp-title">Chevening Scholarships &mdash; UK 2027</div>
+                            <div class="opp-provider">UK Foreign & Commonwealth Office</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 Nov 2026</span>
+                            <span class="opp-value">Full tuition + living</span>
+                        </div>
+                    </div>
+                    <div class="opp-card">
+                        <div class="opp-card-top">
+                            <div class="opp-type opp-type-bursary">Partial</div>
+                            <div class="opp-title">Google Africa Developer Scholarship</div>
+                            <div class="opp-provider">Google</div>
+                        </div>
+                        <div class="opp-card-bottom">
+                            <span class="opp-deadline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Open</span>
+                            <span class="opp-value">Free certification</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PAID ADS PLACEHOLDER 2 ===== -->
+                <div class="ad-paid">Paid Advertisement &mdash; 728 x 90</div>
+
+            </div>
+
+            <!-- ===================== SIDEBAR ===================== -->
+            <div class="home-sidebar">
+
+                <!-- CV REVIEW CARD -->
+                <div class="cv-review-card">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Get Your CV Reviewed Free
+                    </h3>
+                    <p>Upload your CV and get expert feedback within 24 hours. ATS-score check included.</p>
+                    <a href="#" class="btn btn-block" onclick="document.getElementById('cvModal').classList.add('active');return false;">Get Started</a>
+                    <div class="cv-review-price">
+                        <span class="cv-review-from">KSh 1,500</span>
+                        <span class="cv-review-now">From KSh 500</span>
+                    </div>
+                </div>
+
+                <!-- Google Ad -->
+                <div class="ad-sidebar">Google Ad &mdash; 300x250</div>
+
+                <!-- TOP EMPLOYERS -->
+                <div class="sidebar-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Top Employers
+                    </h3>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#00a254,#00c853)">SC</div>
+                        <a href="/organization/safaricom-plc" class="sb-employer-name">Safaricom PLC</a>
+                        <span class="sb-employer-count">45 jobs</span>
+                    </div>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KB</div>
+                        <a href="/organization/kcb-group" class="sb-employer-name">KCB Group</a>
+                        <span class="sb-employer-count">32 jobs</span>
+                    </div>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)">EB</div>
+                        <a href="/organization/equity-bank" class="sb-employer-name">Equity Bank</a>
+                        <span class="sb-employer-count">28 jobs</span>
+                    </div>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#1a56db,#1e40af)">KR</div>
+                        <a href="/organization/kra" class="sb-employer-name">KRA</a>
+                        <span class="sb-employer-count">15 jobs</span>
+                    </div>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">PW</div>
+                        <a href="/organization/pwc-kenya" class="sb-employer-name">PwC Kenya</a>
+                        <span class="sb-employer-count">12 jobs</span>
+                    </div>
+                    <div class="sb-employer">
+                        <div class="sb-employer-logo" style="background:linear-gradient(135deg,#009688,#00796b)">UK</div>
+                        <a href="/organization/undp-kenya" class="sb-employer-name">UNDP Kenya</a>
+                        <span class="sb-employer-count">9 jobs</span>
+                    </div>
+                    <a href="/organizations" class="view-all-link">View All Companies &rarr;</a>
+                </div>
+
+                <!-- URGENT DEADLINES -->
+                <div class="sidebar-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Urgent Deadlines
+                    </h3>
+                    <div class="sb-deadline">
+                        <span class="sb-deadline-name">KRA Internship</span>
+                        <span class="sb-deadline-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4h 23m</span>
+                    </div>
+                    <div class="sb-deadline">
+                        <span class="sb-deadline-name">UNDP Consultant</span>
+                        <span class="sb-deadline-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 1d 5h</span>
+                    </div>
+                    <div class="sb-deadline">
+                        <span class="sb-deadline-name">County Gov Nakuru</span>
+                        <span class="sb-deadline-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 2d 12h</span>
+                    </div>
+                    <div class="sb-deadline">
+                        <span class="sb-deadline-name">PSC Admin Officer</span>
+                        <span class="sb-deadline-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5d 8h</span>
+                    </div>
+                    <div class="sb-deadline">
+                        <span class="sb-deadline-name">Mastercard Foundation</span>
+                        <span class="sb-deadline-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 12d 0h</span>
+                    </div>
+                </div>
+
+                <!-- EMAIL ALERTS -->
+                <div class="sidebar-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Get Job Alerts
+                    </h3>
+                    <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:4px">Never miss a deadline. Get daily job alerts delivered to your inbox.</p>
+                    <div class="newsletter-form">
+                        <input type="email" placeholder="Your email address">
+                        <button>Subscribe</button>
+                    </div>
+                    <div class="newsletter-trust">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Join 25,000+ job seekers. Unsubscribe anytime.
+                    </div>
+                </div>
+
+                <!-- BROWSE BY LOCATION -->
+                <div class="sidebar-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Browse by Location
+                    </h3>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                        <a href="/jobs/nairobi" style="padding:6px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:99px;font-size:.8rem;font-weight:500;color:var(--gray-700);transition:all .15s">Nairobi</a>
+                        <a href="/jobs/mombasa" style="padding:6px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:99px;font-size:.8rem;font-weight:500;color:var(--gray-700);transition:all .15s">Mombasa</a>
+                        <a href="/jobs/kisumu" style="padding:6px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:99px;font-size:.8rem;font-weight:500;color:var(--gray-700);transition:all .15s">Kisumu</a>
+                        <a href="/jobs/nakuru" style="padding:6px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:99px;font-size:.8rem;font-weight:500;color:var(--gray-700);transition:all .15s">Nakuru</a>
+                        <a href="/jobs/remote" style="padding:6px 14px;background:var(--primary-light);border:1px solid var(--primary);border-radius:99px;font-size:.8rem;font-weight:600;color:var(--primary);transition:all .15s">Remote</a>
+                    </div>
+                </div>
+
+                <!-- Paid Ad -->
+                <div class="ad-sidebar">Paid Advertisement &mdash; 300x600</div>
+
+                <!-- DOCUMENT WRITING CTA (sidebar repeat) -->
+                <div class="sidebar-card" style="background:linear-gradient(135deg,var(--primary),#1e3a8a);color:#fff;border:none">
+                    <h3 style="color:#fff;border-bottom-color:rgba(255,255,255,.2)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Our Services
+                    </h3>
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <a href="#" onclick="document.getElementById('cvModal').classList.add('active');return false" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.1);border-radius:var(--radius);color:#fff;font-size:.85rem;font-weight:600;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            CV Writing &mdash; from KSh 500
+                        </a>
+                        <a href="#" onclick="document.getElementById('cvModal').classList.add('active');return false" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.1);border-radius:var(--radius);color:#fff;font-size:.85rem;font-weight:600;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            Cover Letter &mdash; from KSh 500
+                        </a>
+                        <a href="#" onclick="document.getElementById('cvModal').classList.add('active');return false" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.1);border-radius:var(--radius);color:#fff;font-size:.85rem;font-weight:600;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                            LinkedIn Optimization &mdash; KSh 1,000
+                        </a>
+                    </div>
+                    <a href="https://wa.me/254700000000?text=Hi%20JobReady%2C%20I%20need%20document%20writing%20help" target="_blank" rel="noopener" class="btn btn-success btn-block" style="margin-top:14px">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.503 3.94 1.394 5.624L0 24l6.518-1.358A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.93 0-3.747-.518-5.307-1.42l-.38-.227-3.938.82.833-3.836-.247-.394A9.773 9.773 0 012.18 12c0-5.422 4.398-9.82 9.82-9.82 5.422 0 9.82 4.398 9.82 9.82 0 5.422-4.398 9.82-9.82 9.82z"/></svg>
+                        Chat on WhatsApp
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#1a56db"/><path d="M8 16l4 4 12-12" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        JobReady<span>.co.ke</span>
+                    </a>
+                    <p>Kenya's fastest-growing job board. Find jobs, internships, scholarships and career opportunities. Get professional CV writing services to land your dream job faster.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/jobs">Jobs in Kenya</a></li>
+                        <li><a href="/jobs/internships">Internships</a></li>
+                        <li><a href="/jobs/government">Government Jobs</a></li>
+                        <li><a href="/opportunities/scholarships">Scholarships</a></li>
+                        <li><a href="/jobs/remote">Remote Jobs</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="/services">CV Writing</a></li>
+                        <li><a href="/services">Cover Letter Writing</a></li>
+                        <li><a href="/services">LinkedIn Optimization</a></li>
+                        <li><a href="/services">Career Coaching</a></li>
+                        <li><a href="#">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/blog">Career Advice</a></li>
+                        <li><a href="/organizations">Companies</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 JobReady.co.ke. All rights reserved.</span>
+                <div class="footer-social">
+                    <a href="#" aria-label="Twitter">Twitter</a>
+                    <a href="#" aria-label="Facebook">Facebook</a>
+                    <a href="#" aria-label="LinkedIn">LinkedIn</a>
+                    <a href="#" aria-label="Instagram">Instagram</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================== WHATSAPP FLOAT ===================== -->
+    <div class="wa-float">
+        <div class="wa-float-tip">Need help? <span>Chat with us</span></div>
+        <a href="https://wa.me/254700000000?text=Hi%20JobReady%2C%20I%20need%20help%20finding%20a%20job" target="_blank" rel="noopener" class="wa-float-btn" aria-label="Chat on WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.503 3.94 1.394 5.624L0 24l6.518-1.358A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.93 0-3.747-.518-5.307-1.42l-.38-.227-3.938.82.833-3.836-.247-.394A9.773 9.773 0 012.18 12c0-5.422 4.398-9.82 9.82-9.82 5.422 0 9.82 4.398 9.82 9.82 0 5.422-4.398 9.82-9.82 9.82z"/></svg>
+        </a>
+    </div>
+
+    <!-- ===================== CV MODAL (intercept funnel) ===================== -->
+    <div class="cv-modal-overlay" id="cvModal" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cv-modal">
+            <div class="cv-modal-header">
+                <h3>Get Your CV Done<small>Choose a service to get started</small></h3>
+                <button class="cv-modal-close" onclick="document.getElementById('cvModal').classList.remove('active')" aria-label="Close">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="cv-modal-body">
+                <!-- Step 1: Service type -->
+                <div class="cv-modal-step">
+                    <label>What do you need?</label>
+                    <div class="cv-modal-options">
+                        <div class="cv-modal-option selected" onclick="selectService(this,'cv')">
+                            CV Writing
+                            <small>ATS-optimized</small>
+                        </div>
+                        <div class="cv-modal-option" onclick="selectService(this,'cover')">
+                            Cover Letter
+                            <small>Tailored</small>
+                        </div>
+                        <div class="cv-modal-option" onclick="selectService(this,'linkedin')">
+                            LinkedIn
+                            <small>Profile polish</small>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Tier (CV) -->
+                <div class="cv-tier show" id="tierCV">
+                    <div class="cv-tiers">
+                        <div class="cv-tier-card" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Standard</div>
+                            <div class="cv-tier-price">KSh 500<small>/ 48h</small></div>
+                            <div class="cv-tier-desc">1-page CV, basic formatting, ATS-friendly</div>
+                        </div>
+                        <div class="cv-tier-card popular selected" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Professional</div>
+                            <div class="cv-tier-price">KSh 1,500<small>/ 24h</small></div>
+                            <div class="cv-tier-desc">2-page CV, tailored summary, 1 revision</div>
+                        </div>
+                        <div class="cv-tier-card" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Premium</div>
+                            <div class="cv-tier-price">KSh 3,500<small>/ 12h</small></div>
+                            <div class="cv-tier-desc">Full package, cover letter included, unlimited revisions</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Tier (Cover Letter) -->
+                <div class="cv-tier" id="tierCover">
+                    <div class="cv-tiers">
+                        <div class="cv-tier-card selected" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Basic</div>
+                            <div class="cv-tier-price">KSh 500<small>/ 24h</small></div>
+                            <div class="cv-tier-desc">Custom cover letter for one job</div>
+                        </div>
+                        <div class="cv-tier-card" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Bundle</div>
+                            <div class="cv-tier-price">KSh 1,000<small>/ 3 letters</small></div>
+                            <div class="cv-tier-desc">3 tailored cover letters, any industry</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Tier (LinkedIn) -->
+                <div class="cv-tier" id="tierLinkedin">
+                    <div class="cv-tiers">
+                        <div class="cv-tier-card selected" onclick="selectTier(this)">
+                            <div class="cv-tier-name">Profile Polish</div>
+                            <div class="cv-tier-price">KSh 1,000<small>/ 24h</small></div>
+                            <div class="cv-tier-desc">Headline, summary, experience rewrite</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cv-modal-footer">
+                <a href="https://wa.me/254700000000?text=Hi%20JobReady%2C%20I%20need%20CV%20writing%20help" target="_blank" rel="noopener" class="btn btn-success btn-block btn-lg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.503 3.94 1.394 5.624L0 24l6.518-1.358A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.93 0-3.747-.518-5.307-1.42l-.38-.227-3.938.82.833-3.836-.247-.394A9.773 9.773 0 012.18 12c0-5.422 4.398-9.82 9.82-9.82 5.422 0 9.82 4.398 9.82 9.82 0 5.422-4.398 9.82-9.82 9.82z"/></svg>
+                    Order via WhatsApp
+                </a>
+                <div class="cv-modal-wa">Or <a href="#" onclick="document.getElementById('cvModal').classList.remove('active');return false;">browse jobs first</a></div>
+                <div class="cv-modal-trust">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    4.9/5 rating from 1,200+ clients
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CV Modal JS -->
+    <script>
+    function selectService(el, type) {
+        document.querySelectorAll('.cv-modal-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        document.querySelectorAll('.cv-tier').forEach(t => t.classList.remove('show'));
+        if (type === 'cv') document.getElementById('tierCV').classList.add('show');
+        else if (type === 'cover') document.getElementById('tierCover').classList.add('show');
+        else document.getElementById('tierLinkedin').classList.add('show');
+    }
+    function selectTier(el) {
+        document.querySelectorAll('.cv-tier-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+    </script>
+
+</body>
+</html>

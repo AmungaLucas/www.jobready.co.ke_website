@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* ===== JobReady.co.ke — Tailwind v4 Theme ===== */
+@theme {
+  --color-primary: #1a56db;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #dbeafe;
+  --color-secondary: #059669;
+  --color-secondary-dark: #047857;
+  --color-secondary-light: #d1fae5;
+  --color-accent: #f59e0b;
+  --color-accent-light: #fef3c7;
+  --color-purple: #7c3aed;
+  --color-purple-light: #ede9fe;
+  --color-danger: #dc2626;
+  --color-danger-light: #fee2e2;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --animate-wa-fade: wa-fade 3s ease-in-out infinite;
+
+  /* ===== Dashboard Sidebar Theme ===== */
+  --color-sidebar: #1e3a5f;
+  --color-sidebar-foreground: #f1f5f9;
+  --color-sidebar-accent: #254b73;
+  --color-sidebar-accent-foreground: #f8fafc;
+  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-sidebar-ring: rgba(59, 130, 246, 0.5);
+  --color-sidebar-primary: #1a56db;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-muted: rgba(255, 255, 255, 0.5);
+  --color-sidebar-muted-foreground: #cbd5e1;
+
+  /* ===== shadcn/ui Semantic Colors ===== */
+  --color-background: #f9fafb;
+  --color-foreground: #111827;
+  --color-card: #ffffff;
+  --color-card-foreground: #111827;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #111827;
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: #6b7280;
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #1a56db;
+  --color-destructive: #dc2626;
+}
+
+/* ===== Base Styles (inside @layer so utilities can override) ===== */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-gray-800);
+    background: var(--color-gray-50);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* ===== Component Styles ===== */
+@layer components {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding: 0 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding: 0 2rem;
+    }
+  }
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 99px;
+}
+
+/* ===== WhatsApp Float Animation ===== */
+@keyframes wa-fade {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

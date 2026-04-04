@@ -1,0 +1,68 @@
+import Link from "next/link";
+import { Clock } from "lucide-react";
+import { formatDate } from "@/lib/format";
+
+const typeColors = {
+  scholarship: "text-purple",
+  bursary: "text-primary",
+  internship: "text-secondary",
+  grant: "text-accent",
+  fellowship: "text-primary",
+};
+
+export default function OpportunityCard({
+  title,
+  slug,
+  organizationName,
+  opportunityType,
+  deadline,
+  value,
+  href,
+  type,
+}) {
+  const colorClass = typeColors[type] || typeColors[opportunityType] || "text-primary";
+  const link = href || slug ? `/opportunities/${slug}` : "#";
+
+  return (
+    <Link
+      href={link}
+      className="block bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-px border-2 border-transparent hover:border-primary/20 no-underline"
+    >
+      {/* Top section */}
+      <div className="px-6 pt-6 pb-5">
+        {/* Type label */}
+        <p className={`text-[0.65rem] font-bold uppercase tracking-wide mb-2 ${colorClass}`}>
+          {opportunityType || type || "Opportunity"}
+        </p>
+
+        {/* Title */}
+        <h3 className="text-sm font-bold text-gray-900 leading-tight mb-2 line-clamp-2">
+          {title}
+        </h3>
+
+        {/* Provider */}
+        {organizationName && (
+          <p className="text-xs text-gray-500 mb-1">{organizationName}</p>
+        )}
+      </div>
+
+      {/* Bottom section */}
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+        {/* Deadline */}
+        {deadline && (
+          <span className="text-xs text-red-500 font-semibold inline-flex items-center gap-1">
+            <Clock size={13} />
+            {formatDate(deadline)}
+          </span>
+        )}
+
+        {/* Value */}
+        {value && (
+          <span className="text-xs font-semibold text-emerald-600">
+            {value}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}

@@ -1,0 +1,1026 @@
+// ============================================================
+// JobReady.co.ke — Production Database Schema (Prisma + MySQL)
+// ============================================================
+// Covers all 8 prototypes + Job Seeker Dashboard + M-Pesa Payments
+// + SEO + DPA Compliance + Analytics + CMS
+//
+// Design Decisions:
+//   - Enums stored as String, validated in app code against data.js
+//   - No Location table (stored as String on jobs/opportunities)
+//   - No JobCategory table (driven by hub-config.js)
+//   - No Applications table (v1: external apply URLs only)
+//   - Json type for array fields (MySQL JSON columns)
+//   - Nullable userId on orders (walk-in WhatsApp orders)
+//   - Nullable userId on reactions (anonymous users via fingerprint)
+//   - Partial payment support via paidAmount/balanceDue on orders
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 1. USERS — Job Seekers
+// ============================================================
+// Only job seekers register for v1. Admin & employer dashboards
+// are separate future projects. Auth handled by NextAuth.js.
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  phone          String?   @unique                    // +2547XXXXXXXX
+  name           String
+  passwordHash   String?                              // null = OAuth-only user
+
+  // Role
+  role           String    @default("JOB_SEEKER")      // "JOB_SEEKER", "EMPLOYER", "ADMIN"
+
+  // Profile
+  avatar         String?                              // Avatar URL or color
+  bio            String?                              // Short bio
+  location       String?                              // "Nairobi, Kenya"
+  linkedinUrl    String?
+  education      String?                              // Free text
+  skills         Json?                                // ["CPA-K", "Excel", "Sage"]
+  cvUrl          String?                              // Uploaded CV path
+
+  // Verification
+  emailVerified  Boolean   @default(false)
+  phoneVerified  Boolean   @default(false)
+  lastLoginAt    DateTime?
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  authAccounts   AuthAccount[]
+  savedJobs      SavedJob[]
+  savedArticles  SavedArticle[]
+  jobAlerts      JobAlert[]
+  reactions      ArticleReaction[]
+  notifications  Notification[]
+  orders         Order[]
+  newsletterSubs NewsletterSubscription[]
+  company        Company?
+  applications   Application[]
+
+  @@map("users")
+}
+
+// ============================================================
+// 2. AUTH ACCOUNTS — Multi-provider auth
+// ============================================================
+// Supports: email/password, Google OAuth, Phone OTP
+// One user can have multiple auth methods linked
+
+model AuthAccount {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider         String                              // "google" | "email" | "phone"
+  providerAccountId String   @unique                   // Google sub, phone number, email
+  accessToken      String?                              // OAuth token (encrypted)
+  refreshToken     String?                              // OAuth refresh token (encrypted)
+  idToken          String?                              // OpenID token (encrypted)
+  expiresAt        DateTime?
+  scope            String?                              // OAuth scopes granted
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("auth_accounts")
+}
+
+// ============================================================
+// 3. COMPANIES — Employer Organizations
+// ============================================================
+// Seen in: Homepage (top employers, trusted bar), Job Detail,
+// Company Profile page, Search Results sidebar
+
+model Company {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique                    // "safaricom-plc"
+  logo            String?                              // Logo URL
+  logoColor       String?                              // Fallback gradient "#00a254,#00c853"
+  tagline         String?
+  description     String    @db.MediumText             // About section (rich text)
+  industry        String                               // "Telecommunications" (from data.js)
+  foundedYear     Int?
+  employeeSize    String?                              // "5,000+", "50-200", "1-10"
+  tickerSymbol    String?                              // "SCOM" for listed companies
+  companyType     String?                              // "Listed Company", "Private", etc.
+
+  // Owner (employer user)
+  userId          String?   @unique                     // Owner employer user
+  user            User?     @relation(fields: [userId], references: [id])
+
+  // Location
+  address         String?
+  city            String?                              // "Nairobi"
+  country         String    @default("Kenya")
+  website         String?
+  twitterUrl      String?
+  facebookUrl     String?
+  linkedinUrl     String?
+
+  // Status
+  isVerified      Boolean   @default(false)             // Green verified badge
+  isFeatured      Boolean   @default(false)             // "Trusted By" section
+  isActive        Boolean   @default(true)
+
+  // SEO
+  noIndex         Boolean   @default(false)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+
+  // Denormalized counters (updated via triggers/cron)
+  jobCount        Int       @default(0)
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  jobs            Job[]
+
+  @@map("companies")
+}
+
+// ============================================================
+// 4. JOBS — Core Job Listings
+// ============================================================
+// No salary field (agreed). Mobile-first, SEO-optimized.
+// Google Jobs structured data via JSON-LD.
+
+model Job {
+  id              String    @id @default(cuid())
+  title           String                               // "Senior Accountant — Financial Reporting"
+  slug            String    @unique                    // "senior-accountant-safaricom-2026"
+  description     String    @db.LongText               // Full job description (HTML/Markdown)
+  excerpt         String?                              // 2-line excerpt for cards
+
+  // Company
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+
+  // Location
+  location        String                               // "Westlands, Nairobi"
+  isRemote        Boolean   @default(false)
+
+  // Salary — ONLY shown on job detail page, NEVER on cards/listings
+  // Required for Google Jobs JSON-LD (baseSalary) + ranking boost
+  salaryMin       Int?                                 // Minimum salary in KES (e.g. 80000)
+  salaryMax       Int?                                 // Maximum salary in KES (e.g. 120000)
+  salaryCurrency  String    @default("KES")
+  showSalary      Boolean   @default(false)            // Toggle: display salary on job detail page
+
+  // Classification (validated against data.js)
+  jobType         String                               // "FULL_TIME", "PART_TIME", etc.
+  experienceLevel String                               // "ENTRY", "MID", "SENIOR", etc.
+  employmentType  String?                              // "PERMANENT", "CONTRACT", "TEMPORARY", etc.
+  category        String                               // "TECHNOLOGY", "FINANCE_ACCOUNTING", etc.
+
+  // Structured fields for search/filters
+  requirements    Json?                                // ["CPA-K", "3+ years experience", "Bachelor's degree"]
+  responsibilities Json?                              // ["Prepare reports", "Manage budgets"]
+  skills          Json?                                // ["Financial modelling", "Sage", "IFRS"]
+  highlights      Json?                                // ["Health Insurance", "Car Allowance", "Performance Bonus"]
+
+  // Badge states (from prototypes)
+  isFeatured      Boolean   @default(false)             // Featured badge (paid)
+  isNew           Boolean   @default(true)              // "New" badge (first 48h)
+  isUrgent        Boolean   @default(false)             // "Closing Soon" badge
+
+  // Deadline & Source
+  deadline        DateTime?
+  deadlineLabel   String?                              // Override text e.g. "Closing Soon"
+  source          String    @default("DIRECT")          // "DIRECT", "SCRAPED", "PARTNER"
+  externalApplyUrl String?                             // External application URL
+
+  // Status
+  isActive        Boolean   @default(true)
+  isPaid          Boolean   @default(false)             // Employer paid listing
+
+  // SEO
+  noIndex         Boolean   @default(false)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+
+  // Denormalized counters
+  viewsCount       Int       @default(0)
+  applicationCount Int      @default(0)
+
+  // Timestamps
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  savedBy         SavedJob[]
+  applications    Application[]
+
+  @@index([jobType])
+  @@index([experienceLevel])
+  @@index([category])
+  @@index([location])
+  @@index([companyId])
+  @@index([isActive, publishedAt])
+  @@index([isFeatured])
+  @@map("jobs")
+}
+
+// ============================================================
+// 5. OPPORTUNITIES — Scholarships, Grants, Internships, etc.
+// ============================================================
+// Similar to jobs but for non-traditional opportunities.
+// Types from data.js: 23 opportunity types.
+
+model Opportunity {
+  id                String    @id @default(cuid())
+  title             String                               // "Aga Khan Foundation Scholarship 2026"
+  slug              String    @unique                    // "aga-khan-foundation-scholarship-2026"
+  description       String    @db.LongText               // Full description
+  excerpt           String?                              // 2-line excerpt for cards
+
+  // Organization (no company FK — may not be a registered employer)
+  organizationName  String                               // "Aga Khan Foundation"
+  organizationLogo  String?
+  organizationType  String?                              // "NGO", "UNIVERSITY", etc.
+
+  // Classification
+  opportunityType   String                               // "SCHOLARSHIP", "GRANT", "FELLOWSHIP", etc.
+  category          String?                              // "EDUCATION", "RESEARCH", etc.
+  location          String?                              // "Nairobi" or "Multiple Locations"
+  isRemote          Boolean   @default(false)
+
+  // Deadline & Source
+  deadline          DateTime?
+  source            String    @default("DIRECT")
+  externalApplyUrl  String?
+
+  // Status
+  isFeatured        Boolean   @default(false)
+  isActive          Boolean   @default(true)
+
+  // SEO
+  noIndex           Boolean   @default(false)
+  metaTitle         String?
+  metaDescription   String?
+  ogImage           String?
+
+  // Denormalized counters
+  viewsCount        Int       @default(0)
+
+  // Timestamps
+  publishedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([opportunityType])
+  @@index([category])
+  @@index([location])
+  @@index([isActive, publishedAt])
+  @@index([deadline])
+  @@map("opportunities")
+}
+
+// ============================================================
+// 6. BLOG CATEGORIES
+// ============================================================
+// 7 categories: CV Writing Tips, Interview Tips, Job Search,
+// Career Growth, Government Jobs, Scholarships, Salary & Negotiation
+
+model BlogCategory {
+  id              String    @id @default(cuid())
+  name            String                               // "CV Writing Tips"
+  slug            String    @unique                    // "cv-writing-tips"
+  description     String?
+  color           String?                              // Theme color
+  gradient        String?                              // "var(--primary),#3b82f6"
+
+  // Denormalized counter
+  articleCount    Int       @default(0)
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  articles        BlogArticle[]
+
+  @@map("blog_categories")
+}
+
+// ============================================================
+// 7. BLOG TAGS
+// ============================================================
+// Tag cloud in sidebars — M:N with articles
+
+model BlogTag {
+  id              String    @id @default(cuid())
+  name            String                               // "ATS", "CPA-K", "LinkedIn"
+  slug            String    @unique                    // "ats"
+
+  // Denormalized counter
+  articleCount    Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations (M:N via ArticleTag)
+  articleTags     ArticleTag[]
+
+  @@map("blog_tags")
+}
+
+// ============================================================
+// 8. ARTICLE TAGS — M:N Junction (Article ↔ Tag)
+// ============================================================
+
+model ArticleTag {
+  articleId       String
+  article         BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tagId           String
+  tag             BlogTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+// ============================================================
+// 9. BLOG ARTICLES
+// ============================================================
+// Full articles with rich content, SEO, reactions, views
+
+model BlogArticle {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique                    // "how-to-write-cv-kenya-2026"
+  excerpt         String?                              // 2-line excerpt for listing cards
+  content         String    @db.LongText               // Full article body (HTML/Markdown)
+  featuredImage   String?                              // Hero image URL
+
+  // Author
+  authorId        String
+  author          Author    @relation(fields: [authorId], references: [id])
+
+  // Category
+  categoryId      String
+  category        BlogCategory @relation(fields: [categoryId], references: [id])
+
+  // Reading stats
+  readingTime     Int       @default(5)                 // Minutes
+  viewsCount      Int       @default(0)
+  wordCount       Int       @default(0)
+
+  // State
+  isFeatured      Boolean   @default(false)             // Featured card on blog listing
+  isPublished     Boolean   @default(false)
+
+  // SEO
+  noIndex         Boolean   @default(false)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?                              // Canonical URL for syndicated content
+
+  // Timestamps
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  tags            ArticleTag[]
+  reactions       ArticleReaction[]
+  savedBy         SavedArticle[]
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([isPublished, publishedAt])
+  @@index([isFeatured])
+  @@map("blog_articles")
+}
+
+// ============================================================
+// 10. AUTHORS — Career Coaches / Writers
+// ============================================================
+// From blog article prototype: Grace Wanjiku — Senior Career Coach
+
+model Author {
+  id              String    @id @default(cuid())
+  name            String                               // "Grace Wanjiku"
+  slug            String    @unique                    // "grace-wanjiku"
+  title           String?                              // "Senior Career Coach"
+  bio             String?   @db.Text                    // Bio paragraph for author card
+  avatar          String?                              // Avatar URL
+
+  // Social
+  twitterUrl      String?
+  linkedinUrl     String?
+
+  // Denormalized stats
+  articleCount    Int       @default(0)
+  totalViews      Int       @default(0)
+  peopleCoached   Int       @default(0)
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  articles        BlogArticle[]
+
+  @@map("authors")
+}
+
+// ============================================================
+// 11. SITE PAGES — CMS for Legal & Info Pages
+// ============================================================
+// Terms, Privacy, Disclaimer, Cookies, Refunds, About, Contact
+// + DPA compliance page (ODPC registration as marketing edge)
+
+model SitePage {
+  id              String    @id @default(cuid())
+  title           String                               // "Privacy Policy"
+  slug            String    @unique                    // "privacy-policy"
+  content         String    @db.LongText               // Full HTML content
+  metaTitle       String?                              // SEO title
+  metaDescription String?
+
+  // Status: "PUBLISHED" | "DRAFT" | "ARCHIVED"
+  status          String    @default("DRAFT")
+
+  lastReviewedAt  DateTime?                            // Legal review date
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@map("site_pages")
+}
+
+// ============================================================
+// 12. FAQS — Frequently Asked Questions
+// ============================================================
+// Displayed on service pages, legal pages, etc.
+
+model Faq {
+  id              String    @id @default(cuid())
+  question        String
+  answer          String    @db.Text
+  category        String?                              // "SERVICES", "PAYMENTS", "PRIVACY", "GENERAL"
+  sortOrder       Int       @default(0)
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([category])
+  @@map("faqs")
+}
+
+// ============================================================
+// 13. SAVED JOBS — User Bookmarks
+// ============================================================
+// Heart/bookmark icon on job cards
+
+model SavedJob {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId           String
+  job             Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@map("saved_jobs")
+}
+
+// ============================================================
+// 14. SAVED ARTICLES — User Bookmarks
+// ============================================================
+// Bookmark icon on article cards
+
+model SavedArticle {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId       String
+  article         BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@map("saved_articles")
+}
+
+// ============================================================
+// 15. JOB ALERTS — Email Job Alerts
+// ============================================================
+// "Get new jobs delivered to your inbox daily"
+// Seen in: Homepage sidebar, Search Results, Blog sidebars
+
+model JobAlert {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  query           String?                              // "accounting jobs"
+  location        String?                              // "Nairobi"
+  jobType         String?                              // "FULL_TIME" etc.
+  category        String?                              // "TECHNOLOGY" etc.
+  isActive        Boolean   @default(true)
+
+  // Email tracking
+  lastSentAt      DateTime?
+  emailOpenCount  Int       @default(0)
+  emailClickCount Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("job_alerts")
+}
+
+// ============================================================
+// 16. ARTICLE REACTIONS — Emoji Reactions
+// ============================================================
+// 👍 Helpful, ❤️ Love it, 💡 Insightful, 🤯 Mind-blowing
+// Anonymous users identified by browser fingerprint/cookie
+
+model ArticleReaction {
+  id              String    @id @default(cuid())
+  articleId       String
+  article         BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId          String?                              // null = anonymous
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactionType    String                               // "helpful", "love", "insightful", "mind_blowing"
+  fingerprint     String                               // Browser fingerprint (logged-in: userId, anon: cookie hash)
+  ipAddress       String?
+
+  createdAt       DateTime  @default(now())
+
+  // One reaction type per fingerprint per article
+  @@unique([articleId, fingerprint, reactionType])
+  @@index([articleId])
+  @@map("article_reactions")
+}
+
+// ============================================================
+// 17. NOTIFICATIONS — User In-App Notifications
+// ============================================================
+// Order updates, job alert matches, system messages
+
+model Notification {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            String                               // "ORDER_UPDATE", "JOB_MATCH", "PAYMENT", "SYSTEM"
+  title           String
+  message         String
+  data            Json?                                // {"orderId": "xxx", "status": "CONFIRMED"}
+  isRead          Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// 18. SERVICE TIERS — Pricing Configuration
+// ============================================================
+// CV Writing: Basic KSh 500, Professional KSh 1,500, Premium KSh 3,500
+// Cover Letter: Basic KSh 500, Premium KSh 1,000
+// LinkedIn Profile: Basic KSh 800, Premium KSh 1,500
+
+model ServiceTier {
+  id              String    @id @default(cuid())
+  serviceType     String                               // "CV_WRITING", "COVER_LETTER", "LINKEDIN_PROFILE"
+  tier            String                               // "BASIC", "PROFESSIONAL", "PREMIUM"
+  name            String                               // "Professional CV"
+  description     String    @db.Text                   // What's included
+  price           Int                                  // 500, 1500, 3500
+  currency        String    @default("KES")
+  features        Json?                                // ["ATS-optimized", "Cover letter included", "LinkedIn review"]
+  deliveryDays    Int       @default(3)
+  revisionCount   Int       @default(1)
+  isActive        Boolean   @default(true)
+  sortOrder       Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  orderItems      OrderItem[]
+
+  @@unique([serviceType, tier])
+  @@index([serviceType])
+  @@map("service_tiers")
+}
+
+// ============================================================
+// 19. ORDERS — Service Orders
+// ============================================================
+// Revenue engine: Career document service orders
+// Nullable userId = walk-in WhatsApp orders (no account)
+// Partial payment support via paidAmount/balanceDue
+
+model Order {
+  id              String    @id @default(cuid())
+  orderNumber     String    @unique                    // "JR-20260404-XXXX"
+
+  // Customer (nullable for walk-in WhatsApp orders)
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email           String                               // Always required for invoicing
+  phone           String                               // Always required
+  fullName        String                               // Customer name
+
+  // Status: "PENDING", "CONFIRMED", "IN_PROGRESS", "DELIVERED",
+  //         "REVISION", "COMPLETED", "CANCELLED"
+  status          String    @default("PENDING")
+
+  // Financials (partial payment support)
+  totalAmount     Int                                  // Total in KES
+  paidAmount      Int       @default(0)                 // Amount paid so far
+  balanceDue      Int                                  // Remaining amount (totalAmount - paidAmount)
+
+  // Payment status: "UNPAID", "PARTIALLY_PAID", "PAID", "REFUNDED"
+  paymentStatus   String    @default("UNPAID")
+
+  // Notes
+  notes           String?                              // Customer instructions
+
+  // Timestamps
+  confirmedAt     DateTime?                            // User confirmed + sent info
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  items           OrderItem[]
+  payments        Payment[]
+  activities      OrderActivity[]
+  attachments     OrderAttachment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+// ============================================================
+// 20. ORDER ITEMS — Line Items per Order
+// ============================================================
+
+model OrderItem {
+  id              String    @id @default(cuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  serviceTierId   String
+  serviceTier     ServiceTier @relation(fields: [serviceTierId], references: [id])
+
+  serviceName     String                               // "CV Writing" (snapshot at order time)
+  tierName        String                               // "Professional" (snapshot)
+  price           Int                                  // Unit price
+  quantity        Int       @default(1)
+  subtotal        Int                                  // price × quantity
+
+  createdAt       DateTime  @default(now())
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// ============================================================
+// 21. PAYMENTS — M-Pesa STK Push Payment Records
+// ============================================================
+// Callback handled by Express server on hosting platform.
+// Next.js initiates STK Push, Express server receives callback.
+// One order can have multiple payment attempts.
+
+model Payment {
+  id                    String    @id @default(cuid())
+  orderId               String
+  order                 Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // M-Pesa fields
+  checkoutRequestId     String    @unique              // Daraja checkout request ID
+  mpesaReceiptNumber    String?   @unique              // "SHK7Y4XB2Z" — actual payment receipt
+  phoneNumber           String                               // "254708374149"
+
+  amount                Int                                  // Amount in KES
+
+  // Status: "PENDING", "SUCCESS", "FAILED", "CANCELLED", "TIMEOUT", "REFUNDED"
+  status                String    @default("PENDING")
+  resultDesc            String?                              // Safaricom result description
+  resultCode            String?                              // Safaricom result code
+
+  // Raw M-Pesa callback data (for audit/debug)
+  mpesaCallbackData     Json?
+
+  createdAt             DateTime  @default(now())
+
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+// ============================================================
+// 22. ORDER ACTIVITY — Order Status Timeline
+// ============================================================
+// Tracks every status change for order tracking in dashboard
+
+model OrderActivity {
+  id              String    @id @default(cuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  action          String                               // "STATUS_CHANGE", "PAYMENT_RECEIVED", "NOTE_ADDED"
+  description     String                               // Human-readable description
+  metadata        Json?                                // {"from": "PENDING", "to": "CONFIRMED"}
+
+  // Performed by (null = system action)
+  performedBy     String?                              // Admin/coach user ID
+
+  createdAt       DateTime  @default(now())
+
+  @@index([orderId])
+  @@map("order_activity")
+}
+
+// ============================================================
+// 23. ORDER ATTACHMENTS — Files on Orders
+// ============================================================
+// Customer CVs, coach deliverables, revision documents
+
+model OrderAttachment {
+  id              String    @id @default(cuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  fileName        String                               // "cv_senior_accountant.docx"
+  filePath        String                               // Server file path
+  fileSize        Int?                                 // Bytes
+  fileType        String?                              // "application/pdf", "application/vnd.openxmlformats..."
+
+  // Uploaded by (null = customer uploaded via dashboard)
+  uploadedBy      String?                              // Admin/coach user ID
+
+  createdAt       DateTime  @default(now())
+
+  @@index([orderId])
+  @@map("order_attachments")
+}
+
+// ============================================================
+// 24. NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+// "Weekly Career Tips" / "Job Alerts" newsletter forms
+// Seen in: Homepage, Blog, Blog Article, Search Results
+
+model NewsletterSubscription {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  userId            String?                                // Link to user if logged in
+  user              User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type              String     @default("career_tips")      // "career_tips" | "job_alerts"
+
+  isActive          Boolean    @default(true)
+  subscribedAt      DateTime   @default(now())
+  unsubscribedAt    DateTime?
+
+  @@index([isActive])
+  @@map("newsletter_subscriptions")
+}
+
+// ============================================================
+// 25. DATA REQUESTS — DPA Compliance (Kenya Data Protection Act 2019)
+// ============================================================
+// ODPC registration as marketing advantage
+// Types: "ACCESS", "CORRECTION", "DELETION", "OBJECTION", "PORTABILITY"
+
+model DataRequest {
+  id                String     @id @default(cuid())
+  email             String                                  // Requester email
+  requestType       String                                  // "ACCESS", "DELETION", etc.
+
+  // Status: "RECEIVED", "PROCESSING", "COMPLETED", "REJECTED"
+  status            String     @default("RECEIVED")
+
+  dataRequested     Json?                                   // Description of what data requested
+  processedAt       DateTime?
+  responseNote      String?                                 // Admin response
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@map("data_requests")
+}
+
+// ============================================================
+// 26. PAGE VIEWS — Analytics
+// ============================================================
+// Lightweight page view tracking for stats & popular content
+
+model PageView {
+  id              String    @id @default(cuid())
+  pageType        String                               // "JOB", "ARTICLE", "COMPANY", "OPPORTUNITY", "HUB", "BLOG"
+  pageId          String?                              // Entity ID
+  sessionId       String?                              // Browser session ID
+  ipAddress       String?
+  userAgent       String?
+  referer         String?
+
+  createdAt       DateTime  @default(now())
+
+  @@index([pageType, pageId])
+  @@index([createdAt])
+  @@map("page_views")
+}
+
+// ============================================================
+// 27. WHATSAPP CLICKS — Analytics
+// ============================================================
+// Track WhatsApp click-throughs across the site
+
+model WhatsAppClick {
+  id              String    @id @default(cuid())
+  pageType        String                               // "JOB", "SERVICE", "HOMEPAGE", etc.
+  pageId          String?                              // Entity ID
+  sessionId       String?                              // Browser session ID
+  phoneNumber     String?                              // If known
+  context         String?                              // "apply_button", "service_inquiry", "float_button"
+
+  createdAt       DateTime  @default(now())
+
+  @@index([pageType])
+  @@index([createdAt])
+  @@map("whatsapp_clicks")
+}
+
+// ============================================================
+// 29. APPLICATIONS — Job Applications
+// ============================================================
+// Tracks user applications to jobs with status tracking
+
+model Application {
+  id              String    @id @default(cuid())
+  jobId           String
+  job             Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Application content
+  coverLetter     String?   @db.Text                 // Cover letter text
+  cvUrl           String?                              // Uploaded CV file URL
+
+  // Status: "PENDING", "SHORTLISTED", "INTERVIEW", "REJECTED", "HIRED"
+  status          String    @default("PENDING")
+
+  // Employer notes
+  employerNotes   String?   @db.Text                 // Internal notes from employer
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, jobId])
+  @@index([jobId])
+  @@index([userId])
+  @@index([status])
+  @@map("applications")
+}
+
+// ============================================================
+// 28. AD PLACEMENTS — Ad Management
+// ============================================================
+// Google AdSense integration
+
+model AdPlacement {
+  id              String    @id @default(cuid())
+  name            String                               // "Homepage Leaderboard"
+  position        String                               // "HOME_TOP", "SIDEBAR_1", "ARTICLE_INLINE"
+  adCode          String    @db.MediumText             // AdSense code snippet
+  isActive        Boolean   @default(true)
+
+  // Performance tracking
+  impressionCount Int       @default(0)
+  clickCount      Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([position])
+  @@map("ad_placements")
+}
+
+// ============================================================
+// END OF SCHEMA — 28 TABLES
+// ============================================================
+
+/*
+  ENTITY RELATIONSHIP MAP
+  ════════════════════════
+
+  User ─────────┬─── 1:N ──→ AuthAccount
+               ├─── 1:N ──→ SavedJob ←──── 1:N ── Job
+               ├─── 1:N ──→ SavedArticle ←─ 1:N ── BlogArticle
+               ├─── 1:N ──→ JobAlert
+               ├─── 1:N ──→ ArticleReaction ← 1:N ── BlogArticle
+               ├─── 1:N ──→ Notification
+               ├─── 1:N ──→ Order
+               └─── 1:N ──→ NewsletterSubscription
+
+  Company ────── 1:N ──→ Job
+
+  BlogCategory ─ 1:N ──→ BlogArticle
+  Author ─────── 1:N ──→ BlogArticle
+  BlogTag ────── M:N ──→ BlogArticle (via ArticleTag)
+
+  ServiceTier ── 1:N ──→ OrderItem ←──── 1:N ── Order
+  Order ──────── 1:N ──→ Payment
+  Order ──────── 1:N ──→ OrderActivity
+  Order ──────── 1:N ──→ OrderAttachment
+
+  TABLE COUNT: 28 tables
+  ───────────────────────
+   1. users
+   2. auth_accounts
+   3. companies
+   4. jobs
+   5. opportunities
+   6. blog_categories
+   7. blog_tags
+   8. article_tags (junction)
+   9. blog_articles
+  10. authors
+  11. site_pages
+   12. faqs
+   13. saved_jobs
+   14. saved_articles
+   15. job_alerts
+   16. article_reactions
+   17. notifications
+   18. service_tiers
+   19. orders
+   20. order_items
+   21. payments
+   22. order_activity
+   23. order_attachments
+   24. newsletter_subscriptions
+   25. data_requests
+   26. page_views
+   27. whatsapp_clicks
+   28. ad_placements
+
+  ──────────────────────────────────────────
+  KEY DESIGN DECISIONS (from all prototypes)
+  ──────────────────────────────────────────
+  ✅ NO salary/compensation fields on jobs
+  ✅ NO enums in DB — validated in app code against data.js
+  ✅ NO Location table — location stored as String
+  ✅ NO JobCategory table — driven by hub-config.js
+  ✅ NO Applications table — v1 uses externalApplyUrl only
+  ✅ MySQL provider (hosted at da27.host-ww.net)
+  ✅ Jobs linked to Company with verified/featured badges
+  ✅ Nullable userId on orders (walk-in WhatsApp orders)
+  ✅ Nullable userId on reactions (anonymous via fingerprint)
+  ✅ Partial payments via paidAmount + balanceDue
+  ✅ Separate payments table (one order, multiple attempts)
+  ✅ M-Pesa checkoutRequestId for STK Push tracking
+  ✅ Order activity timeline for status tracking
+  ✅ Order attachments for CVs and deliverables
+  ✅ ServiceTiers for configurable pricing
+  ✅ Blog with categories, tags (M:N), authors, reactions
+  ✅ ArticleReaction supports 4 emoji types, anonymous users
+  ✅ Site pages CMS for legal/DPA content
+  ✅ Data requests for DPA 2019 compliance
+  ✅ Analytics: page_views, whatsapp_clicks, ad_placements
+  ✅ SEO fields on all content tables (noIndex, metaTitle, etc.)
+  ✅ noIndex support for unpublished/draft content
+  ✅ Denormalized counters for performance
+  ✅ All slugs are unique for SEO-friendly URLs
+  ✅ Indexes on frequently queried fields
+*/

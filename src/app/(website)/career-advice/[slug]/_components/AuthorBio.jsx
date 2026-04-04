@@ -1,0 +1,79 @@
+"use client";
+
+import { useState } from "react";
+import { FiTwitter, FiLinkedin } from "react-icons/fi";
+
+export default function AuthorBio({ author }) {
+  const [following, setFollowing] = useState(false);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-6 mt-5 flex gap-5 items-start">
+      {/* Avatar */}
+      <span className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center font-extrabold text-xl text-amber-900 shrink-0">
+        {author.initials}
+      </span>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <h3 className="text-base font-bold text-gray-900 mb-0.5">
+          {author.name}
+        </h3>
+        <p className="text-sm text-blue-600 font-semibold mb-2">
+          {author.title}
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed mb-3">
+          {author.bio}
+        </p>
+
+        {/* Stats */}
+        <div className="flex gap-4 mb-3">
+          <span className="text-xs text-gray-500">
+            <strong className="text-gray-700 font-bold">{author.articles}</strong> articles
+          </span>
+          <span className="text-xs text-gray-500">
+            <strong className="text-gray-700 font-bold">{author.coached}</strong> coached
+          </span>
+          <span className="text-xs text-gray-500">
+            <strong className="text-gray-700 font-bold">{author.views}</strong> views
+          </span>
+        </div>
+
+        {/* Social & Follow */}
+        <div className="flex items-center gap-2">
+          {author.linkedin && (
+            <a
+              href={author.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-all"
+              aria-label="LinkedIn"
+            >
+              <FiLinkedin size={14} />
+            </a>
+          )}
+          {author.twitter && (
+            <a
+              href={author.twitter}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:border-sky-400 hover:text-sky-500 hover:bg-sky-50 transition-all"
+              aria-label="Twitter"
+            >
+              <FiTwitter size={14} />
+            </a>
+          )}
+          <button
+            onClick={() => setFollowing((p) => !p)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              following
+                ? "bg-blue-600 text-white"
+                : "border border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white"
+            }`}
+          >
+            {following ? "Following" : "Follow"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,713 @@
+// ============================================================
+// JobReady.co.ke — Database Schema (Prisma)
+// ============================================================
+// Models everything agreed on across all 8 prototypes:
+//   Homepage, Job Detail, Hub Page, Services, Blog Listing,
+//   Company Profile, Search Results, Blog Article
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"   // PostgreSQL for production
+  // provider = "sqlite"    // SQLite for local dev
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  JOB_SEEKER
+  EMPLOYER
+  ADMIN
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+}
+
+enum ExperienceLevel {
+  ENTRY
+  MID
+  SENIOR
+  MANAGER
+}
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  REJECTED
+  INTERVIEWED
+  OFFERED
+  HIRED
+}
+
+enum ServiceType {
+  CV_WRITING
+  COVER_LETTER
+  LINKEDIN_PROFILE
+}
+
+enum ServiceTier {
+  BASIC
+  PROFESSIONAL
+  PREMIUM
+}
+
+enum ServiceStatus {
+  PENDING          // WhatsApp conversation started
+  CONFIRMED        // User confirmed order + sent CV/info
+  IN_PROGRESS      // Career coach is working on it
+  DELIVERED        // Sent to user for review
+  REVISION         // User requested revisions
+  COMPLETED        // User accepted final deliverable
+  CANCELLED        // User or admin cancelled
+}
+
+// ============================================================
+// USERS & AUTH
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?   @unique              // +2547XXXXXXXX
+  name          String
+  passwordHash  String?
+  role          UserRole  @default(JOB_SEEKER)
+
+  // Profile fields (job seekers)
+  avatar        String?   // URL or initials color
+  bio           String?
+  location      String?   // "Nairobi, Kenya"
+  linkedinUrl   String?
+  education     String?   // Free text for now
+  skills        String[]  // Array of skill strings
+  cvUrl         String?   // Uploaded CV file URL
+
+  // Employer fields
+  company       Company?  @relation("employer_company")
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  applications  Application[]
+  savedJobs     SavedJob[]
+  jobAlerts     JobAlert[]
+  newsletterSub NewsletterSubscription[]
+  serviceOrders ServiceOrder[]
+  reactions     ArticleReaction[]
+
+  @@map("users")
+}
+
+// ============================================================
+// COMPANIES / ORGANIZATIONS
+// ============================================================
+// Seen in: Homepage (top employers, trusted bar), Job Detail,
+//          Company Profile, Search Results sidebar
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique              // "safaricom-plc"
+  logo          String?   // Logo URL or color code
+  logoColor     String?   // Fallback gradient like "#00a254,#00c853"
+  tagline       String?
+  description   String?   // Rich text about section
+  industry      String    // "Telecommunications", "Banking & Finance"
+  foundedYear   Int?
+  employeeSize  String?   // "5,000+", "50-200", "1-10"
+  tickerSymbol  String?   // "SCOM" for listed companies
+  companyType   String?   // "Listed Company", "Private", "Government", "NGO"
+
+  // Location
+  address       String?   // Full address
+  city          String?   // "Nairobi"
+  country       String    @default("Kenya")
+  website       String?
+  twitterUrl    String?
+  facebookUrl   String?
+  linkedinUrl   String?
+
+  // Status
+  isVerified    Boolean   @default(false)      // Green verified badge
+  isFeatured    Boolean   @default(false)      // Show in "Trusted By" bar
+  isActive      Boolean   @default(true)
+
+  // Employer who manages this company
+  employerId    String?   @unique
+  employer      User?     @relation("employer_company", fields: [employerId], references: [id])
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  jobs          Job[]
+
+  @@map("companies")
+}
+
+// ============================================================
+// LOCATIONS
+// ============================================================
+// Kenya-focused locations for jobs
+
+model Location {
+  id            String    @id @default(cuid())
+  name          String    // "Nairobi", "Mombasa", "Kisumu", "Remote"
+  slug          String    @unique              // "nairobi"
+  region        String?   // "Nairobi County", "Coast Region"
+  isActive      Boolean   @default(true)
+
+  // Relations
+  jobs          Job[]
+
+  @@map("locations")
+}
+
+// ============================================================
+// JOB CATEGORIES / HUB PAGES
+// ============================================================
+// 33 planned hub pages — e.g. internships, government, remote,
+// scholarships, by-industry, by-location, etc.
+// Maps to URL: /jobs/{slug} or /opportunities/{slug}
+
+model JobCategory {
+  id            String    @id @default(cuid())
+  name          String    // "Government Jobs", "Internships", "Remote"
+  slug          String    @unique              // "government"
+  description   String?
+  icon          String?   // SVG icon name or path
+  color         String?   // Theme color for hub page
+  type          String    @default("job")      // "job" | "opportunity"
+
+  // Counters (denormalized for performance)
+  jobCount      Int       @default(0)
+
+  isActive      Boolean   @default(true)
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  jobs          Job[]
+
+  @@map("job_categories")
+}
+
+// ============================================================
+// JOBS
+// ============================================================
+// Core entity — no salary field (agreed), supports badges,
+// deadlines, filters (type, level, location, company, date)
+
+model Job {
+  id            String    @id @default(cuid())
+  title         String    // "Senior Accountant — Financial Reporting"
+  slug          String    @unique              // "senior-accountant-safaricom"
+  description   String    // Full job description (rich text / Markdown)
+  excerpt       String?   // 2-line excerpt for search results
+
+  // Company
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id])
+
+  // Location
+  location      String    // "Westlands, Nairobi" (specific area)
+  locationId    String?
+  locationRef   Location? @relation(fields: [locationId], references: [id])
+
+  // Classification
+  categoryId    String
+  category      JobCategory @relation(fields: [categoryId], references: [id])
+  jobType       JobType
+  experienceLevel ExperienceLevel
+
+  // Requirements (structured for search/filters)
+  requirements  String[]  // ["CPA-K", "3+ years", "Excel"]
+  skills        String[]  // ["Financial modelling", "Sage", "IFRS"]
+  highlights    String[]  // ["Health Insurance", "Car Allowance", "Performance Bonus"]
+
+  // Badge states (from prototypes)
+  isFeatured    Boolean   @default(false)      // Featured badge (paid)
+  isNew         Boolean   @default(true)       // New badge (first 48h)
+  isUrgent      Boolean   @default(false)      // Closing Soon badge
+
+  // Deadline
+  deadline      DateTime?
+  deadlineLabel String?   // "Closing Soon" override text
+
+  // Status
+  isActive      Boolean   @default(true)       // Admin can unpublish
+  isPaid        Boolean   @default(false)      // Employer paid for listing
+
+  // Published by
+  postedById    String?
+  postedBy      User?     @relation(fields: [postedById], references: [id])
+
+  // SEO
+  metaTitle     String?   // Custom SEO title
+  metaDescription String?
+
+  // Timestamps
+  publishedAt   DateTime? @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  applications  Application[]
+  savedBy       SavedJob[]
+
+  @@map("jobs")
+}
+
+// ============================================================
+// JOB APPLICATIONS
+// ============================================================
+// When a job seeker applies (apply button on job detail page)
+
+model Application {
+  id            String    @id @default(cuid())
+  jobId         String
+  job           Job       @relation(fields: [jobId], references: [id])
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  coverLetter   String?   // Optional cover letter text
+  cvUrl         String?   // Uploaded CV at time of application
+
+  status        ApplicationStatus @default(PENDING)
+
+  // Tracking
+  source        String?   // "direct", "whatsapp", "referral"
+  ipAddress     String?
+  userAgent     String?
+
+  // Timestamps
+  appliedAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Each user can only apply once per job
+  @@unique([jobId, userId])
+  @@map("applications")
+}
+
+// ============================================================
+// SAVED JOBS (Bookmarks)
+// ============================================================
+// Heart/bookmark icon on job cards
+
+model SavedJob {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  jobId         String
+  job           Job       @relation(fields: [jobId], references: [id])
+  createdAt     DateTime  @default(now())
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+// ============================================================
+// JOB ALERTS
+// ============================================================
+// "Get new jobs delivered to your inbox daily"
+// Seen in: Homepage sidebar, Search Results sidebar, Blog sidebar
+
+model JobAlert {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  query         String?   // "accounting jobs"
+  location      String?   // "Nairobi"
+  jobType       JobType?
+  categoryId    String?   // Filter by category
+  isActive      Boolean   @default(true)
+
+  // Email delivery tracking
+  lastSentAt    DateTime?
+  emailOpenCount Int      @default(0)
+  emailClickCount Int     @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("job_alerts")
+}
+
+// ============================================================
+// NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+// "Weekly Career Tips" / "Job Alerts" newsletter forms
+// Seen in: Homepage, Blog, Blog Article, Search Results
+
+model NewsletterSubscription {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  userId        String?   // If logged in, link to user
+  user          User?     @relation(fields: [userId], references: [id])
+  type          String    @default("career_tips") // "career_tips" | "job_alerts"
+
+  isActive      Boolean   @default(true)
+  subscribedAt  DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("newsletter_subscriptions")
+}
+
+// ============================================================
+// BLOG — CATEGORIES
+// ============================================================
+// 7 categories from blog prototype:
+// CV Writing Tips, Interview Tips, Job Search,
+// Career Growth, Government Jobs, Scholarships, Salary & Negotiation
+
+model BlogCategory {
+  id            String    @id @default(cuid())
+  name          String    // "CV Writing Tips"
+  slug          String    @unique              // "cv-writing-tips"
+  description   String?
+  color         String?   // Theme color for gradient strips
+  gradient      String?   // "var(--primary),#3b82f6"
+
+  articleCount  Int       @default(0)
+
+  isActive      Boolean   @default(true)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  articles      BlogArticle[]
+
+  @@map("blog_categories")
+}
+
+// ============================================================
+// BLOG — TAGS
+// ============================================================
+// Many-to-many with articles (tag cloud in sidebars)
+
+model BlogTag {
+  id            String    @id @default(cuid())
+  name          String    // "ATS", "CPA-K", "LinkedIn"
+  slug          String    @unique              // "ats"
+  articleCount  Int       @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations (many-to-many through table)
+  articles      BlogArticleTag[]
+
+  @@map("blog_tags")
+}
+
+// ============================================================
+// BLOG — ARTICLES
+// ============================================================
+// Full blog article with rich content, SEO, reactions, views
+
+model BlogArticle {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique              // "how-to-write-cv-kenya-2026"
+  excerpt       String?   // 2-line excerpt for listing cards
+  content       String    @db.Text             // Full article body (Markdown/HTML)
+  featuredImage String?   // Hero image URL
+
+  // Author
+  authorId      String
+  author        Author    @relation(fields: [authorId], references: [id])
+
+  // Category
+  categoryId    String
+  category      BlogCategory @relation(fields: [categoryId], references: [id])
+
+  // Reading stats
+  readingTime   Int       @default(5)          // Minutes
+  viewsCount    Int       @default(0)
+  wordCount     Int       @default(0)
+
+  // State
+  isFeatured    Boolean   @default(false)      // Featured article card on blog listing
+  isPublished   Boolean   @default(false)
+
+  // SEO
+  metaTitle     String?   // Custom SEO title
+  metaDescription String?
+  canonicalUrl  String?
+
+  // Timestamps
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  tags          BlogArticleTag[]
+  reactions     ArticleReaction[]
+
+  @@map("blog_articles")
+}
+
+// ============================================================
+// BLOG — ARTICLE ↔ TAGS (Many-to-Many)
+// ============================================================
+
+model BlogArticleTag {
+  articleId     String
+  article       BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tagId         String
+  tag           BlogTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("blog_article_tags")
+}
+
+// ============================================================
+// BLOG — AUTHORS
+// ============================================================
+// Career coaches who write articles
+// From blog article prototype: Grace Wanjiku — Senior Career Coach
+
+model Author {
+  id            String    @id @default(cuid())
+  userId        String?   @unique              // Link to user account (optional)
+  name          String
+  slug          String    @unique              // "grace-wanjiku"
+  title         String?   // "Senior Career Coach"
+  bio           String?   // Bio paragraph for author card
+  avatar        String?   // Avatar URL or initials color
+
+  // Social
+  twitterUrl    String?
+  linkedinUrl   String?
+
+  // Stats (denormalized)
+  articleCount  Int       @default(0)
+  totalViews    Int       @default(0)
+  peopleCoached Int       @default(0)
+
+  isActive      Boolean   @default(true)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  articles      BlogArticle[]
+
+  @@map("authors")
+}
+
+// ============================================================
+// BLOG — ARTICLE REACTIONS
+// ============================================================
+// Emoji reactions from blog article page:
+// 👍 Helpful, ❤️ Love it, 💡 Insightful, 🤯 Mind-blowing
+
+model ArticleReaction {
+  id            String    @id @default(cuid())
+  articleId     String
+  article       BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  reactionType  String    // "helpful", "love", "insightful", "mind-blowing"
+  ipAddress     String?   // Track anonymous reactions
+
+  createdAt     DateTime  @default(now())
+
+  // Each user can only react once per type per article
+  @@unique([articleId, userId, reactionType])
+  @@map("article_reactions")
+}
+
+// ============================================================
+// SERVICES — CAREER DOCUMENT ORDERS
+// ============================================================
+// Revenue engine: CV writing, cover letter, LinkedIn profile
+// Pricing tiers from Services page prototype:
+//   CV Writing: Basic KSh 500, Professional KSh 1,500, Premium KSh 3,500
+//   Cover Letter: Basic KSh 500, Premium KSh 1,000
+//   LinkedIn Profile: Basic KSh 800, Premium KSh 1,500
+// Flow: WhatsApp conversation → confirmed → in_progress → delivered
+
+model ServiceOrder {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  serviceType   ServiceType
+  tier          ServiceTier
+  status        ServiceStatus @default(PENDING)
+
+  // Amount (KSh)
+  amount        Int                           // 500, 1500, 3500
+  currency      String    @default("KES")
+
+  // WhatsApp conversation tracking
+  whatsappPhone String                        // "+2547XXXXXXXX"
+  whatsappConvId String?                      // External conversation ID
+  prefillMessage String?                      // Initial WhatsApp message
+
+  // User's submitted info
+  currentCvUrl  String?                       // Their existing CV
+  targetJobTitle String?                     // "Senior Accountant"
+  targetCompany String?                      // "Safaricom"
+  notes         String?                       // Additional instructions
+
+  // Deliverables
+  deliverableUrl String?                      // Final CV/letter file
+  revisionCount Int       @default(0)
+
+  // Admin/coach
+  assignedToId  String?                       // Admin user who handles order
+  assignedTo    User?     @relation("assigned_coach", fields: [assignedToId], references: [id])
+
+  // Timestamps
+  confirmedAt   DateTime?                     // User confirmed + sent info
+  startedAt     DateTime?                     // Coach started working
+  deliveredAt   DateTime?                     // Sent to user
+  completedAt   DateTime?                     // User accepted
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("service_orders")
+}
+
+// ============================================================
+// TESTIMONIALS
+// ============================================================
+// From Services page — 5-star ratings with quotes
+
+model Testimonial {
+  id            String    @id @default(cuid())
+  name          String
+  title         String?   // "Marketing Manager at Safaricom"
+  avatar        String?   // Avatar URL or initials color
+  quote         String    // Testimonial text
+  rating        Int       // 1-5 stars
+  serviceType   ServiceType?                  // Which service they used
+  tier          ServiceTier?                  // Which tier
+
+  isFeatured    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  displayOrder  Int       @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("testimonials")
+}
+
+// ============================================================
+// SITE SETTINGS (Key-Value)
+// ============================================================
+// For dynamic content: hero stats, WhatsApp number,
+// ad placements, announcement banners
+
+model SiteSetting {
+  id            String    @id @default(cuid())
+  key           String    @unique              // "whatsapp_number", "total_jobs_count"
+  value         String                          // "+254700000000", "2500"
+  type          String    @default("string")   // "string", "number", "boolean", "json"
+  group         String    @default("general")  // "general", "ads", "seo"
+
+  updatedAt     DateTime  @updatedAt
+
+  @@map("site_settings")
+}
+
+// ============================================================
+// END OF SCHEMA
+// ============================================================
+
+/*
+  ENTITY RELATIONSHIP SUMMARY
+  ══════════════════════════
+
+  User ─────────┬──── 1:1 ──→ Company (employer)
+               │
+               ├──── 1:N ──→ Application ←── 1:N ── Job
+               │
+               ├──── 1:N ──→ SavedJob ←───── 1:N ── Job
+               │
+               ├──── 1:N ──→ JobAlert
+               │
+               ├──── 1:N ──→ NewsletterSubscription
+               │
+               ├──── 1:N ──→ ServiceOrder
+               │
+               └──── 1:N ──→ ArticleReaction ←─ 1:N ── BlogArticle
+
+  Company ────── 1:N ──→ Job
+
+  JobCategory ── 1:N ──→ Job
+
+  Location ───── 1:N ──→ Job
+
+  BlogCategory ─ 1:N ──→ BlogArticle
+
+  Author ─────── 1:N ──→ BlogArticle
+
+  BlogTag ────── M:N ──→ BlogArticle (via BlogArticleTag)
+
+  BlogArticle ── 1:N ──→ ArticleReaction
+
+
+  TABLE COUNT: 16 tables
+  ───────────────────────
+  1.  users
+  2.  companies
+  3.  locations
+  4.  job_categories
+  5.  jobs
+  6.  applications
+  7.  saved_jobs
+  8.  job_alerts
+  9.  newsletter_subscriptions
+  10. blog_categories
+  11. blog_tags
+  12. blog_articles
+  13. blog_article_tags (junction)
+  14. authors
+  15. article_reactions
+  16. service_orders
+  17. testimonials
+  18. site_settings
+
+  ──────────────────────────────────────
+  KEY DESIGN DECISIONS (from prototypes)
+  ──────────────────────────────────────
+  ✅ NO salary/compensation fields on jobs
+  ✅ Jobs linked to Company with verified badge
+  ✅ JobType enum: FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, REMOTE
+  ✅ ExperienceLevel enum: ENTRY, MID, SENIOR, MANAGER
+  ✅ Service tiers: Basic (500), Professional (1500), Premium (3500) KES
+  ✅ WhatsApp-first service flow (no complex payment gateway needed)
+  ✅ ServiceOrder tracks WhatsApp conversation lifecycle
+  ✅ Blog with categories, tags (M:N), authors, reactions
+  ✅ ArticleReaction supports 4 emoji types, anonymous + logged-in
+  ✅ JobAlerts with email tracking (open/click counts)
+  ✅ SiteSettings for dynamic hero stats, WhatsApp number, ad configs
+  ✅ SavedJob (bookmark) with unique constraint per user+job
+  ✅ Application has unique constraint (one application per user per job)
+  ✅ All slugs are unique for SEO-friendly URLs
+  ✅ Locations are Kenya-focused
+  ✅ JobCategory.type distinguishes "job" vs "opportunity" (scholarships etc.)
+  ✅ Testimonials linked to service type/tier for filtering
+*/
