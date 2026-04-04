@@ -84,3 +84,33 @@ Implement Complete Profile modal, Profile Update API, DashboardShell integration
 **Lint Status:** All 13 lint errors are pre-existing (seed files, CookieConsent.jsx, test file). No new errors introduced.
 
 **Dev Server:** Running cleanly with no errors.
+
+---
+## Task ID: dynamic-pricing-email
+### Agent: main
+### Work Task
+Create public service tiers API, update CV services page with mock data fallback, add order placed + email verification templates, wire order placed email into orders API.
+
+### Work Summary
+
+**Files Created (1):**
+1. `src/app/api/services/tiers/route.js` — **NEW**: Public GET endpoint `/api/services/tiers`; returns all active service tiers grouped by `serviceType`; no auth required; ordered by serviceType then sortOrder; returns `{ success: true, services: [...] }` with each group containing `serviceType` and `tiers` array with full tier details (id, tier, name, description, price, currency, features, deliveryDays, revisionCount, sortOrder)
+
+**Files Modified (3):**
+1. `src/app/(website)/cv-services/page.jsx` — Added `mockServices` and `mockPricingComparison` imports from mock-data; added `dbFailed` flag when DB query throws; services now falls back to `mockServices` when DB fails or returns empty tiers; `pricingComparison` falls back to `mockPricingComparison` when DB fails or fewer than 3 CV tiers exist (need BASIC + PROFESSIONAL + PREMIUM for comparison table); page remains a server component (optimal for SEO/SSR)
+
+2. `src/lib/email.js` — Added two new email templates after `paymentConfirmationTemplate`:
+   - `orderPlacedTemplate({ name, orderNumber, services, totalAmount })` — Branded HTML email with order details table (order number, total amount in KSh, "⏳ Awaiting Payment" status), services ordered list, "What happens next?" steps (M-Pesa payment, confirmation email, team outreach)
+   - `emailVerificationTemplate(name, verificationUrl)` — Branded HTML email with verify button, 24-hour expiry notice, fallback URL for copy-paste, "didn't add this email" safety notice
+
+3. `src/app/api/orders/route.js` — After successful `db.order.create`, added fire-and-forget email send block: dynamic imports `sendEmail` and `orderPlacedTemplate` from `@/lib/email`; builds service names from `order.items` (e.g., "Basic CV (BASIC), Cover Letter (BASIC)"); sends via `cv` identity with `cv@jobready.co.ke` reply-to; wrapped in try/catch so email failure doesn't break order creation
+
+**Design Decisions:**
+- Kept CV services page as a server component (not converted to client component with useEffect). Server-side DB query is faster, better for SEO, avoids loading states. The API endpoint exists for external consumers (mobile app, future features).
+- Mock data fallback uses the same `mockServices`/`mockPricingComparison` exports that were already in mock-data.js — no duplication.
+- Email sending in orders API uses dynamic `import()` to avoid loading email module when not needed.
+- Order email is fire-and-forget: wrapped in try/catch, failure only logged, doesn't affect the 201 response.
+
+**Lint Status:** All 13 lint errors are pre-existing (seed files, CookieConsent.jsx, test file). No new errors introduced.
+
+**Git Stats:** 4 files changed, 159 insertions(+), 3 deletions(-)

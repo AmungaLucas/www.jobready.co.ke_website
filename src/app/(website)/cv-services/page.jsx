@@ -8,6 +8,8 @@ import Testimonials from "./_components/Testimonials";
 import PricingTable from "./_components/PricingTable";
 import FAQAccordion from "./_components/FAQAccordion";
 import {
+  services as mockServices,
+  pricingComparison as mockPricingComparison,
   testimonials,
   faqs,
   howItWorks,
@@ -204,6 +206,7 @@ function buildPricingComparison(cvTiers) {
 export default async function CVServicesPage() {
   // Fetch all active service tiers from the database
   let allTiers = [];
+  let dbFailed = false;
   try {
     allTiers = await db.serviceTier.findMany({
       where: { isActive: true },
@@ -211,13 +214,18 @@ export default async function CVServicesPage() {
     });
   } catch (error) {
     console.error("Failed to fetch service tiers:", error);
+    dbFailed = true;
   }
 
-  // Build dynamic data
-  const services = buildServices(allTiers);
+  // Build dynamic services from DB, with fallback to mock data
+  const services = dbFailed || allTiers.length === 0
+    ? mockServices
+    : buildServices(allTiers);
 
   const cvTiers = allTiers.filter((t) => t.serviceType === "CV_WRITING");
-  const pricingComparison = buildPricingComparison(cvTiers);
+  const pricingComparison = dbFailed || cvTiers.length < 3
+    ? mockPricingComparison
+    : buildPricingComparison(cvTiers);
 
   // Build dynamic JSON-LD offers from DB
   const offers = cvTiers.map((t) => ({

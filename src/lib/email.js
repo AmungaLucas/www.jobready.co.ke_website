@@ -385,6 +385,75 @@ export function paymentConfirmationTemplate({ name, orderNumber, amount, receipt
   return { html, text: `Payment confirmed — Order ${orderNumber}: KSh ${amount}. Receipt: ${receiptNumber}. Date: ${date}.` };
 }
 
+/**
+ * Order placed email (sent when order is created, before payment)
+ */
+export function orderPlacedTemplate({ name, orderNumber, services, totalAmount }) {
+  const html = wrapEmail(
+    "Order Placed",
+    `Order ${orderNumber}`,
+    `
+      <p>Hello${name ? ` ${name}` : ""},</p>
+      <p>Your order has been placed successfully on JobReady.co.ke. Here are the details:</p>
+      <div style="background:#f0f9ff;border:1px solid #bfdbfe;border-radius:10px;padding:20px;margin:16px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Order Number</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;">${orderNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Total Amount</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;color:#1a56db;">KSh ${totalAmount.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Status</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;color:#f59e0b;">&#9203; Awaiting Payment</td>
+          </tr>
+        </table>
+      </div>
+      ${services ? `<h2>Services Ordered</h2><p>${services}</p>` : ""}
+      <h2>What happens next?</h2>
+      <ol>
+        <li>Complete your M-Pesa payment when prompted</li>
+        <li>You'll receive a payment confirmation email once payment is successful</li>
+        <li>Our team will reach out within 30 minutes to get started on your order</li>
+      </ol>
+      <p style="font-size:13px;color:#6b7280;">
+        If you have any questions, reply to this email or contact us on WhatsApp.
+      </p>
+    `
+  );
+  return { html, text: `Order ${orderNumber} placed on JobReady.co.ke — KSh ${totalAmount.toLocaleString()}. Awaiting M-Pesa payment.` };
+}
+
+/**
+ * Email verification email (for users who add email via phone/Google auth)
+ */
+export function emailVerificationTemplate(name, verificationUrl) {
+  const html = wrapEmail(
+    "Verify Your Email",
+    "Confirm your email address",
+    `
+      <p>Hello${name ? ` ${name}` : ""},</p>
+      <p>Thanks for adding your email to your JobReady account. Please verify it by clicking the button below:</p>
+      <p style="text-align:center;">
+        <a href="${verificationUrl}" class="btn">Verify Email Address</a>
+      </p>
+      <p style="font-size:13px;color:#6b7280;">
+        This link will expire in <strong>24 hours</strong>. After that, you'll need to request a new verification link from your dashboard settings.
+      </p>
+      <p style="font-size:13px;color:#9ca3af;margin-top:16px;">
+        If the button doesn't work, copy and paste this URL into your browser:<br/>
+        <a href="${verificationUrl}" style="word-break:break-all;font-size:12px;">${verificationUrl}</a>
+      </p>
+      <p style="font-size:13px;color:#6b7280;margin-top:12px;">
+        If you didn't add this email to your JobReady account, you can safely ignore this email.
+      </p>
+    `
+  );
+  return { html, text: `Verify your JobReady email: ${verificationUrl}` };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 /** Strip HTML tags for plain text fallback */

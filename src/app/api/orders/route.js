@@ -123,6 +123,33 @@ export async function POST(request) {
       },
     });
 
+    // ── Send order placed email (fire-and-forget) ──
+    try {
+      const { sendEmail, orderPlacedTemplate } = await import("@/lib/email");
+      const serviceNames = order.items
+        .map((item) => `${item.serviceName} (${item.tierName})`)
+        .join(", ");
+
+      const { html, text } = orderPlacedTemplate({
+        name: fullName.trim(),
+        orderNumber: order.orderNumber,
+        services: serviceNames,
+        totalAmount,
+      });
+
+      await sendEmail({
+        to: email.toLowerCase().trim(),
+        subject: `Order Placed — ${order.orderNumber} | JobReady.co.ke`,
+        html,
+        text,
+        fromIdentity: "cv",
+        replyTo: "cv@jobready.co.ke",
+      });
+      console.log("[Orders API] Order placed email sent to:", email);
+    } catch (emailErr) {
+      console.error("[Orders API] Order email failed:", emailErr.message);
+    }
+
     return NextResponse.json(
       {
         message: "Order placed successfully",
