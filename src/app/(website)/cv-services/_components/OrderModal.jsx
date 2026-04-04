@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/format";
 import {
   FiX,
@@ -16,6 +17,7 @@ import {
   FiShoppingBag,
   FiShield,
   FiClock,
+  FiCheck,
 } from "react-icons/fi";
 
 // ─── Step Constants ──────────────────────────────────────
@@ -59,11 +61,21 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
   const pollRef = useRef(null);
   const modalRef = useRef(null);
 
+  // Get session for auto-fill
+  const { data: session } = useSession();
+
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setStep(STEPS.DETAILS);
-      setFormData({ fullName: "", email: "", phone: "", notes: "" });
+      // Auto-fill with logged-in user data
+      const user = session?.user;
+      setFormData({
+        fullName: user?.name || "",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        notes: "",
+      });
       setErrors({});
       setIsSubmitting(false);
       setOrderData(null);
@@ -388,6 +400,14 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
 
         {/* ─── Content ─── */}
         <div className="p-6">
+          {/* ── Auto-filled indicator ── */}
+          {step === STEPS.DETAILS && session?.user && (formData.fullName || formData.email || formData.phone) && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg mb-4">
+              <FiCheck className="text-green-600 shrink-0" size={14} />
+              <p className="text-xs text-green-700">Auto-filled from your account</p>
+            </div>
+          )}
+
           {/* ── Step 1: Customer Details ── */}
           {step === STEPS.DETAILS && (
             <div className="space-y-4">
