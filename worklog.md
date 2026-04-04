@@ -81,3 +81,51 @@ Fixed 4 server component pages to use direct Prisma database queries instead of 
 - Transformed `ArticleTag[]` junction records to flat `BlogTag[]` to preserve existing JSX that accesses `.name`
 - All existing JSX/HTML rendering preserved exactly — only data fetching changed
 - All pre-existing lint errors are in unrelated files (seed scripts, CookieConsent, test-e2e) — no new lint errors introduced
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Homepage (/) runtime crash and Opportunity Detail page errors
+
+Work Log:
+- Identified root cause: `activeJobsWhere(overrides = {})` in homepage page.jsx used `...overrides` to spread into an AND array, but `{}` is not iterable in array context — confirmed with `node -e "const a = [...{}]"`
+- The minified SSR error was `TypeError: a is not iterable` at the exact position of `...a` in the minified code
+- Fixed by changing default from `{}` to `[]`: `function activeJobsWhere(overrides = [])`
+- Also improved error handling in `/opportunities/[hubSlug]/[slug]/page.jsx`:
+  - Added try-catch around `generateMetadata` 
+  - Added try-catch around the main page component
+  - Added separate try-catch for the similar opportunities query
+  - Added null check for `slug` parameter
+- Rebuilt and verified no errors in server logs
+- Pushed commit 95d9888 to GitHub
+
+Stage Summary:
+- Homepage fix: `activeJobsWhere(overrides = {})` → `activeJobsWhere(overrides = [])`
+- This was the single root cause of the "Something went wrong" error on the homepage
+- Opportunity detail page: added defensive error handling, likely will fix when deployed
+- Committed and pushed to origin/master
+
+---
+Task ID: 2
+Agent: Super Z (main)
+Task: Delete all mock data and update components to remove mock data dependencies
+
+Work Log:
+- Deleted 10 mock-data.js files (kept cv-services mock-data.js as it contains real product data)
+- Deleted career-advice/[slug]/_components/article-content.js (hardcoded fake article HTML)
+- Updated homepage page.jsx: removed mock imports, all fallbacks now use empty arrays, category counts set to 0
+- Updated JobFilters.jsx: replaced mock imports with inline static filter labels (no fake counts), made count display conditional
+- Updated SearchFilters.jsx: replaced mock imports with inline static filter options (no fake counts)
+- Updated TrendingSearches.jsx: removed mock trending searches and popular tags, kept only newsletter section
+- Updated CompanyFilters.jsx: replaced mock imports with inline static filter arrays
+- Updated career-advice/[slug]/page.jsx: removed article-content.js import and fallback, shows empty when no content
+- Updated jobs/[hubSlug]/hub-data.js: removed Math.random() count generation, set to 0
+- Updated organizations/[slug]/page.jsx: set hardcoded browseIndustries counts to 0
+
+Stage Summary:
+- All 10 mock data files deleted + 1 article-content.js deleted
+- All components updated to work without mock data
+- Homepage will show empty sections when DB has no data (correct behavior)
+- Filter UI components use static labels without fake counts
+- No remaining imports from mock-data files (verified — only cv-services remains, which is kept intentionally)
+- No new lint errors introduced; homepage loads with 200 OK

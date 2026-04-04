@@ -25,12 +25,12 @@ export const dynamic = "force-dynamic";
 
 // Static config — browse industries sidebar (no API for counts)
 const browseIndustries = [
-  { name: "Banking & Finance", count: 18 },
-  { name: "IT & Technology", count: 22 },
-  { name: "Government", count: 24 },
-  { name: "NGO & Development", count: 31 },
-  { name: "Telecommunications", count: 5 },
-  { name: "Healthcare", count: 12 },
+  { name: "Banking & Finance", count: 0 },
+  { name: "IT & Technology", count: 0 },
+  { name: "Government", count: 0 },
+  { name: "NGO & Development", count: 0 },
+  { name: "Telecommunications", count: 0 },
+  { name: "Healthcare", count: 0 },
 ];
 
 // ─── Data Fetching ─────────────────────────────────────────

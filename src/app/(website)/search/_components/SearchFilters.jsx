@@ -2,7 +2,45 @@
 
 import { useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
-import { filterOptions } from "./mock-data";
+const filterOptions = {
+  jobType: [
+    { label: "Full-Time" },
+    { label: "Part-Time" },
+    { label: "Contract" },
+    { label: "Internship" },
+    { label: "Remote" },
+  ],
+  experienceLevel: [
+    { label: "Entry Level" },
+    { label: "Mid-Senior" },
+    { label: "Senior" },
+    { label: "Manager/Director" },
+  ],
+  datePosted: ["Last 24 hours", "Last 7 days", "Last 30 days", "Any time"],
+  location: [
+    { label: "Nairobi" },
+    { label: "Mombasa" },
+    { label: "Kisumu" },
+    { label: "Nakuru" },
+    { label: "Remote" },
+  ],
+  company: [
+    { label: "Safaricom" },
+    { label: "Equity Bank" },
+    { label: "KCB Group" },
+    { label: "KPMG" },
+    { label: "PwC" },
+  ],
+  category: [
+    { label: "Technology" },
+    { label: "Finance & Accounting" },
+    { label: "Engineering" },
+    { label: "Healthcare" },
+    { label: "Education" },
+    { label: "Government" },
+    { label: "NGO" },
+  ],
+};
 
 function FilterSection({ title, children, defaultOpen = true }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);

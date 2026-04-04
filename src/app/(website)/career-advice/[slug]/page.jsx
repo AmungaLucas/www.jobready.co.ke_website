@@ -8,7 +8,6 @@ import ArticleSidebar from "./_components/ArticleSidebar";
 import AuthorBio from "./_components/AuthorBio";
 import ArticleTags from "./_components/ArticleTags";
 import ShareButtons from "./_components/ShareButtons";
-import { getArticleHtml } from "./_components/article-content";
 import { FiClock, FiEye, FiArrowRight } from "react-icons/fi";
 
 export const dynamic = "force-dynamic";
@@ -90,7 +89,7 @@ export default async function BlogArticlePage({ params }) {
 
   const article = data.article;
   const relatedArticles = data.relatedArticles || [];
-  const articleHtml = article.content || getArticleHtml();
+  const articleHtml = article.content || "";
 
   const categoryName = article.category?.name || "";
   const categorySlug = article.category?.slug || "";

@@ -2,12 +2,44 @@
 
 import { useState } from "react";
 import { HiChevronDown } from "react-icons/hi2";
-import {
-  filterCategories,
-  filterJobTypes,
-  filterExperienceLevels,
-  filterLocations,
-} from "./mock-data";
+const filterCategories = [
+  { label: "Technology", value: "TECHNOLOGY" },
+  { label: "Finance & Accounting", value: "FINANCE_ACCOUNTING" },
+  { label: "Engineering", value: "ENGINEERING" },
+  { label: "Healthcare", value: "HEALTHCARE" },
+  { label: "Education", value: "EDUCATION" },
+  { label: "Marketing", value: "MARKETING_COMMUNICATIONS" },
+  { label: "Government", value: "GOVERNMENT_PUBLIC_SECTOR" },
+  { label: "NGO & Development", value: "NONPROFIT" },
+  { label: "Creative & Design", value: "CREATIVE_DESIGN" },
+  { label: "Customer Service", value: "CUSTOMER_SERVICE" },
+  { label: "Logistics & Supply Chain", value: "SUPPLY_CHAIN" },
+  { label: "Legal", value: "LEGAL" },
+];
+
+const filterJobTypes = [
+  { label: "Full-time", value: "FULL_TIME" },
+  { label: "Part-time", value: "PART_TIME" },
+  { label: "Contract", value: "CONTRACT" },
+  { label: "Internship", value: "INTERNSHIP" },
+  { label: "Remote", value: "Remote" },
+];
+
+const filterExperienceLevels = [
+  { label: "Entry Level", value: "ENTRY" },
+  { label: "Mid Level", value: "MID" },
+  { label: "Senior Level", value: "SENIOR" },
+  { label: "Manager/Director", value: "MANAGER" },
+];
+
+const filterLocations = [
+  { label: "Nairobi", value: "Nairobi" },
+  { label: "Mombasa", value: "Mombasa" },
+  { label: "Kisumu", value: "Kisumu" },
+  { label: "Nakuru", value: "Nakuru" },
+  { label: "Remote", value: "Remote" },
+  { label: "Nationwide", value: "Nationwide" },
+];
 
 function FilterSection({ title, options, selected, onToggle, defaultOpen = true }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -46,9 +78,11 @@ function FilterSection({ title, options, selected, onToggle, defaultOpen = true 
               <span className="flex-1 text-[0.84rem] text-gray-700 group-hover:text-[#1a56db] transition-colors">
                 {opt.label}
               </span>
-              <span className="text-[0.72rem] text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full min-w-[32px] text-center">
-                {opt.count}
-              </span>
+              {opt.count !== undefined && opt.count !== null && (
+                <span className="text-[0.72rem] text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full min-w-[32px] text-center">
+                  {opt.count}
+                </span>
+              )}
               <input
                 type="checkbox"
                 checked={selected.includes(opt.value)}

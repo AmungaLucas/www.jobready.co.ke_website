@@ -26,18 +26,7 @@ import { generateWebSiteJsonLd } from "@/lib/seo";
 import { normalizeJobs, normalizeOpportunities, formatTimeLeft } from "@/lib/normalize";
 import { db } from "@/lib/db";
 
-// Fallback mock data (used when API returns empty results)
-import {
-  trendingJobs as mockTrending,
-  latestJobs as mockLatest,
-  featuredJobs as mockFeatured,
-  internshipJobs as mockInternship,
-  urgentDeadlines as mockUrgent,
-  opportunities as mockOpportunities,
-  topEmployers as mockTopEmployers,
-  sidebarFeaturedJobs as mockSidebarFeatured,
-  sidebarDeadlines as mockSidebarDeadlines,
-} from "./_components/home/mock-data";
+
 
 // ─── Icon mapping for categories ──────────────────────────────
 const categoryIcons = {
@@ -53,14 +42,14 @@ const categoryIcons = {
 
 // ─── Static configs (no API for these) ────────────────────────
 const categories = [
-  { name: "Technology", count: 342, href: "/jobs/technology", color: "#1a56db", icon: "FiMonitor" },
-  { name: "Finance & Accounting", count: 256, href: "/jobs/finance-accounting", color: "#059669", icon: "FiDollarSign" },
-  { name: "Engineering", count: 189, href: "/jobs/engineering", color: "#f59e0b", icon: "FiTool" },
-  { name: "Healthcare", count: 234, href: "/jobs/healthcare", color: "#dc2626", icon: "FiHeart" },
-  { name: "Education", count: 167, href: "/jobs/education", color: "#7c3aed", icon: "FaGraduationCap" },
-  { name: "Marketing", count: 198, href: "/jobs/sales-marketing", color: "#ec4899", icon: "FaChartLine" },
-  { name: "Government", count: 412, href: "/jobs/government", color: "#1e40af", icon: "FiFlag" },
-  { name: "NGO & International", count: 156, href: "/jobs/ngo", color: "#009688", icon: "FiGlobe" },
+  { name: "Technology", count: 0, href: "/jobs/technology", color: "#1a56db", icon: "FiMonitor" },
+  { name: "Finance & Accounting", count: 0, href: "/jobs/finance-accounting", color: "#059669", icon: "FiDollarSign" },
+  { name: "Engineering", count: 0, href: "/jobs/engineering", color: "#f59e0b", icon: "FiTool" },
+  { name: "Healthcare", count: 0, href: "/jobs/healthcare", color: "#dc2626", icon: "FiHeart" },
+  { name: "Education", count: 0, href: "/jobs/education", color: "#7c3aed", icon: "FaGraduationCap" },
+  { name: "Marketing", count: 0, href: "/jobs/sales-marketing", color: "#ec4899", icon: "FaChartLine" },
+  { name: "Government", count: 0, href: "/jobs/government", color: "#1e40af", icon: "FiFlag" },
+  { name: "NGO & International", count: 0, href: "/jobs/ngo", color: "#009688", icon: "FiGlobe" },
 ];
 
 const trustedLogos = [
@@ -196,13 +185,13 @@ export default async function HomePage() {
   const deadlineRaw = deadlineJobs.status === "fulfilled" ? deadlineJobs.value : [];
   const oppRaw = opportunities.status === "fulfilled" ? opportunities.value : [];
 
-  // Normalize jobs with fallback to mock data
-  const _featuredJobs = featuredRaw.length ? normalizeJobs(featuredRaw) : mockFeatured;
-  const _latestJobs = latestRaw.length ? normalizeJobs(latestRaw) : mockLatest;
-  const _internshipJobs = internshipRaw.length ? normalizeJobs(internshipRaw) : mockInternship;
+  // Normalize jobs
+  const _featuredJobs = normalizeJobs(featuredRaw);
+  const _latestJobs = normalizeJobs(latestRaw);
+  const _internshipJobs = normalizeJobs(internshipRaw);
 
   // Trending = first 5 from latest
-  const trendingJobs = latestRaw.length ? normalizeJobs(latestRaw).slice(0, 5) : mockTrending;
+  const trendingJobs = normalizeJobs(latestRaw).slice(0, 5);
 
   // Urgent deadlines: filter jobs with deadline within 7 days
   const now = new Date();
@@ -219,18 +208,16 @@ export default async function HomePage() {
         company: j.company?.name || j.companyName || "",
         deadline: j.deadline,
       }))
-    : mockUrgent;
+    : [];
 
   // Opportunities
-  const _opportunities = oppRaw.length ? normalizeOpportunities(oppRaw) : mockOpportunities;
+  const _opportunities = normalizeOpportunities(oppRaw);
 
   // ─── Sidebar data ───────────────────────────────────────
 
   // Top employers: from latest jobs' companies, deduplicated
   const companyMap = new Map();
-  const allJobsForSidebar = latestRaw.length
-    ? latestRaw
-    : [...mockTrending, ...mockLatest, ...mockFeatured];
+  const allJobsForSidebar = latestRaw;
   for (const job of allJobsForSidebar) {
     const c = job.company;
     if (c && c.name && !companyMap.has(c.slug)) {
@@ -249,7 +236,7 @@ export default async function HomePage() {
       ? Array.from(companyMap.values())
           .sort((a, b) => b.jobCount - a.jobCount)
           .slice(0, 6)
-      : mockTopEmployers;
+      : [];
 
   // Sidebar featured jobs: take first 4 from featured jobs
   const sidebarFeaturedJobs = _featuredJobs.length > 0
@@ -260,7 +247,7 @@ export default async function HomePage() {
         location: j.location || "",
         logoColor: j.company?.logoColor || "#1a56db",
       }))
-    : mockSidebarFeatured;
+    : [];
 
   // Sidebar deadlines: compute from deadline jobs
   const sidebarDeadlines = deadlineRaw.length > 0
@@ -268,7 +255,7 @@ export default async function HomePage() {
         name: j.title,
         timeLeft: formatTimeLeft(j.deadline),
       }))
-    : mockSidebarDeadlines;
+    : [];
 
   const jsonLd = generateWebSiteJsonLd();
 

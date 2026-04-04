@@ -1,7 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { industries, companySizes, locations } from "./mock-data";
+const industries = [
+  "All Industries",
+  "Banking & Finance",
+  "Telecommunications",
+  "Consulting",
+  "IT & Technology",
+  "NGO & Development",
+  "Government",
+  "Healthcare",
+  "Manufacturing",
+  "Education",
+  "Energy & Utilities",
+  "Insurance",
+  "FinTech",
+];
+
+const companySizes = [
+  "All Sizes",
+  "1-50 employees",
+  "51-200 employees",
+  "201-500 employees",
+  "501-1000 employees",
+  "1000+ employees",
+];
+
+const locations = [
+  "All Locations",
+  "Nairobi",
+  "Mombasa",
+  "Kisumu",
+  "Nakuru",
+  "Remote",
+];
 
 export default function CompanyFilters({ onFilterChange }) {
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");

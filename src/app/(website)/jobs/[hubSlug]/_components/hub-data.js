@@ -67,6 +67,6 @@ export function getRelatedJobHubs(currentSlug) {
   return related.map((h) => ({
     slug: h.slug,
     name: h.name.replace(/ in Kenya.*| in Kenya$/i, "").replace(" in Kenya 2026", ""),
-    count: 20 + Math.floor(Math.random() * 300),
+    count: 0,
   }));
 }
