@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { sendOTP } from "@/lib/sms";
 
 export async function POST(request) {
   try {
@@ -91,12 +92,18 @@ export async function POST(request) {
     });
 
     // --- Send OTP via SMS ---
-    // TODO: Connect actual SMS provider (Africa's Talking, Twilio, etc.)
-    // For now, log the OTP to console for development
     console.log(`[Send OTP] Phone: ${normalizedPhone}, OTP: ${otp}, Expires: ${otpExpiry.toISOString()}`);
 
-    // In production, send via SMS:
-    // await sendSMS(normalizedPhone, `Your JobReady.co.ke verification code is ${otp}. Valid for 10 minutes.`);
+    const smsResult = await sendOTP(normalizedPhone, otp);
+
+    if (!smsResult.success) {
+      console.error(`[Send OTP] SMS failed for ${normalizedPhone}:`, smsResult.error);
+      // Return error so the user knows to try again
+      return NextResponse.json(
+        { error: "Failed to send OTP via SMS. Please try again." },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json(
       {

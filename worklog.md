@@ -2304,3 +2304,28 @@ Stage Summary:
 - OTP verification working
 - Middleware fixed with missing public routes
 - Node.js 24 + Turbopack API route crash is a known framework issue (doesn't affect production builds)
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: End-to-end testing of JobReady.co.ke — M-Pesa, auth, API routes
+
+Work Log:
+- Updated .env with real M-Pesa sandbox credentials (consumer key, secret, passkey, shortcode 174379)
+- Created MPESA_CALLBACK_URL env var for configurable callback URL
+- Updated mpesa.js to use MPESA_CALLBACK_URL from environment
+- Created POST /api/payments/mpesa/callback handler (Safaricom STK Push results)
+- Added paymentConfirmationTemplate() to email.js with branded receipt design
+- Fixed callback handler: parse both body.Body.stkCallback and body.stkCallback (Safaricom wraps in Body)
+- Fixed send-otp route: authAccount.upsert now finds/creates user first (MySQL FK requirement)
+- Removed mode:"insensitive" from 5 API files (PostgreSQL-only, MySQL is CI by default)
+- Ran 13 e2e tests — all passing
+
+Stage Summary:
+- 13/13 e2e tests passing: Homepage, Jobs API, Register x2, Contact Form, Newsletter, M-Pesa Callback POST, Callback Health, M-Pesa OAuth, Send OTP, Forgot Password, Opportunities, Search
+- 3 bugs fixed: OTP user relation, MySQL case-sensitive mode, M-Pesa callback body parsing
+- Both user accounts registered: amungalucas@gmail.com (0705922979) and lucasamunga@gmail.com (0706356633)
+- M-Pesa OAuth token obtained successfully from sandbox
+- OTP generated: 277067 for 254706356633
+- Contact form, newsletter all working (email sending requires valid SMTP credentials)
+- GitHub push: commit b85c6b7
