@@ -110,6 +110,16 @@ export const authOptions = {
             },
           });
 
+          // ── Link any unlinked walk-in orders matching this email ──
+          try {
+            await db.order.updateMany({
+              where: { email, userId: null },
+              data: { userId: existingUser.id },
+            });
+          } catch (linkErr) {
+            console.error("[Auth] Order linking failed:", linkErr.message);
+          }
+
           // Attach user ID to the user object so jwt callback picks it up
           user.id = existingUser.id;
           user.name = existingUser.name || profile?.name;

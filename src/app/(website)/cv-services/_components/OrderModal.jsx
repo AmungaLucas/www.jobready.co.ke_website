@@ -142,7 +142,8 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           }
           setStep(STEPS.SUCCESS);
           return;
-        } else if (queryData.status === "FAILED" || queryData.status === "CANCELLED" || queryData.status === "TIMEOUT") {
+        } else if (queryData.status === "FAILED" || queryData.status === "CANCELLED") {
+          // Only show error for definitive failures (not TIMEOUT — keep polling)
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
@@ -150,7 +151,17 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           setError(queryData.resultDesc || "Payment failed. Please try again.");
           setStep(STEPS.ERROR);
           return;
+        } else if (queryData.status === "TIMEOUT") {
+          // STK push timed out — user didn't enter PIN in time
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+          setError("The M-Pesa prompt timed out. Please try again and enter your PIN promptly.");
+          setStep(STEPS.ERROR);
+          return;
         }
+        // For PENDING status, continue polling (don't show error)
       }
 
       // Fallback: Check DB directly (callback may have updated it)
@@ -164,7 +175,7 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           }
           setPaymentData(data);
           setStep(STEPS.SUCCESS);
-        } else if (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "TIMEOUT") {
+        } else if (data.status === "FAILED" || data.status === "CANCELLED") {
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
@@ -172,9 +183,11 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           setError(data.resultDesc || "Payment failed. Please try again.");
           setStep(STEPS.ERROR);
         }
+        // Don't break on PENDING — keep polling
       }
     } catch (err) {
       console.error("Payment poll error:", err);
+      // Don't show error on network issues — keep polling
     }
   }, []);
 

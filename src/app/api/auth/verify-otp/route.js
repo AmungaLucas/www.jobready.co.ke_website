@@ -71,6 +71,12 @@ export async function POST(request) {
           phoneVerified: true,
         },
       });
+
+      // ── Link existing walk-in orders to this new user ──
+      await db.order.updateMany({
+        where: { phone: normalizedPhone, userId: null },
+        data: { userId: user.id },
+      });
     } else {
       // Update existing user to mark phone as verified
       user = await db.user.update({
@@ -80,6 +86,15 @@ export async function POST(request) {
           lastLoginAt: new Date(),
         },
       });
+
+      // ── Link any unlinked walk-in orders matching this phone ──
+      const linkedCount = await db.order.updateMany({
+        where: { phone: normalizedPhone, userId: null },
+        data: { userId: user.id },
+      });
+      if (linkedCount.count > 0) {
+        console.log(`[Verify OTP] Linked ${linkedCount.count} existing orders to user ${user.id}`);
+      }
     }
 
     // --- Link phone auth account to user if not already ---

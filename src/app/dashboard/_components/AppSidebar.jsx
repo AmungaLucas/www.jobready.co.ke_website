@@ -31,6 +31,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ShoppingBag,
 } from "lucide-react";
 import {
   Collapsible,
@@ -44,6 +45,7 @@ const JOB_SEEKER_NAV = [
   { title: "My Applications", href: "/dashboard/applications", icon: FileText, badgeKey: "applications" },
   { title: "Saved Jobs", href: "/dashboard/saved-jobs", icon: Bookmark, badgeKey: "savedJobs" },
   { title: "Job Alerts", href: "/dashboard/alerts", icon: Bell, badgeKey: "alerts" },
+  { title: "My Orders", href: "/dashboard/billing", icon: ShoppingBag },
   { title: "My CV / Profile", href: "/dashboard/profile", icon: User },
 ];
 

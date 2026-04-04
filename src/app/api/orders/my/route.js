@@ -24,9 +24,21 @@ export async function GET(request) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
     const skip = (page - 1) * limit;
 
+    // Build WHERE clause: match by userId OR by email/phone (for linked walk-in orders)
+    const userConditions = { userId: session.user.id };
+
+    // Also include walk-in orders matching the user's email or phone
+    const orConditions = [userConditions];
+    if (session.user.email) {
+      orConditions.push({ email: session.user.email.toLowerCase(), userId: null });
+    }
+    if (session.user.phone) {
+      orConditions.push({ phone: session.user.phone, userId: null });
+    }
+
     const [orders, total] = await Promise.all([
       db.order.findMany({
-        where: { userId: session.user.id },
+        where: { OR: orConditions },
         include: {
           items: {
             include: {
@@ -50,7 +62,7 @@ export async function GET(request) {
         take: limit,
       }),
       db.order.count({
-        where: { userId: session.user.id },
+        where: { OR: orConditions },
       }),
     ]);
 

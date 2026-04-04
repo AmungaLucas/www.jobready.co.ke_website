@@ -39,10 +39,12 @@ export async function POST(request) {
 
     // Parse the response
     const resultCode = String(result.ResultCode || "");
-    const resultDesc = result.ResultDesc || result.ResponseDescription || "Unknown";
+    const resultDescRaw = result.ResultDesc || result.ResponseDescription || "";
+    const resultDescLower = resultDescRaw.toLowerCase();
 
     // Determine payment status from Safaricom's result
     let status;
+
     switch (resultCode) {
       case "0":
         status = "SUCCESS";
@@ -54,11 +56,24 @@ export async function POST(request) {
         status = "TIMEOUT";
         break;
       default:
-        // If ResultCode is present but not 0, it's a failure
-        // If ResponseCode is "0" but no ResultCode, the transaction is still being processed
-        if (resultCode && result.ResponseCode === "0") {
+        // CRITICAL FIX: If the result description indicates the transaction is still
+        // being processed by Safaricom, treat as PENDING — NOT FAILED.
+        // Safaricom often returns a non-zero ResultCode while the transaction is
+        // still settling. Examples: "The transaction is still under processing",
+        // "Request cancelled by user" (1032 is handled above), timeout (1037 above).
+        if (
+          resultDescLower.includes("processing") ||
+          resultDescLower.includes("pending") ||
+          resultDescLower.includes("still") ||
+          resultDescLower.includes("timeout")
+        ) {
+          status = "PENDING";
+        } else if (resultCode && result.ResponseCode === "0" && resultDescRaw.length > 0) {
+          // ResultCode present, ResponseCode OK, but no "processing" keyword
+          // — this is a definitive failure (e.g. insufficient funds, internal error)
           status = "FAILED";
         } else if (result.ResponseCode !== "0") {
+          // Safaricom API-level error — retry later
           status = "PENDING";
         } else {
           status = "PENDING";
@@ -66,8 +81,14 @@ export async function POST(request) {
         break;
     }
 
-    // If we have a paymentId and the result is final, update the DB
-    if (paymentId && status !== "PENDING") {
+    // If we have a paymentId and the result is FINAL (not still processing),
+    // update the DB. Only update for definitive outcomes to avoid race conditions
+    // with the Safaricom callback.
+    // NOTE: We only update if the payment is still PENDING in the DB —
+    // this prevents overwriting a SUCCESS that the callback already set.
+    const isFinalResult = status === "SUCCESS" || status === "CANCELLED" || status === "TIMEOUT";
+
+    if (paymentId && isFinalResult) {
       try {
         const existingPayment = await db.payment.findUnique({
           where: { id: paymentId },
@@ -78,9 +99,15 @@ export async function POST(request) {
             where: { id: paymentId },
             data: {
               status,
-              resultDesc,
+              resultDesc: resultDescRaw || "Unknown",
               resultCode,
             },
+          });
+
+          console.log("[STK Query] Payment updated via STK Query:", {
+            paymentId,
+            status,
+            resultCode,
           });
 
           // If success, also update the order
@@ -116,8 +143,17 @@ export async function POST(request) {
                   metadata: { paymentId, checkoutRequestId, resultCode },
                 },
               });
+
+              console.log("[STK Query] Order updated:", {
+                orderId: order.id,
+                newPaymentStatus,
+                newPaidAmount,
+              });
             }
           }
+        } else if (existingPayment && existingPayment.status !== "PENDING") {
+          // Payment already finalized by callback — don't overwrite
+          console.log("[STK Query] Payment already finalized (status: %s), skipping DB update", existingPayment.status);
         }
       } catch (dbError) {
         console.error("[STK Query] DB update error:", dbError);
@@ -127,7 +163,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       resultCode,
-      resultDesc,
+      resultDesc: resultDescRaw || "Unknown",
       status,
       checkoutRequestId,
     });

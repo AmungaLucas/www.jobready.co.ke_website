@@ -112,6 +112,39 @@ export async function POST(request) {
         },
       });
 
+      // ── Link existing walk-in orders to this new user ──
+      // Find any orders placed with this email or phone that don't have a userId
+      const conditions = [{ email: trimmedEmail }];
+      if (normalizedPhone) {
+        conditions.push({ phone: normalizedPhone });
+      }
+
+      // Update orders matching email
+      const emailOrders = await tx.order.findMany({
+        where: { email: trimmedEmail, userId: null },
+        select: { id: true },
+      });
+      if (emailOrders.length > 0) {
+        await tx.order.updateMany({
+          where: { id: { in: emailOrders.map(o => o.id) } },
+          data: { userId: newUser.id },
+        });
+      }
+
+      // Update orders matching phone (if provided and different from email matches)
+      if (normalizedPhone) {
+        const phoneOrders = await tx.order.findMany({
+          where: { phone: normalizedPhone, userId: null },
+          select: { id: true },
+        });
+        if (phoneOrders.length > 0) {
+          await tx.order.updateMany({
+            where: { id: { in: phoneOrders.map(o => o.id) } },
+            data: { userId: newUser.id },
+          });
+        }
+      }
+
       return newUser;
     });
 

@@ -12,8 +12,8 @@ function DashboardShellInner({ children }) {
     ? {
         name: session.user.name || "User",
         email: session.user.email || "",
-        role: "JOB_SEEKER", // Default; real role comes from /api/dashboard/stats
-        avatar: session.user.image || null,
+        role: session.user.role || "JOB_SEEKER",
+        avatar: session.user.image || session.user.avatar || null,
         initials: (session.user.name || "U")
           .split(" ")
           .map((w) => w[0])
