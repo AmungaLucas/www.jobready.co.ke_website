@@ -286,12 +286,17 @@ export async function POST(request) {
           ? "PARTIALLY_PAID"
           : "UNPAID";
 
+      // Determine order status: CONFIRMED when payment is received
+      const newOrderStatus =
+        order.status === "PENDING" ? "CONFIRMED" : order.status;
+
       await db.order.update({
         where: { id: order.id },
         data: {
           paidAmount: newPaidAmount,
           balanceDue: Math.max(0, newBalanceDue),
           paymentStatus: newPaymentStatus,
+          status: newOrderStatus,
           ...(newPaymentStatus === "PAID" ? { confirmedAt: new Date() } : {}),
         },
       });
@@ -302,6 +307,7 @@ export async function POST(request) {
         newPaidAmount,
         newBalanceDue: Math.max(0, newBalanceDue),
         newPaymentStatus,
+        newOrderStatus,
       });
 
       // ── 6. Create success OrderActivity ──

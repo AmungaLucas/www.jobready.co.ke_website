@@ -92,6 +92,19 @@ export async function POST(request) {
         });
 
         if (existingPayment && existingPayment.status === "PENDING") {
+          // Extract receipt number from Safaricom response (available on SUCCESS)
+          let mpesaReceiptNumber = null;
+          let mpesaAmount = null;
+          let transactionDate = null;
+          if (status === "SUCCESS" && result.CallbackMetadata?.Item) {
+            for (const item of result.CallbackMetadata.Item) {
+              if (item.Name === "MpesaReceiptNumber") mpesaReceiptNumber = String(item.Value);
+              if (item.Name === "Amount") mpesaAmount = item.Value;
+              if (item.Name === "TransactionDate") transactionDate = String(item.Value);
+            }
+            console.log(`[STK Query] Extracted receipt: ${mpesaReceiptNumber}, amount: ${mpesaAmount}`);
+          }
+
           // Payment is still PENDING — safe to update with the final status
           await db.payment.update({
             where: { id: paymentId },
@@ -99,6 +112,9 @@ export async function POST(request) {
               status,
               resultDesc,
               resultCode,
+              ...(mpesaReceiptNumber && { mpesaReceiptNumber }),
+              ...(mpesaAmount && { amount: mpesaAmount }),
+              ...(status !== "PENDING" && { mpesaCallbackData: result }),
             },
           });
 
@@ -110,7 +126,8 @@ export async function POST(request) {
               where: { id: existingPayment.orderId },
             });
             if (order) {
-              const newPaidAmount = order.paidAmount + existingPayment.amount;
+              const paidAmount = mpesaAmount || existingPayment.amount;
+              const newPaidAmount = order.paidAmount + paidAmount;
               const newBalanceDue = order.totalAmount - newPaidAmount;
               const newPaymentStatus =
                 newBalanceDue <= 0
@@ -119,12 +136,17 @@ export async function POST(request) {
                   ? "PARTIALLY_PAID"
                   : "UNPAID";
 
+              // Determine order status: CONFIRMED when payment is received
+              const newOrderStatus =
+                order.status === "PENDING" ? "CONFIRMED" : order.status;
+
               await db.order.update({
                 where: { id: order.id },
                 data: {
                   paidAmount: newPaidAmount,
                   balanceDue: Math.max(0, newBalanceDue),
                   paymentStatus: newPaymentStatus,
+                  status: newOrderStatus,
                   ...(newPaymentStatus === "PAID" ? { confirmedAt: new Date() } : {}),
                 },
               });
@@ -133,10 +155,38 @@ export async function POST(request) {
                 data: {
                   orderId: order.id,
                   action: "PAYMENT_RECEIVED",
-                  description: `Payment of KSh ${existingPayment.amount.toLocaleString()} confirmed via STK Query`,
-                  metadata: { paymentId, checkoutRequestId, resultCode },
+                  description: `Payment of KSh ${paidAmount.toLocaleString()} confirmed via STK Query${mpesaReceiptNumber ? ` — Receipt: ${mpesaReceiptNumber}` : ""}`,
+                  metadata: {
+                    paymentId,
+                    checkoutRequestId,
+                    resultCode,
+                    mpesaReceiptNumber,
+                    transactionDate,
+                  },
                 },
               });
+
+              // Create notification for the user
+              if (order.userId) {
+                await db.notification.create({
+                  data: {
+                    userId: order.userId,
+                    type: "PAYMENT",
+                    title: "Payment Received ✓",
+                    message: `KSh ${paidAmount.toLocaleString()} received for order ${order.orderNumber}${mpesaReceiptNumber ? ` (Receipt: ${mpesaReceiptNumber})` : ""}. ${newPaymentStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newBalanceDue).toLocaleString()}`}`,
+                    data: {
+                      orderId: order.id,
+                      orderNumber: order.orderNumber,
+                      paymentId,
+                      amount: paidAmount,
+                      mpesaReceiptNumber,
+                      paymentStatus: newPaymentStatus,
+                    },
+                  },
+                });
+              }
+
+              console.log(`[STK Query] Order ${order.orderNumber}: status=${newOrderStatus}, paymentStatus=${newPaymentStatus}, receipt=${mpesaReceiptNumber}`);
             }
           }
         } else if (existingPayment) {
@@ -156,6 +206,10 @@ export async function POST(request) {
       resultDesc,
       status,
       checkoutRequestId,
+      // Include receipt number if we extracted it
+      ...(status === "SUCCESS" && result.CallbackMetadata?.Item && {
+        mpesaReceiptNumber: result.CallbackMetadata.Item.find(i => i.Name === "MpesaReceiptNumber")?.Value || null,
+      }),
     });
   } catch (error) {
     console.error("[POST /api/payments/stk-query] Error:", error);
