@@ -274,6 +274,67 @@ export function welcomeTemplate(name, email) {
   return { html, text: `Welcome to JobReady.co.ke! Complete your profile at ${BASE_URL}/dashboard` };
 }
 
+/**
+ * Payment confirmation email (after M-Pesa STK Push success)
+ */
+export function paymentConfirmationTemplate({ name, orderNumber, amount, receiptNumber, services, paymentStatus, balanceDue, date }) {
+  const html = wrapEmail(
+    "Payment Confirmed ✓",
+    `Order ${orderNumber}`,
+    `
+      <p>Hello${name ? ` ${name}` : ""},</p>
+      <p>We've received your payment. Here are the details:</p>
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;margin:16px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Order Number</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;">${orderNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Amount Paid</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;color:#16a34a;">KSh ${amount}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">M-Pesa Receipt</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;">${receiptNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Date</td>
+            <td style="padding:8px 0;text-align:right;">${date}</td>
+          </tr>
+          ${Number(balanceDue) > 0 ? `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Balance Due</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;color:#dc2626;">KSh ${balanceDue}</td>
+          </tr>
+          ` : `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;">Status</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;color:#16a34a;">✓ PAID IN FULL</td>
+          </tr>
+          `}
+        </table>
+      </div>
+
+      ${services ? `
+      <h2>Services Ordered</h2>
+      <p>${services}</p>
+      ` : ""}
+
+      <p style="font-size:14px;color:#6b7280;">
+        Keep this email as your payment receipt. If you have any questions about your order,
+        reply to this email or visit your <a href="${BASE_URL}/dashboard/billing">billing dashboard</a>.
+      </p>
+
+      <p style="text-align:center;margin-top:16px;">
+        <a href="${BASE_URL}/dashboard/billing" class="btn">View Your Orders</a>
+      </p>
+    `
+  );
+  return { html, text: `Payment confirmed — Order ${orderNumber}: KSh ${amount}. Receipt: ${receiptNumber}. Date: ${date}.` };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 /** Strip HTML tags for plain text fallback */

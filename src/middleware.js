@@ -4,20 +4,15 @@ import { getToken } from "next-auth/jwt";
 // Routes that require authentication (prefix match)
 const protectedPrefixes = ["/dashboard"];
 
-// Routes that are always public (exact match)
-const publicRoutes = [
-  "/",
-  "/auth/login",
-  "/auth/register",
-  "/auth/forgot-password",
-  "/auth/reset-password",
-  "/auth/verify-email",
-  "/auth/verify-phone",
-];
-
 // Route prefixes that are always public (no auth needed)
 const publicPrefixes = [
   "/auth",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/verify-phone",
   "/jobs",
   "/job/",
   "/opportunities",
@@ -25,27 +20,25 @@ const publicPrefixes = [
   "/cv-services",
   "/organizations",
   "/search",
-  "/api/auth",
-  "/api/user",
-  "/api/newsletter",
-  "/api/jobs",
-  "/api/opportunities",
-  "/api/blog",
-  "/api/companies",
+  "/about",
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/cookies",
+  "/disclaimer",
+  "/refunds",
+  "/data-protection",
+  "/api/", // ALL API routes are public (auth checked per-route)
   "/_next",
   "/favicon",
   "/logo",
   "/robots",
   "/sitemap",
+  "/manifest",
 ];
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
-
-  // Allow public routes (exact match)
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next();
-  }
 
   // Allow routes with public prefixes
   if (publicPrefixes.some((prefix) => pathname.startsWith(prefix))) {
@@ -77,7 +70,7 @@ export async function middleware(request) {
 
     // If no token, redirect to login with callback URL
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
