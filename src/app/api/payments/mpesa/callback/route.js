@@ -238,13 +238,14 @@ export async function POST(request) {
         });
       }
 
-      // ── 8. Send payment confirmation email (fire-and-forget) ──
+      // ── 8. Send payment confirmation emails (fire-and-forget) ──
       try {
-        const { sendEmail, paymentConfirmationTemplate } = await import("@/lib/email");
+        const { sendEmail, paymentConfirmationTemplate, paymentAdminNotificationTemplate, getFromAddress } = await import("@/lib/email");
         const serviceNames = order.items
           .map((item) => `${item.serviceName} (${item.tierName})`)
           .join(", ");
 
+        // 8a. Customer receipt — sent from payments@jobready.co.ke
         const { html, text } = paymentConfirmationTemplate({
           name: order.fullName,
           orderNumber: order.orderNumber,
@@ -265,8 +266,31 @@ export async function POST(request) {
           subject: `Payment Confirmed — ${order.orderNumber} | JobReady.co.ke`,
           html,
           text,
+          fromIdentity: "payments",
+          replyTo: "payments@jobready.co.ke",
         });
         console.log("[M-Pesa Callback] Payment confirmation email sent to:", order.email);
+
+        // 8b. Admin notification — sent to payments@ for records
+        const adminHtml = paymentAdminNotificationTemplate({
+          orderNumber: order.orderNumber,
+          amount: (mpesaAmount || payment.amount).toLocaleString(),
+          receiptNumber: mpesaReceiptNumber || "Pending",
+          customerName: order.fullName,
+          customerEmail: order.email,
+          customerPhone: order.phone,
+          services: serviceNames,
+        });
+
+        await sendEmail({
+          to: "payments@jobready.co.ke",
+          subject: `🔔 New Payment — ${order.orderNumber} — KSh ${(mpesaAmount || payment.amount).toLocaleString()}`,
+          html: adminHtml.html,
+          text: adminHtml.text,
+          fromIdentity: "payments",
+          replyTo: order.email,
+        });
+        console.log("[M-Pesa Callback] Admin payment notification sent to payments@jobready.co.ke");
       } catch (emailError) {
         // Don't fail the callback if email fails
         console.error("[M-Pesa Callback] Email send failed:", emailError.message);

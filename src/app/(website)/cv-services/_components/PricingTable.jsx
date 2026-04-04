@@ -1,20 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { services } from "./mock-data";
 import OrderModal from "./OrderModal";
 
-export default function PricingTable({ comparison }) {
-  const { features, basic, professional, premium } = comparison;
-
-  // Modal state
+export default function PricingTable({ comparison, services }) {
+  // Modal state — must be declared before any conditional returns (React hooks rule)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedTier, setSelectedTier] = useState(null);
 
+  // Guard: if no data, render nothing
+  if (!comparison || !services) return null;
+
+  const { features, basic, professional, premium } = comparison;
+
   // Open modal for a specific tier
   const openOrderModal = (tierKey) => {
-    const cvService = services.find((s) => s.id === "cv-writing");
+    const cvService = Array.isArray(services) ? services.find((s) => s.id === "cv-writing") : null;
     if (!cvService) return;
 
     // Find the tier object from services data

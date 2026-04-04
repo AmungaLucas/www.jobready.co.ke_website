@@ -37,27 +37,51 @@ function getTransporter() {
 }
 
 /**
+ * Create a branded From address for a specific email identity.
+ * All addresses are @jobready.co.ke — same SMTP credentials work.
+ * @param {"noreply"|"support"|"payments"|"cv"} identity
+ * @returns {string} formatted From header value
+ */
+export function getFromAddress(identity = "noreply") {
+  const labels = {
+    noreply: "JobReady Kenya",
+    support: "JobReady Support",
+    payments: "JobReady Payments",
+    cv: "JobReady CV Services",
+  };
+  const email = siteConfig.email[identity] || siteConfig.email.noreply;
+  const label = labels[identity] || "JobReady Kenya";
+  return `"${label}" <${email}>`;
+}
+
+/**
  * Send an email
  * @param {Object} options
- * @param {string} options.to - Recipient email
+ * @param {string} options.to - Recipient email(s), comma-separated for multiple
  * @param {string} options.subject - Email subject
  * @param {string} options.html - HTML body
  * @param {string} [options.text] - Plain text fallback
- * @param {string} [options.from] - Override sender (default: noreply@jobready.co.ke)
+ * @param {string} [options.from] - Override full From header (default: noreply@jobready.co.ke)
+ * @param {string} [options.fromIdentity] - Use a named identity: "noreply" | "support" | "payments" | "cv"
  * @param {string} [options.replyTo] - Reply-to address
+ * @param {string} [options.bcc] - BCC address (e.g. for admin copies)
  * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
-export async function sendEmail({ to, subject, html, text, from, replyTo }) {
+export async function sendEmail({ to, subject, html, text, from, fromIdentity, replyTo, bcc }) {
   const transport = getTransporter();
 
   const mailOptions = {
-    from: from || `"JobReady Kenya" <${siteConfig.email.noreply}>`,
+    from: from || (fromIdentity ? getFromAddress(fromIdentity) : `"JobReady Kenya" <${siteConfig.email.noreply}>`),
     to,
     subject,
     replyTo: replyTo || siteConfig.email.support,
     html,
     text: text || stripHtml(html),
   };
+
+  if (bcc) {
+    mailOptions.bcc = bcc;
+  }
 
   // If no SMTP configured, log and return success (dev mode)
   if (!transport) {
@@ -272,6 +296,32 @@ export function welcomeTemplate(name, email) {
     `
   );
   return { html, text: `Welcome to JobReady.co.ke! Complete your profile at ${BASE_URL}/dashboard` };
+}
+
+/**
+ * Payment received notification (internal — sent to payments@ for records)
+ */
+export function paymentAdminNotificationTemplate({ orderNumber, amount, receiptNumber, customerName, customerEmail, customerPhone, services }) {
+  const html = wrapEmail(
+    "New Payment Received",
+    `Order ${orderNumber}`,
+    `
+      <h2>Payment Details</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:#6b7280;">Order</td><td style="padding:6px 0;font-weight:600;">${orderNumber}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Amount</td><td style="padding:6px 0;font-weight:600;color:#16a34a;">KSh ${amount}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">M-Pesa Receipt</td><td style="padding:6px 0;font-weight:600;">${receiptNumber}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Customer</td><td style="padding:6px 0;font-weight:600;">${customerName}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Email</td><td style="padding:6px 0;"><a href="mailto:${customerEmail}">${customerEmail}</a></td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280;">Phone</td><td style="padding:6px 0;">${customerPhone}</td></tr>
+      </table>
+      ${services ? `<h2 style="margin-top:16px;">Services</h2><p>${services}</p>` : ""}
+      <p style="margin-top:16px;font-size:13px;color:#6b7280;">
+        This is an automated notification. Reply to <a href="mailto:${customerEmail}">${customerEmail}</a> to contact the customer.
+      </p>
+    `
+  );
+  return { html, text: `Payment KSh ${amount} received — Order ${orderNumber}. Customer: ${customerName} (${customerEmail}). Receipt: ${receiptNumber}.` };
 }
 
 /**

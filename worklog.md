@@ -188,3 +188,66 @@ Stage Summary:
 - All fake setTimeout handlers replaced with real API calls
 - Dashboard now fully driven by database data through authenticated API endpoints
 - Committed ec0b704 and pushed to GitHub
+
+---
+Task ID: 5
+Agent: Super Z (main)
+Task: Fix OTP sending failed + add phone verification to Settings
+
+Work Log:
+- Diagnosed OTP failure: previous session already fixed in commit a820027 (SMS API field name `recipient` vs `recipients`, phone OTP login not creating NextAuth session)
+- Verified Talk-Sasa SMS API works correctly with Bearer token via direct curl test
+- Tested live site: ALL API routes return 404 — server running old build, latest code not deployed
+- Added phone number update support to PUT /api/user/profile (validates Kenyan format, normalizes 07XX→2547XX)
+- Added PhoneVerificationDialog component to Settings with full send-OTP → verify-OTP flow
+- Added "Verify" button next to phone field in Account Settings (shows when phone is entered and not yet verified)
+- Phone verification uses modal dialog with countdown timer and resend support
+- Committed a13d0b2 and pushed to GitHub
+
+Stage Summary:
+- OTP sending was already fixed in commit a820027 (SMS field name + NextAuth session creation)
+- Live site needs redeployment — server has old code without OTP routes
+- Settings page now has complete phone verification flow
+- Profile API now supports phone number updates with validation
+
+---
+## Task ID: 6 - fullstack-dev
+### Work Task
+Make the CV Services page on JobReady.co.ke fully dynamic by fetching pricing data from the database (`ServiceTier` table) instead of using hardcoded mock-data.js.
+
+### Work Summary
+
+**Files modified:**
+
+1. **`src/app/(website)/cv-services/page.jsx`** — Major refactor: converted from static mock-data imports to dynamic DB-powered page
+   - Added `import { db } from "@/lib/db"` and `export const dynamic = "force-dynamic"`
+   - Removed `services` and `pricingComparison` imports from `./_components/mock-data` (kept `testimonials`, `faqs`, `howItWorks` as static content)
+   - Added `SERVICE_CONFIG` mapping: converts DB `serviceType` enum (CV_WRITING, COVER_LETTER, LINKEDIN_PROFILE) to UI config (id, name, description, icon)
+   - Added `TIER_DISPLAY_NAME` mapping: BASIC→"Basic", PROFESSIONAL→"Professional", PREMIUM→"Premium"
+   - Created `buildServices(tiers)` function: groups DB tiers by serviceType, sorts by sortOrder, maps to mock-data shape (id, name, description, icon, tiers[] with name/price/features/popular)
+   - Created `buildPricingComparison(cvTiers)` function: builds comparison table from CV_WRITING tiers using 10 comparison rows with keyword-pattern extraction (ATS-Optimized, Professional Design, Cover Letter, Pages, Revisions, Delivery, LinkedIn, Branding, Keywords, Achievements)
+   - Made page component `async`, fetches `db.serviceTier.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } })` with try/catch fallback
+   - Updated JSON-LD `serviceJsonLd` offers to use dynamic DB prices
+   - Updated hero CTA "Get Started" and final CTA to show cheapest CV price from DB
+   - Passes `services` array as additional prop to `<PricingTable comparison={pricingComparison} services={services} />`
+   - FAQ and Breadcrumb JSON-LD remain at module scope (static content)
+
+2. **`src/app/(website)/cv-services/_components/PricingTable.jsx`** — Minor update: removed mock-data import
+   - Removed `import { services } from "./mock-data"` 
+   - Changed signature from `PricingTable({ comparison })` to `PricingTable({ comparison, services })`
+   - Added null guard (`if (!comparison || !services) return null`) after all hooks (to satisfy React hooks rules)
+   - Added `Array.isArray(services)` check in `openOrderModal` for extra safety
+
+3. **`src/app/(website)/cv-services/_components/ServiceCard.jsx`** — No changes needed (receives service prop from parent)
+
+4. **`src/app/(website)/cv-services/_components/OrderModal.jsx`** — No changes needed (receives service/selectedTier props)
+
+5. **`src/app/(website)/cv-services/_components/mock-data.js`** — No changes (all exports preserved for backward compatibility)
+
+**Key design decisions:**
+- Used keyword-pattern matching in `buildPricingComparison()` to extract comparison values from free-form DB feature strings (e.g., `/ats/i` for ATS-Optimized, `/executive/i` for Executive design tier)
+- Used DB fields `revisionCount` and `deliveryDays` for deterministic comparison values (revisions ≥99 → "Unlimited")
+- Comparison features slightly differ from original mock-data (replaced "File Formats", "1-on-1 Consultation", "30-Day Support" with "LinkedIn Optimization", "Personal Branding", "Industry Keywords", "Achievement Highlighting" — since these better reflect actual DB tier features)
+- Set `popular: true` only for CV_WRITING PROFESSIONAL tier
+- Services sorted in display order: cv-writing, cover-letter, linkedin
+- All lint errors are pre-existing (CookieConsent, test-e2e, seed scripts) — no new errors introduced

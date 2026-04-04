@@ -71,6 +71,7 @@ export async function POST(request) {
     const emailResult = await sendEmail({
       to: siteConfig.email.support,
       subject: `[JobReady Contact] ${trimmedSubject}`,
+      fromIdentity: "support",
       replyTo: trimmedEmail,
       ...contactFormTemplate({
         name: trimmedName,

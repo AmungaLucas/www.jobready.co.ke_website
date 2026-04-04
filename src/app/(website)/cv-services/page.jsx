@@ -1,17 +1,16 @@
 import Script from "next/script";
 import { generateMeta, generateFAQJsonLd, generateServiceJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
+import { db } from "@/lib/db";
 import ServiceCard from "./_components/ServiceCard";
 import HowItWorks from "./_components/HowItWorks";
 import Testimonials from "./_components/Testimonials";
 import PricingTable from "./_components/PricingTable";
 import FAQAccordion from "./_components/FAQAccordion";
 import {
-  services,
   testimonials,
   faqs,
   howItWorks,
-  pricingComparison,
 } from "./_components/mock-data";
 import {
   FiShield,
@@ -20,6 +19,8 @@ import {
   FiMessageCircle,
 } from "react-icons/fi";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = generateMeta({
   title: "Professional CV Writing Services in Kenya — from KSh 500",
   description:
@@ -27,28 +28,214 @@ export const metadata = generateMeta({
   path: "/cv-services",
 });
 
-// ─── JSON-LD ────────────────────────────────────────────────
+// ─── Static JSON-LD (FAQ + Breadcrumb don't depend on DB) ──
 const faqItems = faqs.map((f) => ({ question: f.question, answer: f.answer }));
 const faqJsonLd = generateFAQJsonLd(faqItems);
-
-const serviceJsonLd = generateServiceJsonLd({
-  name: "Professional CV Writing Services in Kenya",
-  description:
-    "Get a professional, ATS-optimized CV written by Kenyan market experts. CV writing from KSh 500, Cover Letters from KSh 300, LinkedIn Profiles from KSh 800.",
-  url: `${siteConfig.url}/cv-services`,
-  offers: [
-    { name: "Basic CV Writing", price: "500" },
-    { name: "Professional CV Writing", price: "1500" },
-    { name: "Premium CV Writing", price: "3500" },
-  ],
-});
-
 const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Home", href: "/" },
   { name: "CV Services", href: "/cv-services" },
 ]);
 
-export default function CVServicesPage() {
+// ─── Service config mapping (UI labels for each DB serviceType) ──
+const SERVICE_CONFIG = {
+  CV_WRITING: {
+    id: "cv-writing",
+    name: "CV Writing",
+    description:
+      "Professional CV written by experts who understand the Kenyan job market. ATS-optimized, keyword-rich, and tailored to your target role.",
+    icon: "cv",
+  },
+  COVER_LETTER: {
+    id: "cover-letter",
+    name: "Cover Letter Writing",
+    description:
+      "Compelling cover letters that complement your CV and grab the recruiter's attention. Custom-written for each application.",
+    icon: "letter",
+  },
+  LINKEDIN_PROFILE: {
+    id: "linkedin",
+    name: "LinkedIn Profile Optimization",
+    description:
+      "Transform your LinkedIn profile into a recruiter magnet. Optimize your headline, summary, and experience sections.",
+    icon: "linkedin",
+  },
+};
+
+// Desired display order for services
+const SERVICE_ORDER = ["cv-writing", "cover-letter", "linkedin"];
+
+// Tier enum → display name
+const TIER_DISPLAY_NAME = {
+  BASIC: "Basic",
+  PROFESSIONAL: "Professional",
+  PREMIUM: "Premium",
+};
+
+// ─── Data transformation: tiers → services array ──────────
+function buildServices(tiers) {
+  // Group tiers by serviceType
+  const grouped = {};
+  for (const tier of tiers) {
+    if (!grouped[tier.serviceType]) grouped[tier.serviceType] = [];
+    grouped[tier.serviceType].push(tier);
+  }
+
+  // Build services array
+  const services = [];
+  for (const [serviceType, serviceTiers] of Object.entries(grouped)) {
+    const config = SERVICE_CONFIG[serviceType];
+    if (!config) continue;
+
+    const sortedTiers = [...serviceTiers].sort((a, b) => a.sortOrder - b.sortOrder);
+
+    services.push({
+      id: config.id,
+      name: config.name,
+      description: config.description,
+      icon: config.icon,
+      tiers: sortedTiers.map((t) => ({
+        name: TIER_DISPLAY_NAME[t.tier] || t.tier,
+        price: t.price,
+        features: Array.isArray(t.features) ? t.features : [],
+        popular: serviceType === "CV_WRITING" && t.tier === "PROFESSIONAL",
+      })),
+    });
+  }
+
+  // Sort services in the desired display order
+  services.sort((a, b) => SERVICE_ORDER.indexOf(a.id) - SERVICE_ORDER.indexOf(b.id));
+
+  return services;
+}
+
+// ─── Data transformation: CV tiers → pricingComparison ────
+function buildPricingComparison(cvTiers) {
+  const basic = cvTiers.find((t) => t.tier === "BASIC");
+  const professional = cvTiers.find((t) => t.tier === "PROFESSIONAL");
+  const premium = cvTiers.find((t) => t.tier === "PREMIUM");
+
+  if (!basic || !professional || !premium) return null;
+
+  const formatPrice = (price) => `KSh ${price.toLocaleString()}`;
+
+  // Each row: a label shown in the table + an extract function per tier
+  const comparisonRows = [
+    {
+      label: "ATS-Optimized",
+      extract: (t) => (t.features.some((f) => /ats/i.test(f)) ? "Yes" : "No"),
+    },
+    {
+      label: "Professional Design",
+      extract: (t) => {
+        if (t.features.some((f) => /executive/i.test(f))) return "Executive";
+        if (t.features.some((f) => /ats.optimized/i.test(f))) return "Modern";
+        if (t.features.some((f) => /professional format/i.test(f))) return "Modern";
+        return "Standard";
+      },
+    },
+    {
+      label: "Cover Letter Included",
+      extract: (t) => (t.features.some((f) => /cover letter/i.test(f)) ? "Yes" : "No"),
+    },
+    {
+      label: "Number of Pages",
+      extract: (t) => {
+        const match = t.features.find((f) => /(\d+)-page/i.test(f));
+        if (match) {
+          const num = match.match(/(\d+)-page/i)[1];
+          return `${num} Page${num > 1 ? "s" : ""}`;
+        }
+        return "Custom";
+      },
+    },
+    {
+      label: "Revisions",
+      extract: (t) => {
+        if (t.revisionCount >= 99) return "Unlimited";
+        if (t.revisionCount === 1) return "1 Revision";
+        return `${t.revisionCount} Revisions`;
+      },
+    },
+    {
+      label: "Delivery Time",
+      extract: (t) => `${t.deliveryDays} Day${t.deliveryDays > 1 ? "s" : ""}`,
+    },
+    {
+      label: "LinkedIn Optimization",
+      extract: (t) => (t.features.some((f) => /linkedin/i.test(f)) ? "Yes" : "No"),
+    },
+    {
+      label: "Personal Branding",
+      extract: (t) =>
+        t.features.some((f) => /branding|profile summary/i.test(f)) ? "Yes" : "No",
+    },
+    {
+      label: "Industry Keywords",
+      extract: (t) => (t.features.some((f) => /keyword/i.test(f)) ? "Yes" : "No"),
+    },
+    {
+      label: "Achievement Highlighting",
+      extract: (t) => (t.features.some((f) => /achievement/i.test(f)) ? "Yes" : "No"),
+    },
+  ];
+
+  return {
+    features: comparisonRows.map((r) => r.label),
+    basic: {
+      name: "Basic",
+      price: formatPrice(basic.price),
+      values: comparisonRows.map((r) => r.extract(basic)),
+    },
+    professional: {
+      name: "Professional",
+      price: formatPrice(professional.price),
+      values: comparisonRows.map((r) => r.extract(professional)),
+      popular: true,
+    },
+    premium: {
+      name: "Premium",
+      price: formatPrice(premium.price),
+      values: comparisonRows.map((r) => r.extract(premium)),
+    },
+  };
+}
+
+// ─── Page Component ───────────────────────────────────────
+export default async function CVServicesPage() {
+  // Fetch all active service tiers from the database
+  let allTiers = [];
+  try {
+    allTiers = await db.serviceTier.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch (error) {
+    console.error("Failed to fetch service tiers:", error);
+  }
+
+  // Build dynamic data
+  const services = buildServices(allTiers);
+
+  const cvTiers = allTiers.filter((t) => t.serviceType === "CV_WRITING");
+  const pricingComparison = buildPricingComparison(cvTiers);
+
+  // Build dynamic JSON-LD offers from DB
+  const offers = cvTiers.map((t) => ({
+    name: t.name,
+    price: String(t.price),
+  }));
+
+  const cheapestPrice = cvTiers.length > 0
+    ? Math.min(...cvTiers.map((t) => t.price))
+    : 500;
+
+  const serviceJsonLd = generateServiceJsonLd({
+    name: "Professional CV Writing Services in Kenya",
+    description: `Get a professional, ATS-optimized CV written by Kenyan market experts. ${offers.map((o) => `${o.name} from KSh ${Number(o.price).toLocaleString()}`).join(", ")}.`,
+    url: `${siteConfig.url}/cv-services`,
+    offers,
+  });
+
   return (
     <>
       {/* JSON-LD */}
@@ -103,7 +290,7 @@ export default function CVServicesPage() {
                 href="#services"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-blue-700 text-sm font-bold hover:bg-blue-50 transition-colors no-underline"
               >
-                Get Started — from KSh 500
+                Get Started — from KSh {cheapestPrice.toLocaleString()}
               </a>
             </div>
 
@@ -169,7 +356,7 @@ export default function CVServicesPage() {
 
       {/* Pricing Table */}
       <div className="container">
-        <PricingTable comparison={pricingComparison} />
+        <PricingTable comparison={pricingComparison} services={services} />
       </div>
 
       {/* How It Works */}
@@ -196,7 +383,7 @@ export default function CVServicesPage() {
           <h2 className="text-2xl md:text-3xl font-extrabold mb-3">Ready to Land Your Dream Job?</h2>
           <p className="text-base opacity-85 max-w-lg mx-auto mb-6">
             Don&apos;t let a poorly written CV hold you back. Get a professional CV from
-            KSh 500 and start getting interview callbacks.
+            KSh {cheapestPrice.toLocaleString()} and start getting interview callbacks.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
