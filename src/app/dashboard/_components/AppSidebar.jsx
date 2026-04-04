@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { signOut } from "next-auth/react";
@@ -125,7 +126,7 @@ export default function AppSidebar({ user, isLoading }) {
       <SidebarSeparator />
 
       {/* Main Navigation */}
-      <SidebarContent>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -159,6 +160,8 @@ export default function AppSidebar({ user, isLoading }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarRail />
 
       {/* Footer with user info */}
       <SidebarFooter>

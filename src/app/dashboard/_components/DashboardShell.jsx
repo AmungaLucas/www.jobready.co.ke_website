@@ -1,6 +1,6 @@
 "use client";
 
-import { SidebarProvider, SidebarInset, SidebarRail } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import DashboardHeader from "./DashboardHeader";
 import { useAuth } from "@/lib/useSession";
@@ -19,7 +19,6 @@ export default function DashboardShell({ children }) {
           </div>
         </div>
       </SidebarInset>
-      <SidebarRail />
     </SidebarProvider>
   );
 }
