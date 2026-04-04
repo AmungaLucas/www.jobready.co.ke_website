@@ -2,19 +2,44 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { FiAlertCircle } from "react-icons/fi";
 
 export default function SocialLoginButtons({ mode = "login", className = "" }) {
   const [loading, setLoading] = useState(false);
+  const [googleError, setGoogleError] = useState(null);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setGoogleError(null);
     try {
-      await signIn("google", {
+      // First attempt: try with redirect:false to catch errors
+      const result = await signIn("google", {
         callbackUrl: "/",
-        redirect: true,
+        redirect: false,
       });
+
+      if (result?.error) {
+        console.error("[Google Auth] Error:", result.error);
+        const messages = {
+          OAuthSignin: "Google sign-in configuration error. Please contact support.",
+          OAuthCallback: "Google sign-in was cancelled or failed. Please try again.",
+          OAuthCreateAccount: "Could not create account with Google. Please sign up manually.",
+          OAuthAccountNotLinked:
+            "This Google account is already linked to another account. Please sign in with your password and link it from settings.",
+          Callback: "Google sign-in failed. Please try again.",
+          default: "Google sign-in failed. Please try again or use email/password.",
+        };
+        setGoogleError(messages[result.error] || messages.default);
+        setLoading(false);
+      } else if (result?.ok) {
+        // Success — manually redirect
+        window.location.href = "/";
+      } else {
+        setLoading(false);
+      }
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      console.error("[Google Auth] Exception:", error);
+      setGoogleError("Google sign-in failed. Please try again or use email/password.");
       setLoading(false);
     }
   };
@@ -27,6 +52,14 @@ export default function SocialLoginButtons({ mode = "login", className = "" }) {
         <span className="text-xs text-gray-400 font-medium">OR</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
+
+      {/* Google Error */}
+      {googleError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
+          <FiAlertCircle className="text-red-500 mt-0.5 shrink-0" size={16} />
+          <p className="text-sm text-red-600">{googleError}</p>
+        </div>
+      )}
 
       {/* Google Button */}
       <button
