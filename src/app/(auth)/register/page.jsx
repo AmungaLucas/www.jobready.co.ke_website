@@ -245,12 +245,14 @@ function RegisterForm() {
               id="reg-phone"
               type="tel"
               inputMode="numeric"
-              placeholder="7XXXXXXXX"
-              value={phone}
-              onChange={(e) =>
-                setPhone(e.target.value.replace(/\D/g, "").slice(0, 9))
-              }
-              maxLength={9}
+             placeholder="7XXXXXXXX or 07XXXXXXXX"
+value={phone}
+onChange={(e) => {
+  let val = e.target.value.replace(/\D/g, "");
+  if (val.startsWith("0")) val = val.substring(1);
+  setPhone(val.slice(0, 9));
+}}
+maxLength={10}
               className={`w-full pl-14 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a56db]/20 focus:border-[#1a56db] text-gray-800 ${
                 errors.phone ? "border-red-300" : "border-gray-200"
               }`}
