@@ -85,11 +85,11 @@ model AuthAccount {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider         String                              // "google" | "email" | "phone"
   providerAccountId String   @unique                   // Google sub, phone number, email
-  accessToken      String?                              // OAuth token (encrypted)
-  refreshToken     String?                              // OAuth refresh token (encrypted)
-  idToken          String?                              // OpenID token (encrypted)
+  accessToken      String?   @db.Text                    // OAuth token (Google tokens can be very long)
+  refreshToken     String?   @db.Text                    // OAuth refresh token
+  idToken          String?   @db.Text                    // OpenID token
   expiresAt        DateTime?
-  scope            String?                              // OAuth scopes granted
+  scope            String?   @db.Text                    // OAuth scopes granted
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
