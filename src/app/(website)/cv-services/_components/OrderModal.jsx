@@ -34,12 +34,30 @@ const SERVICE_TYPE_MAP = {
   "linkedin": "LINKEDIN_PROFILE",
 };
 
+// ─── Tier name to DB enum mapping (fallback for legacy data) ──
 const TIER_MAP = {
   basic: "BASIC",
   standard: "BASIC",
   professional: "PROFESSIONAL",
   premium: "PREMIUM",
 };
+
+// Resolve the DB tier enum from the selected tier object.
+// With dynamic DB data, selectedTier.tier already holds the enum value
+// ("BASIC", "PROFESSIONAL", "PREMIUM"). The TIER_MAP is kept as
+// a fallback for legacy mock-data tier objects that only have a name.
+function resolveServiceType(service) {
+  return SERVICE_TYPE_MAP[service.id] || service.serviceType || service.id.toUpperCase();
+}
+
+function resolveTier(selectedTier) {
+  // Prefer the direct DB enum field
+  if (selectedTier.tier && selectedTier.tier in { BASIC: 1, PROFESSIONAL: 1, PREMIUM: 1 }) {
+    return selectedTier.tier;
+  }
+  // Fallback: map from the display name
+  return TIER_MAP[selectedTier.name?.toLowerCase()] || selectedTier.name?.toUpperCase() || "BASIC";
+}
 
 export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
   const [step, setStep] = useState(STEPS.DETAILS);
@@ -254,8 +272,8 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
           notes: formData.notes,
           items: [
             {
-              serviceType: SERVICE_TYPE_MAP[service.id] || service.id.toUpperCase(),
-              tier: TIER_MAP[selectedTier.name.toLowerCase()] || selectedTier.name.toUpperCase(),
+              serviceType: resolveServiceType(service),
+              tier: resolveTier(selectedTier),
             },
           ],
         }),

@@ -1,4 +1,9 @@
 import Script from "next/script";
+import { db } from "@/lib/db";
+import {
+  buildServiceObjects,
+  buildPricingComparison,
+} from "@/lib/service-mapper";
 import { generateMeta, generateFAQJsonLd, generateServiceJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import ServiceCard from "./_components/ServiceCard";
@@ -7,11 +12,9 @@ import Testimonials from "./_components/Testimonials";
 import PricingTable from "./_components/PricingTable";
 import FAQAccordion from "./_components/FAQAccordion";
 import {
-  services,
   testimonials,
   faqs,
   howItWorks,
-  pricingComparison,
 } from "./_components/mock-data";
 import {
   FiShield,
@@ -23,7 +26,7 @@ import {
 export const metadata = generateMeta({
   title: "Professional CV Writing Services in Kenya — from KSh 500",
   description:
-    "Get a professional CV written by experts. ATS-optimized, Kenya-market focused. CV writing from KSh 500, Cover Letters from KSh 300. 92% interview success rate. Fast delivery.",
+    "Get a professional CV written by experts. ATS-optimized, Kenya-market focused. CV writing from KSh 500, Cover Letters from KSh 500. 92% interview success rate. Fast delivery.",
   path: "/cv-services",
 });
 
@@ -34,7 +37,7 @@ const faqJsonLd = generateFAQJsonLd(faqItems);
 const serviceJsonLd = generateServiceJsonLd({
   name: "Professional CV Writing Services in Kenya",
   description:
-    "Get a professional, ATS-optimized CV written by Kenyan market experts. CV writing from KSh 500, Cover Letters from KSh 300, LinkedIn Profiles from KSh 800.",
+    "Get a professional, ATS-optimized CV written by Kenyan market experts. CV writing from KSh 500, Cover Letters from KSh 500, LinkedIn Profiles from KSh 800.",
   url: `${siteConfig.url}/cv-services`,
   offers: [
     { name: "Basic CV Writing", price: "500" },
@@ -48,7 +51,35 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "CV Services", href: "/cv-services" },
 ]);
 
-export default function CVServicesPage() {
+export default async function CVServicesPage() {
+  // ─── Fetch service tiers from DB ──────────────────────────
+  let services = [];
+  let pricingComparison = null;
+
+  try {
+    const allTiers = await db.serviceTier.findMany({
+      where: { isActive: true },
+      orderBy: [{ serviceType: "asc" }, { sortOrder: "asc" }],
+    });
+
+    // Group tiers by serviceType
+    const grouped = allTiers.reduce((acc, tier) => {
+      const key = tier.serviceType;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(tier);
+      return acc;
+    }, {});
+
+    // Build service objects for ServiceCard components
+    services = buildServiceObjects(grouped);
+
+    // Build pricing comparison for CV Writing tiers
+    const cvTiers = grouped["CV_WRITING"] || [];
+    pricingComparison = buildPricingComparison(cvTiers);
+  } catch (error) {
+    console.error("[CV Services Page] Failed to fetch tiers:", error);
+  }
+
   return (
     <>
       {/* JSON-LD */}
@@ -168,9 +199,11 @@ export default function CVServicesPage() {
       </section>
 
       {/* Pricing Table */}
-      <div className="container">
-        <PricingTable comparison={pricingComparison} />
-      </div>
+      {pricingComparison && (
+        <div className="container">
+          <PricingTable comparison={pricingComparison} services={services} />
+        </div>
+      )}
 
       {/* How It Works */}
       <div className="container">

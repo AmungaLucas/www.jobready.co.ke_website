@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { services } from "./mock-data";
 import OrderModal from "./OrderModal";
 
-export default function PricingTable({ comparison }) {
+/**
+ * PricingTable — Shows a comparison of CV Writing tiers.
+ *
+ * Props:
+ * - comparison: { features, basic, professional, premium } — built from DB tiers
+ * - services: Array of service objects (used to find the CV writing service for OrderModal)
+ */
+export default function PricingTable({ comparison, services = [] }) {
   const { features, basic, professional, premium } = comparison;
 
   // Modal state
@@ -14,15 +20,12 @@ export default function PricingTable({ comparison }) {
 
   // Open modal for a specific tier
   const openOrderModal = (tierKey) => {
-    const cvService = services.find((s) => s.id === "cv-writing");
+    // Find the CV writing service from the services array passed via props
+    const cvService = services.find((s) => s.serviceType === "CV_WRITING");
     if (!cvService) return;
 
-    // Find the tier object from services data
-    let tierObj;
-    if (tierKey === "basic") tierObj = cvService.tiers.find((t) => t.name === "Basic");
-    else if (tierKey === "professional") tierObj = cvService.tiers.find((t) => t.name === "Professional");
-    else if (tierKey === "premium") tierObj = cvService.tiers.find((t) => t.name === "Premium");
-
+    // Find the tier object using the DB tier enum (BASIC, PROFESSIONAL, PREMIUM)
+    const tierObj = cvService.tiers.find((t) => t.tier === tierKey.toUpperCase());
     if (!tierObj) return;
 
     setSelectedService(cvService);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { getWhatsAppLink } from "./mock-data";
 import { FiFileText, FiMail, FiLinkedin } from "react-icons/fi";
 import OrderModal from "./OrderModal";
 
@@ -48,7 +47,7 @@ export default function ServiceCard({ service }) {
         <div className="space-y-2 mb-5">
           {service.tiers.map((tier) => (
             <div
-              key={tier.name}
+              key={tier.id || tier.tier}
               className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
                 tier.popular
                   ? "bg-blue-50 border border-blue-200"
