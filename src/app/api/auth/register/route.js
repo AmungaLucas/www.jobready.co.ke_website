@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { sendEmail, welcomeTemplate } from "@/lib/email";
+import { findOrCreateUser, linkWalkInOrders, getMissingProfileFields, normalizePhone } from "@/lib/account-merge";
 
 export async function POST(request) {
   try {
@@ -31,10 +32,10 @@ export async function POST(request) {
       );
     }
 
+    let normalizedPhone = null;
     if (phone && typeof phone === "string") {
-      // Normalize phone: strip spaces, dashes, leading +
-      const normalizedPhone = phone.replace(/[\s\-\+]/g, "");
-      if (!/^(254|0)\d{9}$/.test(normalizedPhone)) {
+      normalizedPhone = normalizePhone(phone);
+      if (!normalizedPhone) {
         return NextResponse.json(
           { error: "Phone number must be a valid Kenyan number (e.g. 2547XXXXXXXX or 07XXXXXXXX)" },
           { status: 400 }
@@ -51,91 +52,63 @@ export async function POST(request) {
 
     const trimmedEmail = email.toLowerCase().trim();
     const trimmedName = name.trim();
-    let normalizedPhone = null;
-
-    if (phone) {
-      // Normalize to 254XXXXXXXXX format
-      normalizedPhone = phone.replace(/[\s\-\+]/g, "");
-      if (normalizedPhone.startsWith("0")) {
-        normalizedPhone = "254" + normalizedPhone.substring(1);
-      }
-    }
-
-    // --- Check for existing user ---
-    const existingUser = await db.user.findUnique({
-      where: { email: trimmedEmail },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 409 }
-      );
-    }
-
-    if (normalizedPhone) {
-      const existingPhoneUser = await db.user.findUnique({
-        where: { phone: normalizedPhone },
-      });
-
-      if (existingPhoneUser) {
-        return NextResponse.json(
-          { error: "An account with this phone number already exists" },
-          { status: 409 }
-        );
-      }
-    }
 
     // --- Hash password ---
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // --- Create User + AuthAccount in a transaction ---
-    const user = await db.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: trimmedEmail,
-          phone: normalizedPhone,
-          name: trimmedName,
-          passwordHash,
-          emailVerified: false,
-          phoneVerified: false,
-        },
-      });
-
-      // Create email auth account
-      await tx.authAccount.create({
-        data: {
-          userId: newUser.id,
-          provider: "email",
-          providerAccountId: trimmedEmail,
-        },
-      });
-
-      return newUser;
+    // --- Use findOrCreateUser with merge logic ---
+    const result = await findOrCreateUser({
+      email: trimmedEmail,
+      phone: normalizedPhone,
+      name: trimmedName,
+      provider: "email",
+      providerAccountId: trimmedEmail,
+      passwordHash,
     });
+
+    const user = result.user;
+
+    console.log(
+      `[Register] user=${user.id}, created=${result.created}, merged=${result.merged}, linked=${result.linkedProvider}`
+    );
+
+    // --- Link walk-in orders ---
+    const linkedOrders = await linkWalkInOrders(user.id, trimmedEmail, normalizedPhone);
+
+    // --- Check missing profile fields ---
+    const missingFields = getMissingProfileFields(user);
 
     // --- Return user without passwordHash ---
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     // --- Send welcome email (non-blocking) ---
-    sendEmail({
-      to: trimmedEmail,
-      subject: "Welcome to JobReady!",
-      ...welcomeTemplate(trimmedName, trimmedEmail),
-    }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
+    if (result.created) {
+      sendEmail({
+        to: trimmedEmail,
+        subject: "Welcome to JobReady!",
+        ...welcomeTemplate(trimmedName, trimmedEmail),
+      }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
+    }
 
     return NextResponse.json(
       {
-        message: "Account created successfully",
+        message: result.created
+          ? "Account created successfully"
+          : result.merged
+            ? "Account linked successfully"
+            : "You already have an account. Please sign in.",
         user: userWithoutPassword,
+        created: result.created,
+        merged: result.merged,
+        linkedOrders,
+        missingFields,
       },
-      { status: 201 }
+      { status: result.created ? 201 : 200 }
     );
   } catch (error) {
     console.error("[Register API] Error:", error);
 
-    // Handle Prisma unique constraint violations
     if (error.code === "P2002") {
       const field = error.meta?.target?.[0];
       if (field === "email") {

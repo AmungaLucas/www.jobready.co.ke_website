@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendOTP } from "@/lib/sms";
+import { normalizePhone } from "@/lib/account-merge";
 
 export async function POST(request) {
   try {
@@ -16,29 +17,23 @@ export async function POST(request) {
       );
     }
 
-    // Normalize phone: strip spaces, dashes, leading +
-    let normalizedPhone = phone.replace(/[\s\-\+]/g, "");
-
-    if (!/^(254|0)\d{9}$/.test(normalizedPhone)) {
+    // Normalize phone
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone) {
       return NextResponse.json(
         { error: "Phone number must be a valid Kenyan number (e.g. 2547XXXXXXXX or 07XXXXXXXX)" },
         { status: 400 }
       );
     }
 
-    // Convert 07XX... to 2547XX...
-    if (normalizedPhone.startsWith("0")) {
-      normalizedPhone = "254" + normalizedPhone.substring(1);
-    }
-
     // --- Rate limiting check ---
     // Check if an OTP was sent to this phone in the last 60 seconds
     const recentOtp = await db.authAccount.findFirst({
       where: {
-        provider: "phone",
+        provider: "phone_otp",
         providerAccountId: normalizedPhone,
         createdAt: {
-          gte: new Date(Date.now() - 60 * 1000), // last 60 seconds
+          gte: new Date(Date.now() - 60 * 1000),
         },
       },
     });
@@ -52,40 +47,25 @@ export async function POST(request) {
 
     // --- Generate 6-digit OTP ---
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // --- Upsert OTP in AuthAccount ---
-    // First, find or create the user for this phone number
-    let user = await db.user.findUnique({
-      where: { phone: normalizedPhone },
-    });
-
-    if (!user) {
-      // Create a minimal user record for phone-based auth
-      user = await db.user.create({
-        data: {
-          phone: normalizedPhone,
-          name: "Phone User",
-          email: `phone_${normalizedPhone}@jobready.co.ke`, // placeholder email
-          passwordHash: null, // No password — phone-only auth
-        },
-      });
-    }
-
-    // Upsert the OTP auth account, linked to the user
+    // Use provider: "phone_otp" to separate from the actual "phone" auth account
+    // This record is TEMPORARY — it only stores the OTP for verification
+    // It does NOT create a user at this stage
     await db.authAccount.upsert({
       where: {
         providerAccountId: normalizedPhone,
       },
       create: {
-        provider: "phone",
+        provider: "phone_otp",
         providerAccountId: normalizedPhone,
-        accessToken: otp,       // Store OTP in accessToken field
+        accessToken: otp,
         expiresAt: otpExpiry,
-        userId: user.id,
+        // userId is null at this point — user is created on verify
       },
       update: {
-        provider: "phone",      // Ensure provider stays "phone"
+        provider: "phone_otp",
         accessToken: otp,
         expiresAt: otpExpiry,
       },
@@ -98,7 +78,6 @@ export async function POST(request) {
 
     if (!smsResult.success) {
       console.error(`[Send OTP] SMS failed for ${normalizedPhone}:`, smsResult.error);
-      // Return error so the user knows to try again
       return NextResponse.json(
         { error: "Failed to send OTP via SMS. Please try again." },
         { status: 502 }
@@ -109,7 +88,7 @@ export async function POST(request) {
       {
         message: "OTP sent successfully",
         phone: normalizedPhone,
-        expiresIn: 600, // seconds
+        expiresIn: 600,
       },
       { status: 200 }
     );

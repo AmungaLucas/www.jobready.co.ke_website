@@ -2,6 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { findOrCreateUser, linkWalkInOrders, getMissingProfileFields } from "@/lib/account-merge";
 
 export const authOptions = {
   // Use JWT strategy for scalability (no database sessions)
@@ -23,6 +24,9 @@ export const authOptions = {
         token.role = user.role;
         token.emailVerified = user.emailVerified;
         token.phoneVerified = user.phoneVerified;
+        token.missingFields = user.missingFields || null;
+        token.linkedOrders = user.linkedOrders || null;
+        token.merged = user.merged || false;
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
       }
@@ -40,12 +44,15 @@ export const authOptions = {
         session.user.role = token.role;
         session.user.emailVerified = token.emailVerified;
         session.user.phoneVerified = token.phoneVerified;
+        session.user.missingFields = token.missingFields;
+        session.user.linkedOrders = token.linkedOrders;
+        session.user.merged = token.merged;
       }
       return session;
     },
 
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign-in: create/find user + auth account
+      // Handle Google OAuth sign-in: use merge logic
       if (account?.provider === "google") {
         const email = profile?.email?.toLowerCase().trim();
 
@@ -53,109 +60,42 @@ export const authOptions = {
           return false;
         }
 
-        // Find or create user
-        const existingUser = await db.user.findUnique({
-          where: { email },
-          include: { authAccounts: true },
+        console.log(`[Auth] Google OAuth sign-in attempt: ${email}`);
+
+        // Use findOrCreateUser — handles merge, link, create
+        const result = await findOrCreateUser({
+          email,
+          name: profile?.name,
+          avatar: profile?.picture,
+          provider: "google",
+          providerAccountId: account.providerAccountId,
+          accessToken: account.access_token,
+          refreshToken: account.refresh_token,
+          idToken: account.id_token,
+          scope: account.scope,
+          expiresAt: account.expires_at,
         });
 
-        if (existingUser) {
-          // User exists — link Google account if not already linked
-          const hasGoogleAccount = existingUser.authAccounts.some(
-            (a) => a.provider === "google"
-          );
+        const dbUser = result.user;
+        const missingFields = getMissingProfileFields(dbUser);
+        const linkedOrders = await linkWalkInOrders(dbUser.id, email, dbUser.phone);
 
-          if (!hasGoogleAccount) {
-            await db.authAccount.create({
-              data: {
-                userId: existingUser.id,
-                provider: "google",
-                providerAccountId: account.providerAccountId,
-                accessToken: account.access_token,
-                refreshToken: account.refresh_token,
-                idToken: account.id_token,
-                expiresAt: account.expires_at
-                  ? new Date(account.expires_at * 1000)
-                  : null,
-                scope: account.scope,
-              },
-            });
-          } else {
-            // Update tokens for existing Google account
-            const googleAccount = existingUser.authAccounts.find(
-              (a) => a.provider === "google"
-            );
-            await db.authAccount.update({
-              where: { id: googleAccount.id },
-              data: {
-                accessToken: account.access_token,
-                refreshToken: account.refresh_token || googleAccount.refreshToken,
-                idToken: account.id_token,
-                expiresAt: account.expires_at
-                  ? new Date(account.expires_at * 1000)
-                  : null,
-                scope: account.scope,
-              },
-            });
-          }
+        console.log(
+          `[Auth] Google OAuth: user=${dbUser.id}, created=${result.created}, merged=${result.merged}, linked=${result.linkedProvider}`
+        );
 
-          // Update last login and mark email as verified
-          await db.user.update({
-            where: { id: existingUser.id },
-            data: {
-              lastLoginAt: new Date(),
-              emailVerified: true,
-              name: existingUser.name || profile?.name || null,
-              avatar: existingUser.avatar || profile?.picture || null,
-            },
-          });
-
-          // Attach user ID to the user object so jwt callback picks it up
-          user.id = existingUser.id;
-          user.name = existingUser.name || profile?.name;
-          user.email = existingUser.email;
-          user.phone = existingUser.phone;
-          user.avatar = existingUser.avatar || profile?.picture;
-          user.role = existingUser.role;
-          user.emailVerified = existingUser.emailVerified;
-          user.phoneVerified = existingUser.phoneVerified;
-        } else {
-          // Create new user from Google profile
-          const newUser = await db.user.create({
-            data: {
-              email,
-              name: profile?.name || "",
-              avatar: profile?.picture || null,
-              emailVerified: true, // Google emails are verified
-            },
-          });
-
-          // Create auth account
-          await db.authAccount.create({
-            data: {
-              userId: newUser.id,
-              provider: "google",
-              providerAccountId: account.providerAccountId,
-              accessToken: account.access_token,
-              refreshToken: account.refresh_token,
-              idToken: account.id_token,
-              expiresAt: account.expires_at
-                ? new Date(account.expires_at * 1000)
-                : null,
-              scope: account.scope,
-            },
-          });
-
-          // Attach to user object for jwt callback
-          user.id = newUser.id;
-          user.name = newUser.name;
-          user.email = newUser.email;
-          user.phone = newUser.phone;
-          user.avatar = newUser.avatar;
-          user.role = newUser.role;
-          user.emailVerified = newUser.emailVerified;
-          user.phoneVerified = newUser.phoneVerified;
-        }
+        // Attach user data so jwt callback picks it up
+        user.id = dbUser.id;
+        user.name = dbUser.name;
+        user.email = dbUser.email;
+        user.phone = dbUser.phone;
+        user.avatar = dbUser.avatar || profile?.picture;
+        user.role = dbUser.role;
+        user.emailVerified = dbUser.emailVerified;
+        user.phoneVerified = dbUser.phoneVerified;
+        user.missingFields = missingFields;
+        user.linkedOrders = linkedOrders;
+        user.merged = result.merged;
       }
 
       return true;
@@ -213,6 +153,9 @@ export const authOptions = {
           data: { lastLoginAt: new Date() },
         });
 
+        // Get missing profile fields
+        const missingFields = getMissingProfileFields(user);
+
         // Return user object (NextAuth merges this into token)
         return {
           id: user.id,
@@ -223,6 +166,7 @@ export const authOptions = {
           role: user.role,
           emailVerified: user.emailVerified,
           phoneVerified: user.phoneVerified,
+          missingFields,
         };
       },
     }),
@@ -243,8 +187,7 @@ export const authOptions = {
   // Custom events for logging
   events: {
     async signIn({ user }) {
-      // Log successful sign-in (could be extended for analytics)
-      console.log(`[Auth] User signed in: ${user.email}`);
+      console.log(`[Auth] User signed in: ${user.email || user.id}`);
     },
     async signOut({ token }) {
       console.log(`[Auth] User signed out: ${token?.email}`);

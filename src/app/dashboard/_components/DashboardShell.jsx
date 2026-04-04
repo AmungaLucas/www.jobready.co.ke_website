@@ -3,6 +3,7 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import DashboardHeader from "./DashboardHeader";
+import DashboardBanner from "./DashboardBanner";
 import { useAuth } from "@/lib/useSession";
 
 export default function DashboardShell({ children }) {
@@ -15,6 +16,9 @@ export default function DashboardShell({ children }) {
         <DashboardHeader user={user} isLoading={isLoading} />
         <div className="flex flex-1 flex-col">
           <div className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="mb-6">
+              <DashboardBanner />
+            </div>
             {children}
           </div>
         </div>

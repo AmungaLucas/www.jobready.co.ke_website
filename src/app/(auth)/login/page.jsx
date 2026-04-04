@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/useSession";
 import Link from "next/link";
-import { FiMail, FiLock, FiPhone, FiArrowRight, FiLoader } from "react-icons/fi";
+import { FiMail, FiLock, FiPhone, FiArrowRight, FiLoader, FiCheck } from "react-icons/fi";
 import AuthCard from "../_components/AuthCard";
 import InputField from "../_components/InputField";
 import OtpInput from "../_components/OtpInput";
@@ -14,7 +14,7 @@ import SocialLoginButtons from "../_components/SocialLoginButtons";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, refresh } = useAuth();
 
   // Tabs
   const [activeTab, setActiveTab] = useState("email");
@@ -37,8 +37,19 @@ function LoginForm() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
 
+  // Profile completion (after phone OTP or Google auth)
+  const [showProfileComplete, setShowProfileComplete] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePassword, setProfilePassword] = useState("");
+  const [profileConfirmPassword, setProfileConfirmPassword] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileMissingFields, setProfileMissingFields] = useState(null);
+  const [profileLinkedOrders, setProfileLinkedOrders] = useState(0);
+
   // Callback URL from search params
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const errorParam = searchParams.get("error");
 
   // Redirect if already authenticated
@@ -70,6 +81,82 @@ function LoginForm() {
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCountdown]);
+
+  // ─── Profile Completion ───
+  const handleProfileComplete = async (e) => {
+    e.preventDefault();
+    setProfileError("");
+
+    // Validate
+    if (profileMissingFields?.needsName && !profileName.trim()) {
+      setProfileError("Name is required");
+      return;
+    }
+    if (profileMissingFields?.needsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileEmail.trim())) {
+      setProfileError("A valid email address is required");
+      return;
+    }
+    if (profileMissingFields?.needsPassword) {
+      if (!profilePassword || profilePassword.length < 8) {
+        setProfileError("Password must be at least 8 characters");
+        return;
+      }
+      if (profilePassword !== profileConfirmPassword) {
+        setProfileError("Passwords do not match");
+        return;
+      }
+    }
+
+    setProfileLoading(true);
+    try {
+      const payload = {};
+      if (profileMissingFields?.needsName) payload.name = profileName.trim();
+      if (profileMissingFields?.needsEmail) payload.email = profileEmail.trim();
+      if (profileMissingFields?.needsPassword) payload.password = profilePassword;
+
+      const res = await fetch("/api/auth/complete-profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setProfileError(data.error || "Failed to update profile. Please try again.");
+        return;
+      }
+
+      // Check if still missing fields
+      if (data.missingFields && !data.missingFields.isComplete) {
+        setProfileMissingFields(data.missingFields);
+        if (data.linkedOrders > 0) {
+          setProfileLinkedOrders((prev) => prev + data.linkedOrders);
+        }
+        // Update which fields are still missing
+        if (!data.missingFields.needsName) setProfileName("");
+        if (!data.missingFields.needsEmail) setProfileEmail("");
+        if (!data.missingFields.needsPassword) {
+          setProfilePassword("");
+          setProfileConfirmPassword("");
+        }
+        return;
+      }
+
+      // Profile complete — refresh session and redirect
+      await refresh();
+      router.push(callbackUrl);
+    } catch (err) {
+      setProfileError("Something went wrong. Please try again.");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const skipProfileComplete = () => {
+    refresh();
+    router.push(callbackUrl);
+  };
 
   // ─── Email Login ───
   const handleEmailLogin = async (e) => {
@@ -174,7 +261,13 @@ function LoginForm() {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone, otp: cleanOtp }),
+        body: JSON.stringify({
+          phone: fullPhone,
+          otp: cleanOtp,
+          name: profileName || undefined,
+          email: profileEmail || undefined,
+          password: profilePassword || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -184,7 +277,35 @@ function LoginForm() {
         return;
       }
 
-      router.push(callbackUrl);
+      // Check if profile is incomplete
+      if (data.missingFields && !data.missingFields.isComplete) {
+        setProfileMissingFields(data.missingFields);
+        setProfileLinkedOrders(data.linkedOrders || 0);
+        setShowProfileComplete(true);
+        return;
+      }
+
+      // Profile complete — sign in via NextAuth credentials
+      // Since phone users may not have a password, use a special approach
+      // We call signIn with the user's email to establish a session
+      if (data.user) {
+        // For phone-only users, we need to establish a session
+        // Use a server-side approach: sign in with the phone auth
+        const signInRes = await fetch("/api/auth/phone-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: data.user.id }),
+        });
+
+        if (signInRes.ok) {
+          router.push(callbackUrl);
+        } else {
+          // Fallback: try to sign in
+          router.push(callbackUrl);
+        }
+      } else {
+        router.push(callbackUrl);
+      }
     } catch (err) {
       setOtpError("Verification failed. Please check your connection.");
     } finally {
@@ -205,6 +326,131 @@ function LoginForm() {
           <FiLoader className="animate-spin text-[#1a56db] mb-3" size={28} />
           <p className="text-sm text-gray-500">Checking your session...</p>
         </div>
+      </AuthCard>
+    );
+  }
+
+  // ─── Profile Completion Screen ───
+  if (showProfileComplete && profileMissingFields) {
+    const showAnyField = profileMissingFields.needsName || profileMissingFields.needsEmail || profileMissingFields.needsPassword;
+
+    return (
+      <AuthCard>
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+            <FiCheck className="text-green-500" size={28} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Almost there!</h1>
+          <p className="text-sm text-gray-500">
+            {profileLinkedOrders > 0
+              ? `We linked ${profileLinkedOrders} order(s) to your account. Complete your profile below.`
+              : "Complete your profile to get the most out of JobReady."}
+          </p>
+        </div>
+
+        {profileError && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-100 rounded-xl">
+            <p className="text-sm text-red-600">{profileError}</p>
+          </div>
+        )}
+
+        {showAnyField ? (
+          <form onSubmit={handleProfileComplete}>
+            {profileMissingFields.needsName && (
+              <InputField
+                label="Full Name"
+                name="profileName"
+                type="text"
+                placeholder="e.g. John Kamau"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                leftIcon={<FiMail size={16} />}
+                required
+                autoComplete="name"
+              />
+            )}
+
+            {profileMissingFields.needsEmail && (
+              <InputField
+                label="Email Address"
+                name="profileEmail"
+                type="email"
+                placeholder="you@example.com"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                leftIcon={<FiMail size={16} />}
+                required
+                autoComplete="email"
+              />
+            )}
+
+            {profileMissingFields.needsPassword && (
+              <>
+                <InputField
+                  label="Set a Password"
+                  name="profilePassword"
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  value={profilePassword}
+                  onChange={(e) => setProfilePassword(e.target.value)}
+                  leftIcon={<FiLock size={16} />}
+                  required
+                  autoComplete="new-password"
+                />
+                <InputField
+                  label="Confirm Password"
+                  name="profileConfirmPassword"
+                  type="password"
+                  placeholder="Re-enter your password"
+                  value={profileConfirmPassword}
+                  onChange={(e) => setProfileConfirmPassword(e.target.value)}
+                  leftIcon={<FiLock size={16} />}
+                  required
+                  autoComplete="new-password"
+                />
+                <p className="text-xs text-gray-400 mb-4">
+                  Optional — you can always sign in with your phone instead
+                </p>
+              </>
+            )}
+
+            <button
+              type="submit"
+              disabled={profileLoading}
+              className="w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {profileLoading ? (
+                <>
+                  <FiLoader className="animate-spin" size={18} />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Complete Profile
+                  <FiArrowRight size={16} />
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={skipProfileComplete}
+              className="w-full mt-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Skip for now →
+            </button>
+          </form>
+        ) : (
+          <div className="text-center">
+            <button
+              onClick={() => router.push(callbackUrl)}
+              className="w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              Continue to Dashboard
+              <FiArrowRight size={16} />
+            </button>
+          </div>
+        )}
       </AuthCard>
     );
   }
@@ -348,13 +594,13 @@ function LoginForm() {
                     type="tel"
                     inputMode="numeric"
                     placeholder="7XXXXXXXX or 07XXXXXXXX"
-value={phone}
-onChange={(e) => {
-  let val = e.target.value.replace(/\D/g, "");
-  if (val.startsWith("0")) val = val.substring(1);
-  setPhone(val.slice(0, 9));
-}}
-maxLength={10}
+                    value={phone}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val.startsWith("0")) val = val.substring(1);
+                      setPhone(val.slice(0, 9));
+                    }}
+                    maxLength={10}
                     className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a56db]/20 focus:border-[#1a56db] text-gray-800"
                   />
                 </div>
