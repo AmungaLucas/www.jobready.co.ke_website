@@ -54,7 +54,7 @@ const QUICK_ACTIONS_JOB_SEEKER = [
 
 const QUICK_ACTIONS_EMPLOYER = [
   { title: "Post a Job", href: "/dashboard/jobs/new", icon: PlusCircle, description: "Reach thousands of candidates" },
-  { title: "Review Applications", href: "/dashboard/applications", icon: Users, description: "24 new applications" },
+  { title: "Review Applications", href: "/dashboard/applications", icon: Users, description: "Review submissions" },
   { title: "Company Profile", href: "/dashboard/company", icon: Building2, description: "Update your brand page" },
   { title: "Billing", href: "/dashboard/billing", icon: CreditCard, description: "Manage subscriptions" },
 ];
@@ -257,7 +257,23 @@ export default function DashboardOverview() {
         },
       ];
 
-  const quickActions = isEmployer ? QUICK_ACTIONS_EMPLOYER : QUICK_ACTIONS_JOB_SEEKER;
+  // Calculate profile completeness for job seekers
+  const profileChecks = [
+    { label: "Personal Info", done: !!(statsData?.user?.phone && statsData?.user?.location) },
+    { label: "Education", done: !!statsData?.user?.education },
+    { label: "Bio / Experience", done: !!statsData?.user?.bio },
+    { label: "Skills & CV", done: !!(Array.isArray(statsData?.user?.skills) && statsData?.user?.skills.length > 0) || !!statsData?.user?.cvUrl },
+  ];
+  const completedCount = profileChecks.filter(c => c.done).length;
+  const profilePercent = Math.round((completedCount / profileChecks.length) * 100);
+
+  const quickActions = isEmployer
+    ? QUICK_ACTIONS_EMPLOYER.map(action =>
+        action.title === "Review Applications"
+          ? { ...action, description: `${stats.totalApplicationsCount ?? 0} total applications` }
+          : action
+      )
+    : QUICK_ACTIONS_JOB_SEEKER;
 
   // Map recent saved jobs to activity items
   const activityItems = recentActivity.map((item, index) => ({
@@ -434,18 +450,13 @@ export default function DashboardOverview() {
                   Complete your profile to get noticed by employers
                 </CardDescription>
               </div>
-              <span className="text-sm font-semibold text-primary">65%</span>
+              <span className="text-sm font-semibold text-primary">{profilePercent}%</span>
             </div>
           </CardHeader>
           <CardContent>
-            <Progress value={65} className="h-2" />
+            <Progress value={profilePercent} className="h-2" />
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { label: "Personal Info", done: true },
-                { label: "Education", done: true },
-                { label: "Work Experience", done: false },
-                { label: "Skills & Certifications", done: false },
-              ].map((item) => (
+              {profileChecks.map((item) => (
                 <div
                   key={item.label}
                   className="flex items-center gap-2 text-sm"

@@ -129,3 +129,32 @@ Stage Summary:
 - Filter UI components use static labels without fake counts
 - No remaining imports from mock-data files (verified — only cv-services remains, which is kept intentionally)
 - No new lint errors introduced; homepage loads with 200 OK
+
+---
+Task ID: 3
+Agent: Super Z (main)
+Task: Fix dashboard link not working — auth page paths and branch issue
+
+Work Log:
+- Tested dashboard on live Vercel site: /dashboard redirected to /auth/login (404)
+- Found root cause #1: NextAuth configured with pages.signIn: "/auth/login" but login page is at /login (under (auth) route group)
+- Found root cause #2: All auth pages had broken internal links (/auth/login, /auth/register, /auth/forgot-password)
+- Fixed src/lib/auth.js: pages.signIn and pages.error changed from /auth/login to /login
+- Fixed 14 files: replaced all /auth/ prefixed links with correct paths
+- Fixed login page: /auth/forgot-password → /forgot-password, /auth/register → /register
+- Fixed register page: /auth/login → /login (3 instances)
+- Fixed verify-phone, forgot-password, verify-email, reset-password pages
+- Fixed Header.jsx, MobileNav.jsx: dashboard login links
+- Fixed dashboard pages: DashboardOverview, applications, saved-jobs, billing
+- Fixed useSession.js: callbackUrl default from /auth/login to /login
+- Found root cause #3: Vercel deploys from 'main' branch but all fixes were on 'master' branch
+- Force-pushed master to main to deploy all fixes
+- Verified on live site: /dashboard → /login?callbackUrl=/dashboard ✅
+- Verified all auth links correct: /forgot-password, /register, /login ✅
+- Verified homepage, jobs page, register page all working ✅
+
+Stage Summary:
+- Fixed auth page path mismatch across 14 files
+- Fixed branch deployment issue (master → main)
+- Dashboard link now correctly redirects to login page
+- All auth-related navigation links work properly

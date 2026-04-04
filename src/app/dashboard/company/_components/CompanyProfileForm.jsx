@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -36,6 +37,8 @@ import {
   Mail,
   Calendar,
   Users,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 const INDUSTRIES = [
@@ -70,32 +73,269 @@ const COMPANY_SIZES = [
   "5000+ employees",
 ];
 
-const INITIAL_COMPANY = {
-  name: "Safaricom PLC",
-  industry: "Telecommunications",
-  website: "https://www.safaricom.co.ke",
-  foundedYear: "1999",
-  companySize: "5000+ employees",
-  location: "Nairobi, Kenya",
-  address: "Safaricom House, Waiyaki Way, Westlands, Nairobi",
-  description:
-    "Safaricom is East Africa's leading telecommunications company, providing mobile voice, data, messaging, and financial services to over 40 million subscribers in Kenya. We are the home of M-PESA, the world's most successful mobile money service.\n\nAt Safaricom, we believe in transforming lives through technology. Our vision is to become a purpose-led technology company that connects people to the people, places, and opportunities that matter most. We are committed to driving innovation, empowering communities, and contributing to Kenya's digital transformation.\n\nOur culture is built on innovation, customer-centricity, and a deep commitment to making a positive impact on society. We continuously invest in our people, technology, and infrastructure to deliver exceptional experiences for our customers and stakeholders.",
-  linkedin: "https://linkedin.com/company/safaricom",
-  twitter: "https://twitter.com/safaricom_care",
-  facebook: "https://facebook.com/SafaricomKenya",
-  contactName: "Mary Wanjiru",
-  contactTitle: "HR Manager",
-  contactEmail: "careers@safaricom.co.ke",
-  contactPhone: "+254 720 000 000",
+const EMPTY_FORM = {
+  name: "",
+  industry: "",
+  website: "",
+  foundedYear: "",
+  companySize: "",
+  location: "",
+  address: "",
+  description: "",
+  linkedin: "",
+  twitter: "",
+  facebook: "",
+  contactName: "",
+  contactTitle: "",
+  contactEmail: "",
+  contactPhone: "",
   logo: "",
 };
 
+/** Map API company fields to form field names */
+function companyToForm(company) {
+  return {
+    name: company.name || "",
+    industry: company.industry || "",
+    website: company.website || "",
+    foundedYear: company.foundedYear ? String(company.foundedYear) : "",
+    companySize: company.employeeSize || "",
+    location: company.city || "",
+    address: company.address || "",
+    description: company.description || "",
+    linkedin: company.linkedinUrl || "",
+    twitter: company.twitterUrl || "",
+    facebook: company.facebookUrl || "",
+    contactName: "",
+    contactTitle: "",
+    contactEmail: "",
+    contactPhone: "",
+    logo: company.logo || "",
+  };
+}
+
+/** Map form field names to API company fields */
+function formToCompany(form) {
+  return {
+    name: form.name || null,
+    industry: form.industry || null,
+    website: form.website || null,
+    foundedYear: form.foundedYear || null,
+    companySize: form.companySize || null,
+    location: form.location || null,
+    address: form.address || null,
+    description: form.description || null,
+    linkedinUrl: form.linkedin || null,
+    twitterUrl: form.twitter || null,
+    facebookUrl: form.facebook || null,
+  };
+}
+
+// ── Loading Skeleton ──────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      {/* Header skeleton */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <div className="h-7 w-48 bg-muted rounded" />
+          <div className="h-4 w-72 bg-muted rounded" />
+        </div>
+        <div className="h-10 w-32 bg-muted rounded-md" />
+      </div>
+
+      {/* Logo card skeleton */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="size-20 rounded-xl bg-muted" />
+            <div className="flex-1 space-y-2">
+              <div className="h-5 w-40 bg-muted rounded" />
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-4 w-48 bg-muted rounded mt-3" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Company Details skeleton */}
+      <Card>
+        <CardHeader>
+          <div className="h-5 w-36 bg-muted rounded mb-2" />
+          <div className="h-4 w-56 bg-muted rounded" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-28 bg-muted rounded" />
+            <div className="h-10 w-full bg-muted rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-44 bg-muted rounded" />
+            <div className="h-32 w-full bg-muted rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Social Links skeleton */}
+      <Card>
+        <CardHeader>
+          <div className="h-5 w-52 bg-muted rounded mb-2" />
+          <div className="h-4 w-44 bg-muted rounded" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contact Person skeleton */}
+      <Card>
+        <CardHeader>
+          <div className="h-5 w-32 bg-muted rounded mb-2" />
+          <div className="h-4 w-56 bg-muted rounded" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded-md" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Error State ──────────────────────────────────────
+function ErrorState({ message, onRetry }) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-full bg-destructive/10 p-4 mb-4">
+          <AlertCircle className="size-8 text-destructive" />
+        </div>
+        <h3 className="text-lg font-semibold">Failed to load company profile</h3>
+        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+          {message || "Something went wrong. Please try again."}
+        </p>
+        <Button onClick={onRetry} variant="outline" className="mt-4">
+          <RefreshCw className="mr-2 size-4" />
+          Try Again
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Component ────────────────────────────────────────
 export default function CompanyProfileForm() {
-  const [form, setForm] = useState({ ...INITIAL_COMPANY });
+  const { data: session, status } = useSession();
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [company, setCompany] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Fetch company profile on mount when authenticated
+  useEffect(() => {
+    async function fetchCompany() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch("/api/company/profile");
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            setError("Please sign in to manage your company profile.");
+            return;
+          }
+          throw new Error("Failed to load company profile");
+        }
+
+        const data = await res.json();
+
+        if (data.company) {
+          setCompany(data.company);
+          setForm(companyToForm(data.company));
+        }
+        // If company is null, form stays as EMPTY_FORM (create mode)
+      } catch (err) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (status === "authenticated") {
+      fetchCompany();
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+      setError("Please sign in to manage your company profile.");
+    }
+  }, [status]);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -164,12 +404,74 @@ export default function CompanyProfileForm() {
   };
 
   const handleSave = async () => {
+    if (!form.name || form.name.trim().length === 0) {
+      toast.error("Validation error", {
+        description: "Company name is required.",
+      });
+      return;
+    }
+
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSaving(false);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaved(false);
+
+    try {
+      const payload = formToCompany(form);
+
+      const res = await fetch("/api/company/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save company profile");
+      }
+
+      // Update local state with the response
+      if (data.company) {
+        setCompany(data.company);
+        setForm(companyToForm(data.company));
+      }
+
+      setIsSaved(true);
+      toast.success("Profile saved", {
+        description: data.message || "Your company profile has been saved successfully.",
+      });
+
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (error) {
+      toast.error("Save failed", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // Session loading
+  if (status === "loading") return <LoadingSkeleton />;
+
+  // Unauthenticated or fetch error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">Company Profile</h1>
+          <p className="text-muted-foreground">
+            Manage your company information visible to job seekers
+          </p>
+        </div>
+        <ErrorState message={error} onRetry={() => window.location.reload()} />
+      </div>
+    );
+  }
+
+  // Data loading
+  if (loading) return <LoadingSkeleton />;
+
+  const isEditMode = !!company;
 
   return (
     <div className="space-y-6">
@@ -178,7 +480,9 @@ export default function CompanyProfileForm() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Company Profile</h1>
           <p className="text-muted-foreground">
-            Manage your company information visible to job seekers
+            {isEditMode
+              ? "Manage your company information visible to job seekers"
+              : "Create your company profile to get started"}
           </p>
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
@@ -195,7 +499,7 @@ export default function CompanyProfileForm() {
           ) : (
             <>
               <Save className="mr-2 size-4" />
-              Save Changes
+              {isEditMode ? "Save Changes" : "Create Profile"}
             </>
           )}
         </Button>
@@ -293,7 +597,7 @@ export default function CompanyProfileForm() {
                 onValueChange={(v) => updateField("industry", v)}
               >
                 <SelectTrigger id="industry">
-                  <SelectValue />
+                  <SelectValue placeholder="Select an industry" />
                 </SelectTrigger>
                 <SelectContent>
                   {INDUSTRIES.map((ind) => (
@@ -336,7 +640,7 @@ export default function CompanyProfileForm() {
                 onValueChange={(v) => updateField("companySize", v)}
               >
                 <SelectTrigger id="companySize">
-                  <SelectValue />
+                  <SelectValue placeholder="Select company size" />
                 </SelectTrigger>
                 <SelectContent>
                   {COMPANY_SIZES.map((s) => (
@@ -523,7 +827,7 @@ export default function CompanyProfileForm() {
           ) : (
             <>
               <Save className="mr-2 size-4" />
-              Save Changes
+              {isEditMode ? "Save Changes" : "Create Profile"}
             </>
           )}
         </Button>

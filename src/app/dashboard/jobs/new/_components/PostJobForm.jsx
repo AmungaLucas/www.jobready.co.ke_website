@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import {
   headingsPlugin,
@@ -56,6 +58,18 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+
+// ── Helpers ──────────────────────────────────────────
+function mapExperienceLevel(level) {
+  const map = {
+    "Entry Level": "ENTRY_LEVEL",
+    "Mid Level": "MID_LEVEL",
+    "Senior Level": "SENIOR_LEVEL",
+    "Manager / Director": "MANAGER_DIRECTOR",
+    "Executive": "EXECUTIVE",
+  };
+  return map[level] || level.toUpperCase().replace(/ /g, "_");
+}
 
 // ── RichTextEditor wrapper ──────────────────────────────
 function RichTextEditor({ value, onChange, placeholder, error }) {
@@ -146,10 +160,40 @@ const INITIAL_FORM = {
 };
 
 export default function PostJobForm() {
+  const { data: session, status } = useSession();
   const [form, setForm] = useState({ ...INITIAL_FORM });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // If user is not an employer, show a message to switch account
+  if (status === "authenticated" && session?.user?.role !== "EMPLOYER") {
+    return (
+      <div className="space-y-6">
+        <div className="mx-auto max-w-lg">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-amber-100 p-4 mb-4">
+                <Briefcase className="size-10 text-amber-600" />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight">Employer Account Required</h2>
+              <p className="text-muted-foreground mt-2 max-w-sm">
+                Only employer accounts can post jobs. Please switch to an employer account to continue.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Button variant="outline" asChild>
+                  <Link href="/dashboard">
+                    <ArrowLeft className="mr-2 size-4" />
+                    Back to Dashboard
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -185,15 +229,86 @@ export default function PostJobForm() {
     e.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsPublished(true);
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          requirements: form.requirements || null,
+          responsibilities: form.responsibilities || null,
+          category: form.category.replace(/ & /g, "_").replace(/ /g, "_").toUpperCase(),
+          jobType: form.type.toUpperCase().replace(/-/g, "_"),
+          experienceLevel: mapExperienceLevel(form.experienceLevel),
+          location: form.location,
+          isRemote: form.isRemote,
+          salaryMin: form.salaryMin ? parseInt(form.salaryMin, 10) : null,
+          salaryMax: form.salaryMax ? parseInt(form.salaryMax, 10) : null,
+          showSalary: form.showSalary,
+          deadline: form.deadline,
+          isFeatured: form.isFeatured,
+          draft: false,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to publish job");
+      }
+      setIsPublished(true);
+    } catch (error) {
+      toast.error("Failed to publish job", {
+        description: error.message || "Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveDraft = async () => {
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title || "Untitled Draft",
+          description: form.description || "",
+          requirements: form.requirements || null,
+          responsibilities: form.responsibilities || null,
+          category: form.category
+            ? form.category.replace(/ & /g, "_").replace(/ /g, "_").toUpperCase()
+            : null,
+          jobType: form.type
+            ? form.type.toUpperCase().replace(/-/g, "_")
+            : null,
+          experienceLevel: form.experienceLevel
+            ? mapExperienceLevel(form.experienceLevel)
+            : null,
+          location: form.location || null,
+          isRemote: form.isRemote,
+          salaryMin: form.salaryMin ? parseInt(form.salaryMin, 10) : null,
+          salaryMax: form.salaryMax ? parseInt(form.salaryMax, 10) : null,
+          showSalary: form.showSalary,
+          deadline: form.deadline || null,
+          isFeatured: form.isFeatured,
+          draft: true,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save draft");
+      }
+      toast.success("Draft saved", {
+        description: "Your job draft has been saved successfully.",
+      });
+    } catch (error) {
+      toast.error("Failed to save draft", {
+        description: error.message || "Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isPublished) {

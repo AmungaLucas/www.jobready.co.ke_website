@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -40,6 +40,8 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState("account");
@@ -100,14 +102,46 @@ export default function SettingsContent() {
 
 // ── Account Settings ──────────────────────────────────
 function AccountSettings() {
+  const { data: session } = useSession();
   const [form, setForm] = useState({
-    firstName: "John",
-    lastName: "Kamau",
-    email: "john.kamau@email.com",
-    phone: "+254 712 345 678",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/user/profile");
+        if (!res.ok) throw new Error("Failed to load profile");
+        const data = await res.json();
+        const u = data.user;
+        setUser(u);
+        const parts = (u.name || "").split(" ");
+        const firstName = parts[0] || "";
+        const lastName = parts.slice(1).join(" ") || "";
+        setForm({
+          firstName,
+          lastName,
+          email: u.email || "",
+          phone: u.phone || "",
+        });
+      } catch (err) {
+        setError(err.message);
+        toast.error("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, []);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -116,11 +150,57 @@ function AccountSettings() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          bio: user?.bio,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save profile");
+      const data = await res.json();
+      setUser(data.user);
+      setIsSaved(true);
+      toast.success("Profile updated successfully");
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err) {
+      toast.error(err.message || "Failed to save profile");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Personal Information</CardTitle>
+          <CardDescription>
+            Update your account details. Your name is visible on applications and your public profile.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                <div className="h-9 animate-pulse rounded bg-muted" />
+              </div>
+            ))}
+          </div>
+          <Separator />
+          {[1, 2].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-4 w-28 animate-pulse rounded bg-muted" />
+              <div className="h-9 animate-pulse rounded bg-muted" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -159,8 +239,8 @@ function AccountSettings() {
               <Mail className="size-4 text-muted-foreground" />
               Email Address
             </Label>
-            <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-              Verified
+            <Badge variant="outline" className={user?.emailVerified ? "text-xs bg-emerald-50 text-emerald-700 border-emerald-200" : "text-xs bg-amber-50 text-amber-700 border-amber-200"}>
+              {user?.emailVerified ? "Verified" : "Unverified"}
             </Badge>
           </div>
           <Input
@@ -181,8 +261,8 @@ function AccountSettings() {
               <Phone className="size-4 text-muted-foreground" />
               Phone Number
             </Label>
-            <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-              Verified
+            <Badge variant="outline" className={user?.phoneVerified ? "text-xs bg-emerald-50 text-emerald-700 border-emerald-200" : "text-xs bg-amber-50 text-amber-700 border-amber-200"}>
+              {user?.phoneVerified ? "Verified" : "Unverified"}
             </Badge>
           </div>
           <Input

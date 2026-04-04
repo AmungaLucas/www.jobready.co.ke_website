@@ -38,40 +38,37 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-// Mock user data — in production this comes from auth session
-const MOCK_USER = {
-  name: "John Kamau",
-  email: "john.kamau@email.com",
-  role: "JOB_SEEKER",
-  avatar: null,
-  initials: "JK",
-};
-
-// Job Seeker navigation items
+// Navigation definitions (no hardcoded badges)
 const JOB_SEEKER_NAV = [
   { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { title: "My Applications", href: "/dashboard/applications", icon: FileText, badge: 3 },
-  { title: "Saved Jobs", href: "/dashboard/saved-jobs", icon: Bookmark, badge: 12 },
-  { title: "Job Alerts", href: "/dashboard/alerts", icon: Bell, badge: 5 },
+  { title: "My Applications", href: "/dashboard/applications", icon: FileText, badgeKey: "applications" },
+  { title: "Saved Jobs", href: "/dashboard/saved-jobs", icon: Bookmark, badgeKey: "savedJobs" },
+  { title: "Job Alerts", href: "/dashboard/alerts", icon: Bell, badgeKey: "alerts" },
   { title: "My CV / Profile", href: "/dashboard/profile", icon: User },
 ];
 
-// Employer navigation items
 const EMPLOYER_NAV = [
   { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { title: "My Jobs", href: "/dashboard/jobs", icon: Briefcase, badge: 8 },
+  { title: "My Jobs", href: "/dashboard/jobs", icon: Briefcase, badgeKey: "myJobs" },
   { title: "Post New Job", href: "/dashboard/jobs/new", icon: PlusCircle },
-  { title: "Applications", href: "/dashboard/applications", icon: Users, badge: 24 },
+  { title: "Applications", href: "/dashboard/applications", icon: Users, badgeKey: "applications" },
   { title: "Company Profile", href: "/dashboard/company", icon: Building2 },
   { title: "Billing", href: "/dashboard/billing", icon: CreditCard },
 ];
 
-// Shared navigation
 const SHARED_NAV = [
   { title: "Account Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-function NavItem({ item, isActive }) {
+const DEFAULT_USER = {
+  name: "User",
+  email: "",
+  role: "JOB_SEEKER",
+  avatar: null,
+  initials: "U",
+};
+
+function NavItem({ item, isActive, badgeCount }) {
   const Icon = item.icon;
 
   return (
@@ -82,14 +79,14 @@ function NavItem({ item, isActive }) {
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
-      {item.badge && (
-        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+      {badgeCount > 0 && (
+        <SidebarMenuBadge>{badgeCount}</SidebarMenuBadge>
       )}
     </SidebarMenuItem>
   );
 }
 
-export default function AppSidebar({ user = MOCK_USER }) {
+export default function AppSidebar({ user = DEFAULT_USER, badges }) {
   const pathname = usePathname();
   const { state } = useSidebar();
   const navItems = user.role === "EMPLOYER" ? EMPLOYER_NAV : JOB_SEEKER_NAV;
@@ -131,6 +128,7 @@ export default function AppSidebar({ user = MOCK_USER }) {
                   key={item.href}
                   item={item}
                   isActive={pathname === item.href}
+                  badgeCount={badges?.[item.badgeKey] || 0}
                 />
               ))}
             </SidebarMenu>
@@ -149,6 +147,7 @@ export default function AppSidebar({ user = MOCK_USER }) {
                   key={item.href}
                   item={item}
                   isActive={pathname === item.href}
+                  badgeCount={0}
                 />
               ))}
             </SidebarMenu>
@@ -162,7 +161,15 @@ export default function AppSidebar({ user = MOCK_USER }) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
               <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-semibold">
-                {user.initials || user.name?.charAt(0)?.toUpperCase() || "U"}
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="size-full rounded-full object-cover"
+                  />
+                ) : (
+                  user.initials || user.name?.charAt(0)?.toUpperCase() || "U"
+                )}
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
                 <span className="text-sm font-medium text-sidebar-foreground">
@@ -174,10 +181,10 @@ export default function AppSidebar({ user = MOCK_USER }) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Sign Out">
-              <button className="text-sidebar-muted-foreground hover:text-destructive">
+              <a href="/api/auth/signout" className="text-sidebar-muted-foreground hover:text-destructive">
                 <LogOut className="size-4" />
                 <span>Sign Out</span>
-              </button>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

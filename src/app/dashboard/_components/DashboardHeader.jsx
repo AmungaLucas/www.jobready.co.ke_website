@@ -40,13 +40,6 @@ const BREADCRUMB_MAP = {
   "/dashboard/settings": "Account Settings",
 };
 
-const MOCK_USER = {
-  name: "John Kamau",
-  email: "john.kamau@email.com",
-  role: "JOB_SEEKER",
-  initials: "JK",
-};
-
 function buildBreadcrumbs(pathname) {
   const segments = pathname.split("/").filter(Boolean);
 
@@ -54,14 +47,11 @@ function buildBreadcrumbs(pathname) {
 
   const crumbs = [{ label: "Dashboard", href: "/dashboard" }];
 
-  // If we're deeper than just /dashboard, add sub-items
   if (segments.length > 1) {
-    // Check for exact match first
     const exactLabel = BREADCRUMB_MAP[pathname];
     if (exactLabel) {
       crumbs.push({ label: exactLabel, href: pathname });
     } else {
-      // Build progressively
       let currentPath = "";
       for (let i = 1; i < segments.length; i++) {
         currentPath += `/${segments[i]}`;
@@ -74,7 +64,14 @@ function buildBreadcrumbs(pathname) {
   return crumbs;
 }
 
-export default function DashboardHeader({ user = MOCK_USER }) {
+const DEFAULT_USER = {
+  name: "User",
+  email: "",
+  role: "JOB_SEEKER",
+  initials: "U",
+};
+
+export default function DashboardHeader({ user = DEFAULT_USER }) {
   const pathname = usePathname();
   const { openMobile, setOpenMobile } = useSidebar();
   const crumbs = buildBreadcrumbs(pathname);
@@ -119,9 +116,17 @@ export default function DashboardHeader({ user = MOCK_USER }) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                  {user.initials}
-                </AvatarFallback>
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                    {user.initials}
+                  </AvatarFallback>
+                )}
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -129,7 +134,9 @@ export default function DashboardHeader({ user = MOCK_USER }) {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                {user.email && (
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                )}
                 <p className="text-xs mt-1">
                   <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     {user.role === "EMPLOYER" ? "Employer" : "Job Seeker"}
@@ -154,8 +161,10 @@ export default function DashboardHeader({ user = MOCK_USER }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 size-4" />
-              Sign out
+              <a href="/api/auth/signout" className="flex items-center w-full">
+                <LogOut className="mr-2 size-4" />
+                Sign out
+              </a>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -65,12 +65,18 @@ const SERVICE_ICONS = {
 
 const ITEMS_PER_PAGE = 5;
 
+function formatServiceType(type) {
+  return type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export default function BillingContent() {
   const { data: session } = useSession();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [serviceTiers, setServiceTiers] = useState(null);
+  const [tiersLoading, setTiersLoading] = useState(true);
 
   useEffect(() => {
     if (!session) return;
@@ -95,6 +101,35 @@ export default function BillingContent() {
 
     fetchOrders();
   }, [session]);
+
+  // Fetch service tiers for pricing (no auth needed)
+  useEffect(() => {
+    const fetchTiers = async () => {
+      try {
+        setTiersLoading(true);
+        const res = await fetch("/api/service-tiers");
+        if (!res.ok) throw new Error("Failed to fetch pricing");
+        const data = await res.json();
+        setServiceTiers(data.tiers || {});
+      } catch (err) {
+        console.error("Error fetching service tiers:", err);
+        setServiceTiers(null);
+      } finally {
+        setTiersLoading(false);
+      }
+    };
+    fetchTiers();
+  }, []);
+
+  // Flatten all tiers into a display array
+  const pricingItems = Object.entries(serviceTiers || {}).flatMap(([serviceType, tiers]) => {
+    return tiers.map(tier => ({
+      service: `${formatServiceType(serviceType)} — ${tier.tier.charAt(0) + tier.tier.slice(1).toLowerCase()}`,
+      price: `KSh ${tier.price.toLocaleString()}`,
+      description: tier.description || "",
+      icon: SERVICE_ICONS[serviceType] || Receipt,
+    }));
+  });
 
   // Computed stats from real data
   const totalSpent = orders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
@@ -232,30 +267,32 @@ export default function BillingContent() {
           <CardDescription>Quick reference for current pricing</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { service: "CV Writing — Basic", price: "KSh 500", description: "1-page professional CV", icon: FileText },
-              { service: "CV Writing — Professional", price: "KSh 1,500", description: "2-page CV + cover letter", icon: FileText },
-              { service: "CV Writing — Premium", price: "KSh 3,500", description: "Custom design + consultation", icon: Star },
-              { service: "Cover Letter — Basic", price: "KSh 300", description: "1 custom cover letter", icon: CreditCard },
-              { service: "Cover Letter — Professional", price: "KSh 800", description: "2 versions + follow-up template", icon: CreditCard },
-              { service: "LinkedIn Profile", price: "KSh 1,000", description: "Full profile optimization", icon: Star },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.service} className="flex items-start gap-3 rounded-lg border p-4">
-                  <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                    <Icon className="size-4 text-primary" />
+          {tiersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-sm text-muted-foreground">Loading pricing…</span>
+            </div>
+          ) : !pricingItems.length ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Pricing is currently unavailable.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pricingItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.service} className="flex items-start gap-3 rounded-lg border p-4">
+                    <div className="rounded-lg bg-primary/10 p-2 shrink-0">
+                      <Icon className="size-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{item.service}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                      <p className="text-sm font-bold text-primary mt-1">{item.price}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{item.service}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                    <p className="text-sm font-bold text-primary mt-1">{item.price}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 

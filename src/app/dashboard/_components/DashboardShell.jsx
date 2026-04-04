@@ -1,15 +1,42 @@
 "use client";
 
+import { useSession, SessionProvider } from "next-auth/react";
 import { SidebarProvider, SidebarInset, SidebarRail } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import DashboardHeader from "./DashboardHeader";
+function DashboardShellInner({ children }) {
+  const { data: session, status } = useSession();
 
-export default function DashboardShell({ children }) {
+  // Build user object from session
+  const user = session?.user
+    ? {
+        name: session.user.name || "User",
+        email: session.user.email || "",
+        role: "JOB_SEEKER", // Default; real role comes from /api/dashboard/stats
+        avatar: session.user.image || null,
+        initials: (session.user.name || "U")
+          .split(" ")
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase(),
+      }
+    : null;
+
+  // Show loading while session loads
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={user} />
       <SidebarInset>
-        <DashboardHeader />
+        <DashboardHeader user={user} />
         <div className="flex flex-1 flex-col">
           <div className="flex-1 p-4 md:p-6 lg:p-8">
             {children}
@@ -18,5 +45,13 @@ export default function DashboardShell({ children }) {
       </SidebarInset>
       <SidebarRail />
     </SidebarProvider>
+  );
+}
+
+export default function DashboardShell({ children }) {
+  return (
+    <SessionProvider>
+      <DashboardShellInner>{children}</DashboardShellInner>
+    </SessionProvider>
   );
 }
