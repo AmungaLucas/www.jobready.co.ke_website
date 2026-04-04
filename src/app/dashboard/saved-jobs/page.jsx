@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -22,110 +22,162 @@ import {
   Filter,
   Building2,
   Heart,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { formatDate, formatRelativeDate } from "@/lib/format";
+import { formatRelativeDate } from "@/lib/format";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-// ── Mock Data ──────────────────────────────────────────
-const INITIAL_SAVED_JOBS = [
-  {
-    id: 1,
-    jobTitle: "Senior Software Engineer",
-    company: "Safaricom PLC",
-    companyInitials: "SC",
-    companyColor: "bg-green-600",
-    location: "Nairobi, Kenya",
-    type: "Full-Time",
-    experienceLevel: "Senior",
-    salary: "KSh 180K - 250K",
-    dateSaved: "2026-03-30",
-    postedDate: "2026-03-25",
-    category: "Technology",
-    isRemote: false,
-  },
-  {
-    id: 2,
-    jobTitle: "Product Manager - M-PESA",
-    company: "Safaricom PLC",
-    companyInitials: "SC",
-    companyColor: "bg-green-600",
-    location: "Nairobi, Kenya",
-    type: "Full-Time",
-    experienceLevel: "Mid-Senior",
-    salary: "KSh 220K - 300K",
-    dateSaved: "2026-03-28",
-    postedDate: "2026-03-22",
-    category: "Technology",
-    isRemote: false,
-  },
-  {
-    id: 3,
-    jobTitle: "Data Analyst",
-    company: "Equity Bank",
-    companyInitials: "EB",
-    companyColor: "bg-yellow-600",
-    location: "Nairobi, Kenya",
-    type: "Full-Time",
-    experienceLevel: "Mid-Level",
-    salary: "KSh 120K - 160K",
-    dateSaved: "2026-03-27",
-    postedDate: "2026-03-20",
-    category: "Finance",
-    isRemote: false,
-  },
-  {
-    id: 4,
-    jobTitle: "Marketing Communications Manager",
-    company: "Airtel Kenya",
-    companyInitials: "AK",
-    companyColor: "bg-red-600",
-    location: "Nairobi, Kenya",
-    type: "Full-Time",
-    experienceLevel: "Manager",
-    salary: "KSh 150K - 200K",
-    dateSaved: "2026-03-25",
-    postedDate: "2026-03-18",
-    category: "Marketing",
-    isRemote: false,
-  },
-  {
-    id: 5,
-    jobTitle: "Frontend Developer",
-    company: "KPMG East Africa",
-    companyInitials: "KP",
-    companyColor: "bg-indigo-600",
-    location: "Nairobi, Kenya",
-    type: "Contract",
-    experienceLevel: "Mid-Level",
-    salary: "KSh 140K - 180K",
-    dateSaved: "2026-03-23",
-    postedDate: "2026-03-15",
-    category: "Technology",
-    isRemote: true,
-  },
-  {
-    id: 6,
-    jobTitle: "Finance Graduate Trainee",
-    company: "PwC Kenya",
-    companyInitials: "PW",
-    companyColor: "bg-amber-700",
-    location: "Nairobi, Kenya",
-    type: "Full-Time",
-    experienceLevel: "Entry Level",
-    salary: null,
-    dateSaved: "2026-03-20",
-    postedDate: "2026-03-10",
-    category: "Finance",
-    isRemote: false,
-  },
-];
+// ── Helpers ──────────────────────────────────────────
+function formatJobType(type) {
+  if (!type) return type;
+  return type.replace(/_/g, "-").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatSalary(min, max) {
+  if (!min && !max) return null;
+  const fmt = (n) => {
+    if (n >= 1000000) return `KSh ${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `KSh ${(n / 1000).toFixed(0)}K`;
+    return `KSh ${n}`;
+  };
+  if (min && max) return `${fmt(min)} - ${fmt(max)}`;
+  return fmt(min || max);
+}
+
+function getInitials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
 
 // ── Component ──────────────────────────────────────────
 export default function SavedJobsPage() {
-  const [savedJobs, setSavedJobs] = useState(INITIAL_SAVED_JOBS);
+  const { data: session, status } = useSession();
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [unsavingId, setUnsavingId] = useState(null);
 
-  const handleUnsave = (jobId) => {
-    setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
+  const fetchSavedJobs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/saved-jobs");
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError("Please sign in to view your saved jobs.");
+          return;
+        }
+        throw new Error("Failed to load saved jobs");
+      }
+      const data = await res.json();
+      setSavedJobs(data.savedJobs || []);
+      setTotal(data.pagination?.total || 0);
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchSavedJobs();
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+      setError("Please sign in to view your saved jobs.");
+    }
+  }, [status]);
+
+  const handleUnsave = async (savedJobId, jobId) => {
+    try {
+      setUnsavingId(savedJobId);
+      const res = await fetch("/api/saved-jobs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId }),
+      });
+      if (!res.ok) throw new Error("Failed to remove saved job");
+      // Refresh the list
+      await fetchSavedJobs();
+    } catch (err) {
+      console.error("Unsave error:", err);
+    } finally {
+      setUnsavingId(null);
+    }
+  };
+
+  // Session loading
+  if (status === "loading" || loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="h-8 w-40 bg-muted rounded" />
+            <div className="h-4 w-64 bg-muted rounded mt-2" />
+          </div>
+          <div className="h-6 w-20 bg-muted rounded" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="py-0 gap-0">
+              <div className="h-1 bg-muted" />
+              <CardContent className="p-4 md:p-5 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-9 bg-muted rounded-lg shrink-0" />
+                    <div className="h-4 w-28 bg-muted rounded" />
+                  </div>
+                  <div className="size-8 bg-muted rounded" />
+                </div>
+                <div className="h-4 w-full bg-muted rounded" />
+                <div className="h-4 w-3/4 bg-muted rounded" />
+                <div className="flex gap-3">
+                  <div className="h-3 w-24 bg-muted rounded" />
+                  <div className="h-3 w-20 bg-muted rounded" />
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex justify-between">
+                  <div className="h-3 w-32 bg-muted rounded" />
+                  <div className="h-7 w-16 bg-muted rounded" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated
+  if (status === "unauthenticated" || error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Saved Jobs</h1>
+          <p className="text-muted-foreground">
+            Jobs you&apos;ve bookmarked for later review
+          </p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="rounded-full bg-muted p-4 mb-4">
+              <AlertCircle className="size-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">Sign In Required</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              {error || "Please sign in to view your saved jobs."}
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/auth/login">Sign In</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -138,7 +190,7 @@ export default function SavedJobsPage() {
           </p>
         </div>
         <Badge variant="outline" className="w-fit text-sm">
-          {savedJobs.length} Saved
+          {total} Saved
         </Badge>
       </div>
 
@@ -147,20 +199,58 @@ export default function SavedJobsPage() {
         <EmptyState />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {savedJobs.map((job) => (
-            <SavedJobCard
-              key={job.id}
-              job={job}
-              onUnsave={handleUnsave}
-            />
-          ))}
+          {savedJobs.map((savedJob) => {
+            const job = savedJob.job;
+            if (!job) return null;
+            const companyName = job.company?.name || "Unknown";
+            const initials = getInitials(companyName);
+            const logoColor = job.company?.logoColor || "#6366f1";
+            const salary = formatSalary(job.salaryMin, job.salaryMax);
+            const jobType = formatJobType(job.jobType);
+            const jobSlug = job.slug;
+
+            return (
+              <SavedJobCard
+                key={savedJob.id}
+                id={savedJob.id}
+                jobId={savedJob.jobId}
+                jobTitle={job.title}
+                company={companyName}
+                companyInitials={initials}
+                companyColor={logoColor}
+                location={job.location}
+                type={jobType}
+                salary={salary}
+                dateSaved={savedJob.createdAt}
+                isRemote={job.isRemote}
+                jobSlug={jobSlug}
+                onUnsave={handleUnsave}
+                unsaving={unsavingId === savedJob.id}
+              />
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-function SavedJobCard({ job, onUnsave }) {
+function SavedJobCard({
+  id,
+  jobId,
+  jobTitle,
+  company,
+  companyInitials,
+  companyColor,
+  location,
+  type,
+  salary,
+  dateSaved,
+  isRemote,
+  jobSlug,
+  onUnsave,
+  unsaving,
+}) {
   return (
     <Card className="group relative overflow-hidden py-0 gap-0">
       {/* Category color strip */}
@@ -171,13 +261,14 @@ function SavedJobCard({ job, onUnsave }) {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
             <div
-              className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold ${job.companyColor}`}
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold"
+              style={{ backgroundColor: companyColor }}
             >
-              {job.companyInitials}
+              {companyInitials}
             </div>
             <div className="min-w-0">
               <p className="text-sm text-muted-foreground font-medium truncate">
-                {job.company}
+                {company}
               </p>
             </div>
           </div>
@@ -185,19 +276,32 @@ function SavedJobCard({ job, onUnsave }) {
             variant="ghost"
             size="icon"
             className="size-8 text-muted-foreground hover:text-destructive shrink-0"
-            onClick={() => onUnsave(job.id)}
+            onClick={() => onUnsave(id, jobId)}
+            disabled={unsaving}
             title="Remove from saved"
           >
-            <BookmarkX className="size-4" />
+            {unsaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <BookmarkX className="size-4" />
+            )}
           </Button>
         </div>
 
         {/* Job Title */}
         <div>
-          <h3 className="font-semibold text-sm leading-snug line-clamp-2">
-            {job.jobTitle}
-          </h3>
-          {job.isRemote && (
+          {jobSlug ? (
+            <Link href={`/jobs/${jobSlug}`} className="block">
+              <h3 className="font-semibold text-sm leading-snug line-clamp-2 hover:text-primary transition-colors">
+                {jobTitle}
+              </h3>
+            </Link>
+          ) : (
+            <h3 className="font-semibold text-sm leading-snug line-clamp-2">
+              {jobTitle}
+            </h3>
+          )}
+          {isRemote && (
             <Badge variant="secondary" className="mt-1.5 text-xs">
               Remote
             </Badge>
@@ -208,28 +312,37 @@ function SavedJobCard({ job, onUnsave }) {
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <MapPin className="size-3" />
-            {job.location}
+            {location}
           </span>
           <span className="flex items-center gap-1">
             <Briefcase className="size-3" />
-            {job.type}
+            {type}
           </span>
         </div>
 
         {/* Bottom: Salary + Date + View */}
         <div className="flex items-center justify-between pt-1 border-t">
           <div className="text-xs">
-            {job.salary && (
-              <span className="font-medium text-foreground">{job.salary}</span>
+            {salary && (
+              <span className="font-medium text-foreground">{salary}</span>
             )}
             <span className="text-muted-foreground ml-2">
-              Saved {formatRelativeDate(job.dateSaved)}
+              Saved {formatRelativeDate(dateSaved)}
             </span>
           </div>
-          <Button variant="outline" size="sm" className="text-xs h-7">
-            <ExternalLink className="size-3 mr-1" />
-            View
-          </Button>
+          {jobSlug ? (
+            <Button variant="outline" size="sm" className="text-xs h-7" asChild>
+              <Link href={`/jobs/${jobSlug}`}>
+                <ExternalLink className="size-3 mr-1" />
+                View
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" className="text-xs h-7" disabled>
+              <ExternalLink className="size-3 mr-1" />
+              View
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

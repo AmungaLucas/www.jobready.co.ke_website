@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -42,46 +42,12 @@ import {
   X,
   BellRing,
   BellOff,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
-// ── Mock Data ──────────────────────────────────────────
-const INITIAL_ALERTS = [
-  {
-    id: 1,
-    keyword: "Software Engineer",
-    location: "Nairobi, Kenya",
-    category: "Technology",
-    frequency: "DAILY",
-    isActive: true,
-    createdAt: "2026-03-01",
-    lastTriggered: "2026-03-28",
-    jobsFound: 12,
-  },
-  {
-    id: 2,
-    keyword: "Data Analyst",
-    location: "",
-    category: "Finance & Accounting",
-    frequency: "WEEKLY",
-    isActive: true,
-    createdAt: "2026-02-20",
-    lastTriggered: "2026-03-24",
-    jobsFound: 8,
-  },
-  {
-    id: 3,
-    keyword: "Product Manager",
-    location: "Kenya",
-    category: "",
-    frequency: "DAILY",
-    isActive: false,
-    createdAt: "2026-01-15",
-    lastTriggered: "2026-03-10",
-    jobsFound: 3,
-  },
-];
-
+// ── Static Config ──────────────────────────────────────
 const CATEGORIES = [
   "Technology",
   "Finance & Accounting",
@@ -100,41 +66,179 @@ const CATEGORIES = [
 ];
 
 export default function AlertsContent() {
-  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [newAlert, setNewAlert] = useState({
     keyword: "",
     location: "",
-    category: "",
+    categoryId: "",
     frequency: "DAILY",
   });
 
-  const toggleAlert = (id) => {
+  // ── Fetch Alerts ────────────────────────────────────
+  const fetchAlerts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/alerts");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to fetch alerts (${res.status})`);
+      }
+      const data = await res.json();
+      setAlerts(data.alerts || []);
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
+
+  // ── Toggle Alert ────────────────────────────────────
+  const toggleAlert = async (alert) => {
+    const previousState = alert.isActive;
+    // Optimistic update
     setAlerts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, isActive: !a.isActive } : a))
+      prev.map((a) =>
+        a.id === alert.id ? { ...a, isActive: !a.isActive } : a
+      )
     );
+    try {
+      const res = await fetch("/api/alerts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: alert.id, isActive: !previousState }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update alert");
+      }
+      // Refresh to get the latest data from the server
+      fetchAlerts();
+    } catch (err) {
+      console.error("Failed to toggle alert:", err);
+      // Revert optimistic update
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.id === alert.id ? { ...a, isActive: previousState } : a
+        )
+      );
+    }
   };
 
-  const deleteAlert = (id) => {
+  // ── Delete Alert ────────────────────────────────────
+  const deleteAlert = async (id) => {
+    // Optimistic delete
     setAlerts((prev) => prev.filter((a) => a.id !== id));
+    try {
+      const res = await fetch("/api/alerts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete alert");
+      }
+      fetchAlerts();
+    } catch (err) {
+      console.error("Failed to delete alert:", err);
+      // Revert by re-fetching
+      fetchAlerts();
+    }
   };
 
-  const handleCreateAlert = () => {
+  // ── Create Alert ────────────────────────────────────
+  const handleCreateAlert = async () => {
     if (!newAlert.keyword.trim()) return;
-    const alert = {
-      id: Date.now(),
-      ...newAlert,
-      isActive: true,
-      createdAt: new Date().toISOString().split("T")[0],
-      lastTriggered: null,
-      jobsFound: 0,
-    };
-    setAlerts((prev) => [...prev, alert]);
-    setNewAlert({ keyword: "", location: "", category: "", frequency: "DAILY" });
-    setDialogOpen(false);
+    setCreating(true);
+    try {
+      const res = await fetch("/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          keyword: newAlert.keyword,
+          location: newAlert.location || undefined,
+          categoryId: newAlert.categoryId || undefined,
+          frequency: newAlert.frequency,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create alert");
+      }
+      setNewAlert({ keyword: "", location: "", categoryId: "", frequency: "DAILY" });
+      setDialogOpen(false);
+      fetchAlerts();
+    } catch (err) {
+      console.error("Failed to create alert:", err);
+      setError(err.message);
+    } finally {
+      setCreating(false);
+    }
   };
 
   const activeAlerts = alerts.filter((a) => a.isActive);
+
+  // ── Loading State ───────────────────────────────────
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Job Alerts</h1>
+            <p className="text-muted-foreground">
+              Get notified when new jobs matching your criteria are posted
+            </p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Loader2 className="size-8 text-primary animate-spin mb-4" />
+            <p className="text-sm text-muted-foreground">Loading your alerts...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Error State ─────────────────────────────────────
+  if (error && alerts.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Job Alerts</h1>
+            <p className="text-muted-foreground">
+              Get notified when new jobs matching your criteria are posted
+            </p>
+          </div>
+        </div>
+        <Card className="border-destructive/50">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="rounded-full bg-destructive/10 p-4 mb-4">
+              <AlertCircle className="size-8 text-destructive" />
+            </div>
+            <h3 className="text-lg font-semibold">Failed to load alerts</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              {error}
+            </p>
+            <Button className="mt-4" variant="outline" onClick={fetchAlerts}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -200,9 +304,9 @@ export default function AlertsContent() {
                   Category (Optional)
                 </Label>
                 <Select
-                  value={newAlert.category}
+                  value={newAlert.categoryId}
                   onValueChange={(v) =>
-                    setNewAlert((prev) => ({ ...prev, category: v }))
+                    setNewAlert((prev) => ({ ...prev, categoryId: v }))
                   }
                 >
                   <SelectTrigger id="alertCategory">
@@ -243,14 +347,43 @@ export default function AlertsContent() {
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateAlert} disabled={!newAlert.keyword.trim()}>
-                <Bell className="mr-2 size-4" />
-                Create Alert
+              <Button onClick={handleCreateAlert} disabled={!newAlert.keyword.trim() || creating}>
+                {creating ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Bell className="mr-2 size-4" />
+                    Create Alert
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Error banner for action failures (non-blocking) */}
+      {error && alerts.length > 0 && (
+        <Card className="border-destructive/50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-destructive">
+                  Something went wrong
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{error}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="size-6" onClick={() => setError(null)}>
+                <X className="size-3" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -275,9 +408,9 @@ export default function AlertsContent() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {alerts.reduce((sum, a) => sum + a.jobsFound, 0)}
+                  {alerts.reduce((sum, a) => sum + (a.emailOpenCount || 0) + (a.emailClickCount || 0), 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Jobs Found</p>
+                <p className="text-xs text-muted-foreground">Email Interactions</p>
               </div>
             </div>
           </CardContent>
@@ -343,13 +476,13 @@ export default function AlertsContent() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-sm">
-                          &quot;{alert.keyword}&quot;
+                          &quot;{alert.query}&quot;
                         </h3>
                         <Badge
                           variant="outline"
                           className="text-xs"
                         >
-                          {alert.frequency}
+                          DAILY
                         </Badge>
                         {!alert.isActive && (
                           <Badge variant="secondary" className="text-xs">
@@ -372,12 +505,12 @@ export default function AlertsContent() {
                         )}
                         <span className="flex items-center gap-1">
                           <Mail className="size-3" />
-                          {alert.jobsFound} jobs found
+                          {(alert.emailOpenCount || 0) + (alert.emailClickCount || 0)} emails
                         </span>
-                        {alert.lastTriggered && (
+                        {alert.lastSentAt && (
                           <span className="flex items-center gap-1">
                             <Clock className="size-3" />
-                            Last: {formatDate(alert.lastTriggered)}
+                            Last: {formatDate(alert.lastSentAt)}
                           </span>
                         )}
                       </div>
@@ -389,7 +522,7 @@ export default function AlertsContent() {
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={alert.isActive}
-                        onCheckedChange={() => toggleAlert(alert.id)}
+                        onCheckedChange={() => toggleAlert(alert)}
                       />
                       <span className="text-xs text-muted-foreground hidden sm:inline">
                         {alert.isActive ? "On" : "Off"}

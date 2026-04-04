@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -28,118 +30,20 @@ import {
   Clock,
   UserCheck,
   ChevronRight,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
-// ── Mock Data ──────────────────────────────────────────
-const MOCK_USER = {
-  name: "John",
-  role: "JOB_SEEKER",
-};
+// ── Helpers ──────────────────────────────────────────
+function formatJobType(type) {
+  if (!type) return type;
+  return type.replace(/_/g, "-").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
-const JOB_SEEKER_STATS = [
-  {
-    title: "Applications Sent",
-    value: 12,
-    change: "+3 this week",
-    icon: FileText,
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    title: "Saved Jobs",
-    value: 28,
-    change: "+5 new",
-    icon: Bookmark,
-    color: "bg-secondary/10 text-secondary",
-  },
-  {
-    title: "Profile Views",
-    value: 45,
-    change: "+12 this month",
-    icon: Eye,
-    color: "bg-purple/10 text-purple",
-  },
-  {
-    title: "Interviews",
-    value: 3,
-    change: "1 upcoming",
-    icon: CalendarCheck,
-    color: "bg-accent/10 text-accent",
-  },
-];
-
-const EMPLOYER_STATS = [
-  {
-    title: "Active Jobs",
-    value: 8,
-    change: "+2 this week",
-    icon: Briefcase,
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    title: "Total Applications",
-    value: 156,
-    change: "+24 new",
-    icon: Users,
-    color: "bg-secondary/10 text-secondary",
-  },
-  {
-    title: "Shortlisted",
-    value: 23,
-    change: "6 pending review",
-    icon: CheckCircle2,
-    color: "bg-purple/10 text-purple",
-  },
-  {
-    title: "Interviews Scheduled",
-    value: 7,
-    change: "3 this week",
-    icon: CalendarCheck,
-    color: "bg-accent/10 text-accent",
-  },
-];
-
-const RECENT_ACTIVITY = [
-  {
-    id: 1,
-    type: "application",
-    message: 'Application sent for "Senior Software Engineer" at Safaricom',
-    time: "2 hours ago",
-    icon: FileText,
-    iconColor: "text-primary",
-  },
-  {
-    id: 2,
-    type: "interview",
-    message: 'Interview scheduled with Equity Bank for "Data Analyst" role',
-    time: "1 day ago",
-    icon: CalendarCheck,
-    iconColor: "text-secondary",
-  },
-  {
-    id: 3,
-    type: "saved",
-    message: 'Saved "Product Manager" at KCB Group',
-    time: "2 days ago",
-    icon: Bookmark,
-    iconColor: "text-purple",
-  },
-  {
-    id: 4,
-    type: "view",
-    message: "Your profile was viewed by a recruiter from KPMG",
-    time: "3 days ago",
-    icon: Eye,
-    iconColor: "text-accent",
-  },
-  {
-    id: 5,
-    type: "alert",
-    message: 'New job matching your alert: "Frontend Developer" at Airtel',
-    time: "4 days ago",
-    icon: Bell,
-    iconColor: "text-danger",
-  },
-];
+function getInitials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
 
 const QUICK_ACTIONS_JOB_SEEKER = [
   { title: "Browse Jobs", href: "/jobs", icon: Briefcase, description: "Find your next opportunity" },
@@ -155,11 +59,216 @@ const QUICK_ACTIONS_EMPLOYER = [
   { title: "Billing", href: "/dashboard/billing", icon: CreditCard, description: "Manage subscriptions" },
 ];
 
+// ── Loading Skeleton ──────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      {/* Welcome Banner Skeleton */}
+      <div className="rounded-xl bg-muted p-6 h-[120px]" />
+
+      {/* Stats Cards Skeleton */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="gap-4">
+            <CardHeader className="flex flex-row items-center justify-between pb-0">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="size-8 bg-muted rounded-lg" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-7 w-12 bg-muted rounded mb-2" />
+              <div className="h-3 w-20 bg-muted rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Activity + Quick Actions Skeleton */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="h-5 w-36 bg-muted rounded mb-2" />
+            <div className="h-4 w-48 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start gap-3 p-3">
+                <div className="size-8 bg-muted rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-full bg-muted rounded" />
+                  <div className="h-3 w-20 bg-muted rounded" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <div className="h-5 w-28 bg-muted rounded mb-2" />
+            <div className="h-4 w-40 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="size-8 bg-muted rounded-lg shrink-0" />
+                <div className="flex-1 space-y-1">
+                  <div className="h-4 w-24 bg-muted rounded" />
+                  <div className="h-3 w-32 bg-muted rounded" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────
-export default function DashboardOverview({ user = MOCK_USER }) {
-  const isEmployer = user.role === "EMPLOYER";
-  const stats = isEmployer ? EMPLOYER_STATS : JOB_SEEKER_STATS;
+export default function DashboardOverview() {
+  const { data: session, status } = useSession();
+  const [statsData, setStatsData] = useState(null);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("/api/dashboard/stats");
+        if (!res.ok) {
+          if (res.status === 401) {
+            setError("Please sign in to view your dashboard.");
+            return;
+          }
+          throw new Error("Failed to load dashboard stats");
+        }
+        const data = await res.json();
+        setStatsData(data);
+        setRecentActivity(data.recent?.savedJobs || []);
+      } catch (err) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (status === "authenticated") {
+      fetchStats();
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+      setError("Please sign in to view your dashboard.");
+    }
+  }, [status]);
+
+  // Session loading
+  if (status === "loading") return <LoadingSkeleton />;
+
+  // Unauthenticated
+  if (status === "unauthenticated" || error) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <AlertCircle className="size-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold">Sign In Required</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            {error || "Please sign in to access your dashboard."}
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/auth/login">Sign In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Data loading
+  if (loading) return <LoadingSkeleton />;
+
+  const user = session?.user;
+  const firstName = user?.name?.split(" ")[0] || "there";
+  const role = statsData?.role || "JOB_SEEKER";
+  const isEmployer = role === "EMPLOYER";
+  const stats = statsData?.stats || {};
+
+  // Build stats cards from API data
+  const statsCards = isEmployer
+    ? [
+        {
+          title: "Active Jobs",
+          value: stats.activeJobsCount ?? 0,
+          change: "Manage postings",
+          icon: Briefcase,
+          color: "bg-primary/10 text-primary",
+        },
+        {
+          title: "Total Applications",
+          value: stats.totalApplicationsCount ?? 0,
+          change: "Review submissions",
+          icon: Users,
+          color: "bg-secondary/10 text-secondary",
+        },
+        {
+          title: "Shortlisted",
+          value: stats.shortlistedCount ?? 0,
+          change: "Pending review",
+          icon: CheckCircle2,
+          color: "bg-purple/10 text-purple",
+        },
+        {
+          title: "Interviews Scheduled",
+          value: stats.interviewsCount ?? 0,
+          change: "Upcoming",
+          icon: CalendarCheck,
+          color: "bg-accent/10 text-accent",
+        },
+      ]
+    : [
+        {
+          title: "Applications Sent",
+          value: stats.applicationsCount ?? 0,
+          change: "Track progress",
+          icon: FileText,
+          color: "bg-primary/10 text-primary",
+        },
+        {
+          title: "Saved Jobs",
+          value: stats.savedJobsCount ?? 0,
+          change: "Bookmark for later",
+          icon: Bookmark,
+          color: "bg-secondary/10 text-secondary",
+        },
+        {
+          title: "Notifications",
+          value: stats.unreadNotifications ?? 0,
+          change: "Unread messages",
+          icon: Eye,
+          color: "bg-purple/10 text-purple",
+        },
+        {
+          title: "Job Alerts",
+          value: stats.jobAlertsCount ?? 0,
+          change: "Active alerts",
+          icon: Bell,
+          color: "bg-accent/10 text-accent",
+        },
+      ];
+
   const quickActions = isEmployer ? QUICK_ACTIONS_EMPLOYER : QUICK_ACTIONS_JOB_SEEKER;
+
+  // Map recent saved jobs to activity items
+  const activityItems = recentActivity.map((item, index) => ({
+    id: item.id || index,
+    type: "saved",
+    message: `Saved "${item.job?.title || "Job"}" at ${item.job?.company?.name || "Company"}`,
+    time: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" }) : "Recently",
+    icon: Bookmark,
+    iconColor: "text-primary",
+    jobSlug: item.job?.slug,
+  }));
 
   return (
     <div className="space-y-6">
@@ -167,7 +276,7 @@ export default function DashboardOverview({ user = MOCK_USER }) {
       <div className="rounded-xl bg-gradient-to-r from-primary to-primary-dark p-6 text-white">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight">
-            Welcome back, {user.name}! 👋
+            Welcome back, {firstName}! 👋
           </h1>
           <p className="text-blue-100">
             {isEmployer
@@ -202,7 +311,7 @@ export default function DashboardOverview({ user = MOCK_USER }) {
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statsCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.title} className="gap-4">
@@ -234,33 +343,49 @@ export default function DashboardOverview({ user = MOCK_USER }) {
                 <CardDescription>Your latest job search updates</CardDescription>
               </div>
               <Badge variant="secondary" className="text-xs">
-                {RECENT_ACTIVITY.length} new
+                {activityItems.length} new
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {RECENT_ACTIVITY.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="mt-0.5 rounded-full bg-muted p-2">
-                      <Icon className={`size-4 ${item.iconColor}`} />
+            {activityItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Clock className="size-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No recent activity yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activityItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50"
+                    >
+                      <div className="mt-0.5 rounded-full bg-muted p-2">
+                        <Icon className={`size-4 ${item.iconColor}`} />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        {item.jobSlug ? (
+                          <Link
+                            href={`/jobs/${item.jobSlug}`}
+                            className="text-sm leading-snug hover:underline"
+                          >
+                            {item.message}
+                          </Link>
+                        ) : (
+                          <p className="text-sm leading-snug">{item.message}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="size-3" />
+                          {item.time}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm leading-snug">{item.message}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="size-3" />
-                        {item.time}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 

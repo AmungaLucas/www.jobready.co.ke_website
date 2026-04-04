@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Script from "next/script";
 import { generateMeta, generateBreadcrumbJsonLd, generateCollectionPageJsonLd } from "@/lib/seo";
-import { companies } from "./_components/mock-data";
 import OrganizationsContent from "./_components/OrganizationsContent";
 
 export const metadata = generateMeta({
@@ -25,7 +24,21 @@ const collectionJsonLd = generateCollectionPageJsonLd({
   totalItems: 500,
 });
 
-export default function OrganizationsPage() {
+// ─── Data Fetching ─────────────────────────────────────────
+async function fetchCompanies(params = {}) {
+  const query = new URLSearchParams(params);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/companies?${query.toString()}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return { companies: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };
+  return res.json();
+}
+
+export default async function OrganizationsPage() {
+  const data = await fetchCompanies({ limit: "50", sort: "featured" });
+  const companies = data.companies || [];
+
   return (
     <>
       {/* JSON-LD */}

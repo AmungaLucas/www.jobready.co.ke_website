@@ -1,7 +1,26 @@
 import Link from "next/link";
 import { FiMapPin, FiBriefcase, FiShield } from "react-icons/fi";
 
+/**
+ * Compute initials from a company name.
+ * e.g. "Safaricom PLC" → "SP", "KCB Group" → "KG"
+ */
+function getInitials(name) {
+  if (!name) return "?";
+  const parts = name.replace(/[^a-zA-Z\s]/g, "").split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  // Single word — take first two chars
+  return parts[0].slice(0, 2).toUpperCase();
+}
+
 export default function CompanyCard({ company }) {
+  const initials = company.initials || getInitials(company.name);
+  const location = company.city || company.location || "";
+  const size = company.employeeSize || company.size || "";
+  const openJobs = company.jobCount ?? company.openJobs ?? 0;
+
   return (
     <Link
       href={`/organizations/${company.slug}`}
@@ -15,7 +34,11 @@ export default function CompanyCard({ company }) {
             background: `linear-gradient(135deg, ${company.logoColor}, ${company.logoColor}dd)`,
           }}
         >
-          {company.initials}
+          {company.logo ? (
+            <img src={company.logo} alt={company.name} className="w-10 h-10 rounded-lg object-cover" />
+          ) : (
+            initials
+          )}
         </div>
 
         {/* Info */}
@@ -31,24 +54,30 @@ export default function CompanyCard({ company }) {
           </div>
 
           {/* Meta */}
-          <p className="text-xs text-gray-500 mb-1">{company.industry}</p>
+          <p className="text-xs text-gray-500 mb-1">{company.tagline || company.industry}</p>
 
           {/* Location + size */}
-          <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
-            <span className="flex items-center gap-1">
-              <FiMapPin size={12} />
-              {company.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <FiBriefcase size={12} />
-              {company.size}
-            </span>
-          </div>
+          {(location || size) && (
+            <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+              {location && (
+                <span className="flex items-center gap-1">
+                  <FiMapPin size={12} />
+                  {location}
+                </span>
+              )}
+              {size && (
+                <span className="flex items-center gap-1">
+                  <FiBriefcase size={12} />
+                  {size}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Jobs count */}
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-blue-100 text-blue-700">
             <FiBriefcase size={10} />
-            {company.openJobs} Open {company.openJobs === 1 ? "Job" : "Jobs"}
+            {openJobs} Open {openJobs === 1 ? "Job" : "Jobs"}
           </span>
         </div>
       </div>

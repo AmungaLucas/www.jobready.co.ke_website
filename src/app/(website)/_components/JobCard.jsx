@@ -11,6 +11,7 @@ import {
   Star,
   Zap,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { formatRelativeDate } from "@/lib/format";
 
@@ -24,9 +25,12 @@ function getInitials(name) {
 }
 
 export default function JobCard({ job }) {
-  const [saved, setSaved] = useState(false);
+  // If the job already has an `isSaved` flag from API, use it as initial state
+  const [saved, setSaved] = useState(job.isSaved || false);
+  const [saving, setSaving] = useState(false);
 
   const {
+    id,
     title,
     slug,
     company,
@@ -45,10 +49,38 @@ export default function JobCard({ job }) {
   const isVerified = company?.isVerified || false;
   const initials = getInitials(companyName);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setSaved((prev) => !prev);
+
+    if (!id) return;
+
+    // Optimistic toggle
+    const nextSaved = !saved;
+    setSaved(nextSaved);
+    setSaving(true);
+
+    try {
+      if (nextSaved) {
+        await fetch("/api/saved-jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: id }),
+        });
+      } else {
+        await fetch("/api/saved-jobs", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: id }),
+        });
+      }
+    } catch (err) {
+      // Revert on error
+      setSaved(!nextSaved);
+      console.error("Save/unsave failed:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -73,7 +105,7 @@ export default function JobCard({ job }) {
         {/* Title row */}
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Link
-            href={`/jobs/${slug}`}
+            href={`/job/${slug}`}
             className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors leading-tight line-clamp-1 hover:no-underline"
           >
             {title}
@@ -148,14 +180,19 @@ export default function JobCard({ job }) {
       {/* Save button */}
       <button
         onClick={handleSave}
+        disabled={saving}
         className={`w-[30px] h-[30px] rounded-full border shrink-0 flex items-center justify-center transition-all ${
           saved
             ? "border-amber-400 bg-amber-50 text-amber-500"
             : "border-gray-200 bg-white text-gray-400 hover:border-amber-400 hover:text-amber-400"
-        }`}
+        } ${saving ? "opacity-60 cursor-wait" : ""}`}
         aria-label={saved ? "Unsave job" : "Save job"}
       >
-        <Heart size={14} fill={saved ? "currentColor" : "none"} />
+        {saving ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <Heart size={14} fill={saved ? "currentColor" : "none"} />
+        )}
       </button>
     </div>
   );

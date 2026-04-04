@@ -17,6 +17,18 @@ const browseIndustries = [
   { name: "Healthcare", count: 12 },
 ];
 
+/**
+ * Compute initials from a company name for sidebar display.
+ */
+function getInitials(name) {
+  if (!name) return "?";
+  const parts = name.replace(/[^a-zA-Z\s]/g, "").split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return parts[0].slice(0, 2).toUpperCase();
+}
+
 const PER_PAGE = 9;
 
 export default function OrganizationsContent({ companies }) {
@@ -29,11 +41,13 @@ export default function OrganizationsContent({ companies }) {
 
   const filtered = companies.filter((c) => {
     if (filters.industry !== "All Industries" && c.industry !== filters.industry) return false;
-    if (filters.location !== "All Locations" && c.location !== filters.location) return false;
+    if (filters.location !== "All Locations" && c.city !== filters.location) return false;
     return true;
   });
 
-  const featuredCompanies = companies.filter((c) => c.openJobs >= 8).slice(0, 5);
+  const featuredCompanies = companies
+    .filter((c) => (c.jobCount ?? c.openJobs ?? 0) >= 8)
+    .slice(0, 5);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paged = filtered.slice(
@@ -119,7 +133,11 @@ export default function OrganizationsContent({ companies }) {
                         background: `linear-gradient(135deg, ${company.logoColor}, ${company.logoColor}dd)`,
                       }}
                     >
-                      {company.initials}
+                      {company.logo ? (
+                        <img src={company.logo} alt={company.name} className="w-7 h-7 rounded-md object-cover" />
+                      ) : (
+                        getInitials(company.name)
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link
@@ -130,7 +148,7 @@ export default function OrganizationsContent({ companies }) {
                       </Link>
                     </div>
                     <span className="text-[0.65rem] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                      {company.openJobs} jobs
+                      {company.jobCount ?? company.openJobs ?? 0} jobs
                     </span>
                   </li>
                 ))}
