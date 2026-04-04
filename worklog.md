@@ -158,3 +158,33 @@ Stage Summary:
 - Fixed branch deployment issue (master → main)
 - Dashboard link now correctly redirects to login page
 - All auth-related navigation links work properly
+
+---
+Task ID: 4
+Agent: Super Z (main)
+Task: Make entire dashboard dynamic — remove all hardcoded mock data
+
+Work Log:
+- Analyzed all 10 dashboard pages and identified 9 types of hardcoded data
+- Updated /api/dashboard/stats to check real User.role from DB instead of hardcoding "JOB_SEEKER"
+- Created /api/employer/jobs endpoint — returns employer's jobs with all statuses, filter/search, status counts
+- Created /api/company/profile GET/PUT — fetches/creates/updates company profile for employer
+- Created /api/service-tiers GET — returns active ServiceTier records for billing pricing
+- Rewired DashboardShell with useSession, passes real user data to AppSidebar + DashboardHeader
+- AppSidebar: removed MOCK_USER "John Kamau", dynamic badge counts from API
+- DashboardHeader: removed MOCK_USER, shows real session user name/email/avatar
+- DashboardOverview: profile completeness calculated from actual user fields (phone, location, education, bio, skills, cvUrl)
+- MyJobsContent: replaced 8 mock job listings with real API fetch from /api/employer/jobs with loading skeleton + error handling
+- CompanyProfileForm: removed Safaricom PLC mock data, fetches real company profile, handleSave now calls PUT /api/company/profile
+- SettingsContent: AccountSettings fetches from /api/user/profile, handleSave calls PUT /api/user/profile, dynamic verification badges
+- PostJobForm: handleSubmit now POSTs to /api/jobs with proper field mapping (category/type/experienceLevel conversion), draft support
+- BillingContent: service pricing section now fetches from /api/service-tiers instead of hardcoded array
+
+Stage Summary:
+- 14 files modified/created (4 new API routes, 10 component updates)
+- 1,619 lines added, 472 lines removed
+- All MOCK_USER references eliminated from dashboard
+- All mock data arrays eliminated (MOCK_JOBS, INITIAL_COMPANY, hardcoded settings form)
+- All fake setTimeout handlers replaced with real API calls
+- Dashboard now fully driven by database data through authenticated API endpoints
+- Committed ec0b704 and pushed to GitHub

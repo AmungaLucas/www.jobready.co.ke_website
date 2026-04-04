@@ -184,6 +184,18 @@ function LoginForm() {
         return;
       }
 
+      // OTP verified — now sign in via NextAuth to create a session
+      const result = await signIn("credentials", {
+        phone: fullPhone,
+        password: "__phone_otp_verified__",
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setOtpError("Sign in failed after verification. Please try logging in with email.");
+        return;
+      }
+
       router.push(callbackUrl);
     } catch (err) {
       setOtpError("Verification failed. Please check your connection.");

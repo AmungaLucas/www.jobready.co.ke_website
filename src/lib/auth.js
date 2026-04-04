@@ -179,8 +179,41 @@ export const authOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        phone: { label: "Phone", type: "text" },
       },
       async authorize(credentials) {
+        // ── Phone OTP login path ──
+        // When phone is provided and password is the special OTP marker,
+        // authenticate via phone (OTP already verified by /api/auth/verify-otp)
+        if (credentials?.phone && credentials.password === "__phone_otp_verified__") {
+          const phone = credentials.phone;
+          const user = await db.user.findUnique({
+            where: { phone },
+          });
+
+          if (!user) {
+            throw new Error("User not found for this phone number");
+          }
+
+          // Update last login
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          });
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            avatar: user.avatar,
+            role: user.role,
+            emailVerified: user.emailVerified,
+            phoneVerified: true,
+          };
+        }
+
+        // ── Email/Password login path ──
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
