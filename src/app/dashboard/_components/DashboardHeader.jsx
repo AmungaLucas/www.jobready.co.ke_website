@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSidebar } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,7 +72,6 @@ function getInitials(name) {
 
 export default function DashboardHeader({ user, isLoading }) {
   const pathname = usePathname();
-  const { openMobile, setOpenMobile } = useSidebar();
   const crumbs = buildBreadcrumbs(pathname);
 
   const currentPageLabel = crumbs.length > 0 ? crumbs[crumbs.length - 1].label : "Dashboard";
@@ -97,7 +95,7 @@ export default function DashboardHeader({ user, isLoading }) {
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-white px-4 md:px-6">
       {/* Left side: Sidebar trigger + breadcrumbs */}
       <div className="flex items-center gap-3 min-w-0">
-        <SidebarTrigger className="-ml-1 shrink-0" onClick={() => setOpenMobile(!openMobile)} />
+        <SidebarTrigger className="-ml-1 shrink-0" />
         <Separator orientation="vertical" className="h-5" />
         <Breadcrumb className="hidden sm:flex">
           <BreadcrumbList>
