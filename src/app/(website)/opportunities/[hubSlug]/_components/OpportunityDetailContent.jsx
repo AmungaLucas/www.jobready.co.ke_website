@@ -41,7 +41,21 @@ export default function OpportunityDetailContent({ data }) {
     typeBadgeColors[opp.opportunityType] || "bg-gray-100 text-gray-700";
 
   const isExpired = opp.deadline && new Date(opp.deadline) < new Date();
-  const pageUrl = `https://jobready.co.ke/opportunities/${opp.slug}`;
+  // Maps opportunity types to hub slugs for correct URL routing
+  const typeToHubSlug = {
+    scholarship: "scholarships",
+    grant: "grants",
+    fellowship: "fellowships",
+    bursary: "bursaries",
+    competition: "competitions",
+    conference: "conferences",
+    volunteer: "volunteer",
+    apprenticeship: "apprenticeships",
+  };
+
+  const oppTypeLower = (opp.opportunityType || "").toLowerCase();
+  const hubSlug = typeToHubSlug[oppTypeLower] || `${oppTypeLower}s`;
+  const pageUrl = `https://jobready.co.ke/opportunities/${hubSlug}/${opp.slug}`;
 
   // JSON-LD
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
@@ -51,9 +65,9 @@ export default function OpportunityDetailContent({ data }) {
       name:
         opp.opportunityType?.charAt(0).toUpperCase() +
           opp.opportunityType?.slice(1) + "s" || "Opportunity",
-      href: `/opportunities/${opp.opportunityType || ""}`,
+      href: `/opportunities/${hubSlug}`,
     },
-    { name: opp.title, href: `/opportunities/${opp.slug}` },
+    { name: opp.title, href: `/opportunities/${hubSlug}/${opp.slug}` },
   ]);
 
   return (
@@ -108,7 +122,7 @@ export default function OpportunityDetailContent({ data }) {
           <li className="text-gray-300">/</li>
           <li>
             <Link
-              href={`/opportunities/${opp.opportunityType || ""}`}
+              href={`/opportunities/${hubSlug}`}
               className="text-gray-500 hover:text-[#1a56db] transition-colors no-underline"
             >
               {opp.opportunityType

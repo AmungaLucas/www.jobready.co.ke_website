@@ -144,9 +144,9 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
 
   // Start polling when payment step is reached
   useEffect(() => {
-    if (step === STEPS.PAYMENT && paymentData?.id) {
+    if (step === STEPS.PAYMENT && paymentData?.paymentId) {
       pollRef.current = setInterval(() => {
-        pollPaymentStatus(paymentData.id);
+        pollPaymentStatus(paymentData.paymentId);
       }, 3000);
     }
 

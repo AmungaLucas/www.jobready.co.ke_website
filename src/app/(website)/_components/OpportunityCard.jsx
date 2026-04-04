@@ -10,6 +10,18 @@ const typeColors = {
   fellowship: "text-primary",
 };
 
+// Maps opportunity types to hub slugs for correct URL routing
+const typeToHubSlug = {
+  scholarship: "scholarships",
+  grant: "grants",
+  fellowship: "fellowships",
+  bursary: "bursaries",
+  competition: "competitions",
+  conference: "conferences",
+  volunteer: "volunteer",
+  apprenticeship: "apprenticeships",
+};
+
 export default function OpportunityCard({
   title,
   slug,
@@ -21,7 +33,9 @@ export default function OpportunityCard({
   type,
 }) {
   const colorClass = typeColors[type] || typeColors[opportunityType] || "text-primary";
-  const link = href || slug ? `/opportunities/${slug}` : "#";
+  const typeLower = (type || opportunityType || "").toLowerCase();
+  const hubSlug = typeToHubSlug[typeLower] || `${typeLower}s`;
+  const link = href || (slug && typeLower) ? `/opportunities/${hubSlug}/${slug}` : "#";
 
   return (
     <Link
