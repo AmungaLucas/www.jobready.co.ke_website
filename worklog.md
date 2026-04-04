@@ -1934,3 +1934,83 @@ Stage Summary:
 - Phase 8 complete: All frontend pages wired to database APIs
 - Every page that previously used mock data now fetches from real API endpoints
 - All interactive features (save job, newsletter, contact) call real APIs
+
+---
+## Task ID: 9 - full-stack-developer
+### Work Task
+Implement Phase 9 — M-Pesa Payments Integration for the CV Services page. Create M-Pesa helper library, order/payment API routes, checkout modal, wire up pricing table and billing dashboard.
+
+### Work Summary
+Implemented complete M-Pesa payments integration with 11 files created/modified:
+
+**1. `.env` — Added M-Pesa Daraja environment variables**
+- NEXT_PUBLIC_MPESA_SHORTCODE, MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_PASSKEY, MPESA_ENV
+- Placeholder values for user to fill in
+
+**2. `/src/lib/mpesa.js` — M-Pesa Daraja API Helper**
+- `getAccessToken()` — OAuth token with 50-minute in-memory cache
+- `initiateSTKPush({ phoneNumber, amount, orderNumber, description })` — Full STK Push flow
+- `formatMpesaPhone()` — Normalizes phone formats (+254, 07, 7) to 254XXXXXXXXX
+- Password generation: Base64(ShortCode + PassKey + Timestamp)
+- Sandbox/production URL switching via MPESA_ENV
+
+**3. `/src/app/api/orders/route.js` — Place Order API**
+- POST handler: validates email, phone, fullName, items
+- Optional NextAuth session (walk-in orders allowed)
+- Looks up ServiceTier from DB for pricing
+- Creates Order + OrderItem + OrderActivity(ORDER_PLACED) in transaction
+- Returns orderNumber, id, totalAmount, items
+
+**4. `/src/app/api/payments/stk-push/route.js` — Initiate STK Push**
+- POST handler: validates orderId, phoneNumber
+- Formats phone via formatMpesaPhone()
+- Authorization: checks userId ownership or email/phone match
+- Calls mpesa.initiateSTKPush() then creates Payment record
+- Creates OrderActivity(PAYMENT_INITIATED)
+
+**5. `/src/app/api/payments/[id]/route.js` — Check Payment Status**
+- GET handler: returns payment status, receipt number, amount, createdAt
+
+**6. `/src/app/api/payments/order/[orderId]/route.js` — Order Payments**
+- GET handler: returns all payments for an order + latest successful payment
+
+**7. `/src/app/api/orders/[id]/route.js` — Get Order Detail**
+- GET handler: returns full order with items, payments, activities
+
+**8. `/src/app/api/orders/my/route.js` — User's Orders**
+- GET handler: authenticated, paginated, ordered by createdAt desc
+- Includes items (with serviceTier) and latest payment
+
+**9. `/src/app/(website)/cv-services/_components/OrderModal.jsx` — Checkout Modal**
+- 4-step flow: Customer Details → Order Summary → Payment Processing → Success
+- Form validation with error states
+- Phone number formatting
+- STK Push initiation via /api/orders + /api/payments/stk-push
+- Payment status polling every 3 seconds, 60-second timeout
+- Success state with order number, receipt, "Go to Dashboard" / "Continue Shopping"
+- Error state with retry + WhatsApp fallback
+- Blue gradient header, responsive design (full-screen mobile, centered desktop)
+- Uses react-icons (FiX, FiUser, FiMail, FiPhone, FiFileText, FiCheckCircle, FiAlertCircle, FiRefreshCw, FiArrowRight, FiShoppingBag, FiShield, FiClock)
+
+**10. `/src/app/(website)/cv-services/_components/PricingTable.jsx` — Updated**
+- Added modal state management (selectedService, selectedTier)
+- Changed "Order Now" links from `<a href="#">` to `<button onClick={openOrderModal}>`
+- Renders OrderModal with appropriate service/tier for each pricing column
+
+**11. `/src/app/(website)/cv-services/_components/ServiceCard.jsx` — Updated**
+- Added OrderModal integration with "Order {service.name}" button
+- Opens modal with popular (or cheapest) tier selected
+
+**12. `/src/app/dashboard/billing/_components/BillingContent.jsx` — Wired to Real Data**
+- Removed MOCK_ORDERS mock data
+- Fetches from /api/orders/my on mount using useSession()
+- Not-authenticated state with sign-in prompt
+- Loading, error, and empty states
+- Stats computed from real data: Total Spent, Total Orders, Active Orders, Unpaid Orders
+- Service pricing reference card (6 services with actual prices)
+- Order history table with payment status badges and order status badges
+- "Buy Services" button links to /cv-services
+- Empty state with "Browse Services" CTA
+
+- ESLint: zero errors on all new/modified files (9 pre-existing errors in prisma seed files only)
+- All files are .jsx (no TypeScript), use Tailwind utility classes, react-icons
