@@ -71,7 +71,8 @@ const DEFAULT_USER = {
   initials: "U",
 };
 
-export default function DashboardHeader({ user = DEFAULT_USER }) {
+export default function DashboardHeader({ user }) {
+  user = user || DEFAULT_USER;
   const pathname = usePathname();
   const { openMobile, setOpenMobile } = useSidebar();
   const crumbs = buildBreadcrumbs(pathname);

@@ -23,8 +23,8 @@ function DashboardShellInner({ children }) {
       }
     : null;
 
-  // Show loading while session loads
-  if (status === "loading") {
+  // Show loading while session loads (guard against race where status is set but session is still null)
+  if (status === "loading" || !session?.user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

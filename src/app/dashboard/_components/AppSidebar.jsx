@@ -88,7 +88,8 @@ function NavItem({ item, isActive, badgeCount }) {
   );
 }
 
-export default function AppSidebar({ user = DEFAULT_USER, badges }) {
+export default function AppSidebar({ user, badges }) {
+  user = user || DEFAULT_USER;
   const pathname = usePathname();
   const { state } = useSidebar();
   const navItems = user.role === "EMPLOYER" ? EMPLOYER_NAV : JOB_SEEKER_NAV;
