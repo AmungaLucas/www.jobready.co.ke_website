@@ -2,7 +2,76 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { findOrCreateUser, linkWalkInOrders, getMissingProfileFields } from "@/lib/account-merge";
+import {
+  findUserByGoogleId,
+  findUserByEmail,
+  createUser,
+  getMissingProfileFields,
+  linkWalkInOrders,
+  migrateExistingGoogleUsers,
+} from "@/lib/auth-identity";
+
+// ---------------------------------------------------------------------------
+// One-time migration: populate googleId from AuthAccount table
+// ---------------------------------------------------------------------------
+// Idempotent — skips users who already have googleId set.
+// Runs when this module is first imported (server-side only).
+migrateExistingGoogleUsers().catch((err) => {
+  console.error("[Auth] Migration of existing Google users failed:", err);
+});
+
+// ---------------------------------------------------------------------------
+// Helper: upsert AuthAccount for Google OAuth token storage
+// ---------------------------------------------------------------------------
+// NextAuth JWT strategy doesn't use an adapter, so we manually
+// persist Google tokens for potential future use (API calls, etc.).
+async function upsertGoogleAuthAccount(userId, account) {
+  if (!account?.providerAccountId) return;
+
+  const expiresAt = account.expires_at
+    ? new Date(account.expires_at * 1000)
+    : null;
+
+  await db.authAccount.upsert({
+    where: { providerAccountId: account.providerAccountId },
+    create: {
+      userId,
+      provider: "google",
+      providerAccountId: account.providerAccountId,
+      accessToken: account.access_token || null,
+      refreshToken: account.refresh_token || null,
+      idToken: account.id_token || null,
+      expiresAt,
+      scope: account.scope || null,
+    },
+    update: {
+      accessToken: account.access_token || null,
+      refreshToken: account.refresh_token || null,
+      idToken: account.id_token || null,
+      expiresAt,
+      scope: account.scope || null,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Attach DB user fields to NextAuth user stub so the jwt callback picks them up
+// ---------------------------------------------------------------------------
+function attachUserFields(target, dbUser, googlePicture) {
+  target.id = dbUser.id;
+  target.name = dbUser.name;
+  target.email = dbUser.email;
+  target.phone = dbUser.phone;
+  target.avatar = dbUser.avatar || googlePicture || null;
+  target.role = dbUser.role;
+  target.googleId = dbUser.googleId || null;
+  target.emailVerified = dbUser.emailVerified;
+  target.phoneVerified = dbUser.phoneVerified;
+}
+
+// ===========================================================================
+// NextAuth Configuration
+// ===========================================================================
 
 export const authOptions = {
   // Use JWT strategy for scalability (no database sessions)
@@ -13,7 +82,10 @@ export const authOptions = {
 
   // Custom JWT + session callbacks to embed user data
   callbacks: {
-    async jwt({ token, user, account }) {
+    // -----------------------------------------------------------------------
+    // JWT callback — embeds user data into the JWT on every sign-in
+    // -----------------------------------------------------------------------
+    async jwt({ token, user }) {
       // Initial sign-in: embed user data into JWT token
       if (user) {
         token.id = user.id;
@@ -22,19 +94,20 @@ export const authOptions = {
         token.phone = user.phone;
         token.avatar = user.avatar;
         token.role = user.role;
+        token.googleId = user.googleId || null;
         token.emailVerified = user.emailVerified;
         token.phoneVerified = user.phoneVerified;
-        token.missingFields = user.missingFields || null;
-        token.linkedOrders = user.linkedOrders || null;
-        token.merged = user.merged || false;
+        token.missingFields = getMissingProfileFields(user);
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
       }
       return token;
     },
 
+    // -----------------------------------------------------------------------
+    // Session callback — expose JWT data to the client session
+    // -----------------------------------------------------------------------
     async session({ session, token }) {
-      // Expose embedded user data to client session
       if (token) {
         session.user.id = token.id;
         session.user.name = token.name;
@@ -42,62 +115,85 @@ export const authOptions = {
         session.user.phone = token.phone;
         session.user.avatar = token.avatar;
         session.user.role = token.role;
+        session.user.googleId = token.googleId || null;
         session.user.emailVerified = token.emailVerified;
         session.user.phoneVerified = token.phoneVerified;
         session.user.missingFields = token.missingFields;
-        session.user.linkedOrders = token.linkedOrders;
-        session.user.merged = token.merged;
       }
       return session;
     },
 
+    // -----------------------------------------------------------------------
+    // signIn callback — Google OAuth identity resolution
+    // -----------------------------------------------------------------------
+    // Three cases:
+    //   1. User found by googleId → login (return true)
+    //   2. User found by email but no googleId → redirect to link page
+    //   3. No user found → create new user with googleId
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign-in: use merge logic
-      if (account?.provider === "google") {
-        const email = profile?.email?.toLowerCase().trim();
-
-        if (!email) {
-          return false;
-        }
-
-        console.log(`[Auth] Google OAuth sign-in attempt: ${email}`);
-
-        // Use findOrCreateUser — handles merge, link, create
-        const result = await findOrCreateUser({
-          email,
-          name: profile?.name,
-          avatar: profile?.picture,
-          provider: "google",
-          providerAccountId: account.providerAccountId,
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
-          idToken: account.id_token,
-          scope: account.scope,
-          expiresAt: account.expires_at,
-        });
-
-        const dbUser = result.user;
-        const missingFields = getMissingProfileFields(dbUser);
-        const linkedOrders = await linkWalkInOrders(dbUser.id, email, dbUser.phone);
-
-        console.log(
-          `[Auth] Google OAuth: user=${dbUser.id}, created=${result.created}, merged=${result.merged}, linked=${result.linkedProvider}`
-        );
-
-        // Attach user data so jwt callback picks it up
-        user.id = dbUser.id;
-        user.name = dbUser.name;
-        user.email = dbUser.email;
-        user.phone = dbUser.phone;
-        user.avatar = dbUser.avatar || profile?.picture;
-        user.role = dbUser.role;
-        user.emailVerified = dbUser.emailVerified;
-        user.phoneVerified = dbUser.phoneVerified;
-        user.missingFields = missingFields;
-        user.linkedOrders = linkedOrders;
-        user.merged = result.merged;
+      // Only handle Google OAuth
+      if (account?.provider !== "google") {
+        return true;
       }
 
+      const googleId = profile?.sub;
+      const email = profile?.email?.toLowerCase().trim();
+
+      if (!email || !googleId) {
+        console.warn("[Auth] Google OAuth: missing email or sub in profile");
+        return false;
+      }
+
+      console.log(`[Auth] Google OAuth sign-in attempt: ${email}`);
+
+      // ------------------------------------------------------------------
+      // Case 1: Existing Google user — found by googleId → just login
+      // ------------------------------------------------------------------
+      let dbUser = await findUserByGoogleId(googleId);
+      if (dbUser) {
+        console.log(
+          `[Auth] Google OAuth: existing user (googleId match) id=${dbUser.id}`
+        );
+        await upsertGoogleAuthAccount(dbUser.id, account);
+        attachUserFields(user, dbUser, profile?.picture);
+        return true;
+      }
+
+      // ------------------------------------------------------------------
+      // Case 2: Email exists but no googleId → needs linking
+      // ------------------------------------------------------------------
+      // Create an orphaned auth account (userId: null) so the
+      // /api/auth/link-google endpoint can find it after password
+      // verification.  Then redirect to the login linking page.
+      dbUser = await findUserByEmail(email);
+      if (dbUser && !dbUser.googleId) {
+        console.log(
+          `[Auth] Google OAuth: email exists but no googleId — creating orphaned auth account and redirecting to link page (user ${dbUser.id})`
+        );
+        await upsertGoogleAuthAccount(null, account);
+        return `/login?link=google&email=${encodeURIComponent(email)}`;
+      }
+
+      // ------------------------------------------------------------------
+      // Case 3: No user found → create new Google user
+      // ------------------------------------------------------------------
+      if (!dbUser) {
+        dbUser = await createUser({
+          email,
+          googleId,
+          name: profile?.name || "Google User",
+          emailVerified: true,
+        });
+
+        await upsertGoogleAuthAccount(dbUser.id, account);
+        await linkWalkInOrders(dbUser.id, email, null);
+
+        console.log(`[Auth] Google OAuth: created new user id=${dbUser.id}`);
+        attachUserFields(user, dbUser, profile?.picture);
+        return true;
+      }
+
+      // Edge case: user exists and already has googleId (race condition)
       return true;
     },
   },
@@ -113,7 +209,9 @@ export const authOptions = {
 
   // Providers
   providers: [
+    // -----------------------------------------------------------------------
     // Email/Password credentials provider
+    // -----------------------------------------------------------------------
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -164,6 +262,7 @@ export const authOptions = {
           phone: user.phone,
           avatar: user.avatar,
           role: user.role,
+          googleId: user.googleId || null,
           emailVerified: user.emailVerified,
           phoneVerified: user.phoneVerified,
           missingFields,
@@ -171,7 +270,9 @@ export const authOptions = {
       },
     }),
 
+    // -----------------------------------------------------------------------
     // Google OAuth provider
+    // -----------------------------------------------------------------------
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,

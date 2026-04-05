@@ -129,3 +129,20 @@ Stage Summary:
 - Filter UI components use static labels without fake counts
 - No remaining imports from mock-data files (verified — only cv-services remains, which is kept intentionally)
 - No new lint errors introduced; homepage loads with 200 OK
+
+---
+Task ID: 11
+Agent: Auth Schema Migration
+Task: Add googleId to User, create Otp table
+
+Work Log:
+- Added googleId (String?, @unique) to User model
+- Created new Otp model with phone, code, purpose, verified, expiresAt
+- Added index on Otp(phone, purpose)
+- Generated Prisma client (v6.19.3)
+- Pushed schema to production MySQL database
+- Installed prisma@6 CLI to match @prisma/client ^6.11.1
+
+Stage Summary:
+- Schema changes applied to database
+- Next: Rewrite auth-identity.js with simple direct lookups

@@ -3,7 +3,14 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { sendEmail, welcomeTemplate } from "@/lib/email";
-import { findOrCreateUser, linkWalkInOrders, getMissingProfileFields, normalizePhone } from "@/lib/account-merge";
+import {
+  normalizePhone,
+  findUserByEmail,
+  findUserByPhone,
+  createUser,
+  linkWalkInOrders,
+  getMissingProfileFields,
+} from "@/lib/auth-identity";
 
 export async function POST(request) {
   try {
@@ -53,25 +60,40 @@ export async function POST(request) {
     const trimmedEmail = email.toLowerCase().trim();
     const trimmedName = name.trim();
 
+    // --- Check uniqueness via auth-identity ---
+    const existingEmail = await findUserByEmail(trimmedEmail);
+    if (existingEmail) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 }
+      );
+    }
+
+    if (normalizedPhone) {
+      const existingPhone = await findUserByPhone(normalizedPhone);
+      if (existingPhone) {
+        return NextResponse.json(
+          { error: "An account with this phone number already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
     // --- Hash password ---
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // --- Use findOrCreateUser with merge logic ---
-    const result = await findOrCreateUser({
+    // --- Create user via auth-identity (simple create, no merge) ---
+    const user = await createUser({
       email: trimmedEmail,
       phone: normalizedPhone,
       name: trimmedName,
-      provider: "email",
-      providerAccountId: trimmedEmail,
       passwordHash,
+      emailVerified: false,
+      phoneVerified: false,
     });
 
-    const user = result.user;
-
-    console.log(
-      `[Register] user=${user.id}, created=${result.created}, merged=${result.merged}, linked=${result.linkedProvider}`
-    );
+    console.log(`[Register] user=${user.id}, created=true`);
 
     // --- Link walk-in orders ---
     const linkedOrders = await linkWalkInOrders(user.id, trimmedEmail, normalizedPhone);
@@ -83,28 +105,22 @@ export async function POST(request) {
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     // --- Send welcome email (non-blocking) ---
-    if (result.created) {
-      sendEmail({
-        to: trimmedEmail,
-        subject: "Welcome to JobReady!",
-        ...welcomeTemplate(trimmedName, trimmedEmail),
-      }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
-    }
+    sendEmail({
+      to: trimmedEmail,
+      subject: "Welcome to JobReady!",
+      ...welcomeTemplate(trimmedName, trimmedEmail),
+    }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
 
     return NextResponse.json(
       {
-        message: result.created
-          ? "Account created successfully"
-          : result.merged
-            ? "Account linked successfully"
-            : "You already have an account. Please sign in.",
+        message: "Account created successfully",
         user: userWithoutPassword,
-        created: result.created,
-        merged: result.merged,
+        created: true,
+        merged: false,
         linkedOrders,
         missingFields,
       },
-      { status: result.created ? 201 : 200 }
+      { status: 201 }
     );
   } catch (error) {
     console.error("[Register API] Error:", error);
@@ -120,12 +136,6 @@ export async function POST(request) {
       if (field === "phone") {
         return NextResponse.json(
           { error: "An account with this phone number already exists" },
-          { status: 409 }
-        );
-      }
-      if (field === "provider_account_id") {
-        return NextResponse.json(
-          { error: "An auth account with this identifier already exists" },
           { status: 409 }
         );
       }

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/slug";
-import { normalizePhone } from "@/lib/account-merge";
+import { normalizePhone } from "@/lib/auth-identity";
 
 /**
  * POST /api/orders

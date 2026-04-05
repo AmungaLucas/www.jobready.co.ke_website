@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { linkWalkInOrders, getMissingProfileFields, normalizePhone } from "@/lib/account-merge";
+import {
+  linkWalkInOrders,
+  getMissingProfileFields,
+  normalizePhone,
+  linkPhoneToUser,
+  linkEmailToUser,
+  setUserPassword,
+} from "@/lib/auth-identity";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -41,7 +48,8 @@ export async function PATCH(request) {
 
     // --- Check what's missing ---
     const missing = getMissingProfileFields(user);
-    const updates = {};
+    const updateResults = [];
+    let updatedUser = user;
 
     // Name — only allow if currently missing/placeholder
     if (name && missing.needsName) {
@@ -52,7 +60,11 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-      updates.name = trimmedName;
+      updatedUser = await db.user.update({
+        where: { id: userId },
+        data: { name: trimmedName },
+      });
+      updateResults.push("name");
     }
 
     // Email — only allow if currently placeholder
@@ -64,20 +76,8 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-
-      // Check if email is already taken by another user
-      const existingEmailUser = await db.user.findUnique({
-        where: { email: trimmedEmail },
-      });
-
-      if (existingEmailUser && existingEmailUser.id !== userId) {
-        return NextResponse.json(
-          { error: "This email is already linked to another account" },
-          { status: 409 }
-        );
-      }
-
-      updates.email = trimmedEmail;
+      updatedUser = await linkEmailToUser(userId, trimmedEmail);
+      updateResults.push("email");
     }
 
     // Phone — only allow if currently missing
@@ -89,21 +89,8 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-
-      // Check if phone is already taken by another user
-      const existingPhoneUser = await db.user.findUnique({
-        where: { phone: normalizedPhone },
-      });
-
-      if (existingPhoneUser && existingPhoneUser.id !== userId) {
-        return NextResponse.json(
-          { error: "This phone number is already linked to another account" },
-          { status: 409 }
-        );
-      }
-
-      updates.phone = normalizedPhone;
-      updates.phoneVerified = true;
+      updatedUser = await linkPhoneToUser(userId, normalizedPhone);
+      updateResults.push("phone");
     }
 
     // Password — only allow if currently missing
@@ -114,11 +101,13 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-      updates.passwordHash = await bcrypt.hash(password, 12);
+      const passwordHash = await bcrypt.hash(password, 12);
+      updatedUser = await setUserPassword(userId, passwordHash);
+      updateResults.push("password");
     }
 
     // --- Check if there's anything to update ---
-    if (Object.keys(updates).length === 0) {
+    if (updateResults.length === 0) {
       return NextResponse.json(
         {
           message: "No fields to update",
@@ -129,21 +118,15 @@ export async function PATCH(request) {
       );
     }
 
-    // --- Apply updates ---
-    const updatedUser = await db.user.update({
-      where: { id: userId },
-      data: updates,
-    });
-
     console.log(
-      `[Complete Profile] Updated user ${userId}: ${Object.keys(updates).join(", ")}`
+      `[Complete Profile] Updated user ${userId}: ${updateResults.join(", ")}`
     );
 
     // --- Link walk-in orders ---
     const linkedOrders = await linkWalkInOrders(
       userId,
-      updates.email || updatedUser.email,
-      updates.phone || updatedUser.phone
+      updatedUser.email,
+      updatedUser.phone
     );
 
     // --- Re-check missing fields ---
@@ -166,6 +149,17 @@ export async function PATCH(request) {
         { error: "A conflict occurred. This identifier may already be in use." },
         { status: 409 }
       );
+    }
+
+    // Handle errors thrown by linkPhoneToUser/linkEmailToUser
+    if (error.message && error.message.includes("[AuthIdentity]")) {
+      const msg = error.message;
+      if (msg.includes("already belongs to another")) {
+        return NextResponse.json(
+          { error: "This identifier is already linked to another account" },
+          { status: 409 }
+        );
+      }
     }
 
     return NextResponse.json(

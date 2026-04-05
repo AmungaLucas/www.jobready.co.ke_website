@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendOTP } from "@/lib/sms";
-import { normalizePhone } from "@/lib/account-merge";
+import { normalizePhone } from "@/lib/auth-identity";
 
 export async function POST(request) {
   try {
@@ -27,15 +27,16 @@ export async function POST(request) {
     }
 
     // --- Rate limiting check ---
-    // Check if an OTP was sent to this phone in the last 60 seconds
-    const recentOtp = await db.authAccount.findFirst({
+    // Check if an OTP was sent to this phone in the last 60 seconds (via Otp table)
+    const recentOtp = await db.otp.findFirst({
       where: {
-        provider: "phone_otp",
-        providerAccountId: normalizedPhone,
+        phone: normalizedPhone,
+        purpose: "auth",
         createdAt: {
           gte: new Date(Date.now() - 60 * 1000),
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     if (recentOtp) {
@@ -49,24 +50,12 @@ export async function POST(request) {
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // --- Upsert OTP in AuthAccount ---
-    // Use provider: "phone_otp" to separate from the actual "phone" auth account
-    // This record is TEMPORARY — it only stores the OTP for verification
-    // It does NOT create a user at this stage
-    await db.authAccount.upsert({
-      where: {
-        providerAccountId: normalizedPhone,
-      },
-      create: {
-        provider: "phone_otp",
-        providerAccountId: normalizedPhone,
-        accessToken: otp,
-        expiresAt: otpExpiry,
-        // userId is null at this point — user is created on verify
-      },
-      update: {
-        provider: "phone_otp",
-        accessToken: otp,
+    // --- Store OTP in the new Otp table ---
+    await db.otp.create({
+      data: {
+        phone: normalizedPhone,
+        code: otp,
+        purpose: "auth",
         expiresAt: otpExpiry,
       },
     });

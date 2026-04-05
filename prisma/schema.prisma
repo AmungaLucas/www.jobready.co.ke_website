@@ -34,6 +34,7 @@ model User {
   id             String    @id @default(cuid())
   email          String    @unique
   phone          String?   @unique                    // +2547XXXXXXXX
+  googleId       String?   @unique                    // Google OAuth sub (unique identifier)
   name           String
   passwordHash   String?                              // null = OAuth-only user
 
@@ -76,7 +77,8 @@ model User {
 // ============================================================
 // 2. AUTH ACCOUNTS — Multi-provider auth
 // ============================================================
-// Supports: email/password, Google OAuth, Phone OTP
+// Now only used for: Google OAuth token storage, NextAuth compatibility
+// Supports: Google OAuth (token storage), NextAuth compatibility
 // One user can have multiple auth methods linked
 
 model AuthAccount {
@@ -94,6 +96,24 @@ model AuthAccount {
   updatedAt        DateTime  @updatedAt
 
   @@map("auth_accounts")
+}
+
+// ============================================================
+// 2b. OTPS — One-Time Password Storage
+// ============================================================
+// Replaces using AuthAccount for OTP. Stores phone OTPs for auth, reset, verify.
+
+model Otp {
+  id               String    @id @default(cuid())
+  phone            String                      // Target phone number (normalized 2547XXXXXXXX)
+  code             String                      // 6-digit OTP
+  purpose          String    @default("auth")  // "auth" | "reset" | "verify"
+  verified         Boolean   @default(false)   // Whether this OTP was used
+  expiresAt        DateTime                    // OTP expiry time
+  createdAt        DateTime  @default(now())
+
+  @@index([phone, purpose])    // For lookup: find latest OTP by phone + purpose
+  @@map("otps")
 }
 
 // ============================================================

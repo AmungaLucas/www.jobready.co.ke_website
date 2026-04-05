@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getMissingProfileFields } from "@/lib/account-merge";
+import { getMissingProfileFields } from "@/lib/auth-identity";
 import { encode } from "next-auth/jwt";
 
 /**

@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { findOrCreateUser, linkWalkInOrders, getMissingProfileFields, normalizePhone } from "@/lib/account-merge";
+import {
+  normalizePhone,
+  findUserByPhone,
+  createUser,
+  linkWalkInOrders,
+  getMissingProfileFields,
+} from "@/lib/auth-identity";
 
 export async function POST(request) {
   try {
@@ -32,33 +38,31 @@ export async function POST(request) {
       );
     }
 
-    // --- Find the OTP record ---
-    const authAccount = await db.authAccount.findUnique({
-      where: { providerAccountId: normalizedPhone },
+    // --- Find the OTP record from the Otp table ---
+    const now = new Date();
+    const otpRecord = await db.otp.findFirst({
+      where: {
+        phone: normalizedPhone,
+        code: otp,
+        purpose: "auth",
+        verified: false,
+        expiresAt: { gte: now },
+      },
+      orderBy: { createdAt: "desc" },
     });
 
-    if (!authAccount || (authAccount.provider !== "phone_otp" && authAccount.provider !== "phone")) {
+    if (!otpRecord) {
       return NextResponse.json(
-        { error: "No OTP found for this phone number. Please request a new one." },
+        { error: "No valid OTP found for this phone number. Please request a new one." },
         { status: 404 }
       );
     }
 
-    // Check if OTP matches
-    if (authAccount.accessToken !== otp) {
-      return NextResponse.json(
-        { error: "Invalid OTP. Please try again." },
-        { status: 401 }
-      );
-    }
-
-    // Check if OTP is expired
-    if (authAccount.expiresAt && new Date() > authAccount.expiresAt) {
-      return NextResponse.json(
-        { error: "OTP has expired. Please request a new one." },
-        { status: 401 }
-      );
-    }
+    // --- Mark OTP as verified (consumed) ---
+    await db.otp.update({
+      where: { id: otpRecord.id },
+      data: { verified: true },
+    });
 
     // --- Validate optional profile fields ---
     let normalizedEmail = null;
@@ -95,29 +99,24 @@ export async function POST(request) {
       passwordHash = await bcrypt.hash(password, 12);
     }
 
-    // --- Delete the OTP record (it's been consumed) ---
-    await db.authAccount.delete({
-      where: { id: authAccount.id },
-    });
+    // --- Find or create user ---
+    let user = await findUserByPhone(normalizedPhone);
+    let created = false;
 
-    // --- Use findOrCreateUser with merge logic ---
-    const result = await findOrCreateUser({
-      phone: normalizedPhone,
-      email: normalizedEmail,
-      name: trimmedName,
-      provider: "phone",
-      providerAccountId: normalizedPhone,
-      passwordHash,
-    });
+    if (!user) {
+      // New user — create via auth-identity
+      user = await createUser({
+        phone: normalizedPhone,
+        email: normalizedEmail,
+        name: trimmedName,
+        passwordHash,
+        phoneVerified: true,
+      });
+      created = true;
 
-    const user = result.user;
-
-    console.log(
-      `[Verify OTP] user=${user.id}, created=${result.created}, merged=${result.merged}, linked=${result.linkedProvider}`
-    );
-
-    // --- Link walk-in orders ---
-    const linkedOrders = await linkWalkInOrders(user.id, normalizedEmail, normalizedPhone);
+      // Link walk-in orders for new users
+      await linkWalkInOrders(user.id, normalizedEmail, normalizedPhone);
+    }
 
     // --- Check missing profile fields ---
     const missingFields = getMissingProfileFields(user);
@@ -127,15 +126,12 @@ export async function POST(request) {
 
     return NextResponse.json(
       {
-        message: result.created
+        message: created
           ? "Account created successfully"
-          : result.merged
-            ? "Accounts linked successfully"
-            : "Phone verified successfully",
+          : "Phone verified successfully",
         user: userWithoutPassword,
-        created: result.created,
-        merged: result.merged,
-        linkedOrders,
+        created,
+        linkedOrders: created ? undefined : undefined,
         missingFields,
       },
       { status: 200 }
@@ -148,6 +144,12 @@ export async function POST(request) {
       if (field === "email") {
         return NextResponse.json(
           { error: "This email is already linked to another account. Please sign in with that account first." },
+          { status: 409 }
+        );
+      }
+      if (field === "phone") {
+        return NextResponse.json(
+          { error: "This phone number is already linked to another account." },
           { status: 409 }
         );
       }
