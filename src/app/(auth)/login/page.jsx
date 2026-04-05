@@ -392,30 +392,32 @@ function LoginForm() {
         return;
       }
 
-      // Profile complete — sign in via NextAuth credentials
-      // Since phone users may not have a password, use a special approach
-      // We call signIn with the user's email to establish a session
+      // Profile complete — submit a native form to phone-session.
+      // The server sets the cookie AND returns a 307 redirect.
+      // The browser follows the redirect natively — zero React interference.
       if (data.user) {
-        // For phone-only users, we need to establish a session
-        // Use a server-side approach: sign in with the phone auth
-        const signInRes = await fetch("/api/auth/phone-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: data.user.id }),
-        });
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/api/auth/phone-session";
 
-        if (signInRes.ok) {
-          setJustLoggedIn(true);
-          await refresh();
-        } else {
-          // Fallback: try to sign in
-          setJustLoggedIn(true);
-          await refresh();
-        }
-      } else {
-        setJustLoggedIn(true);
-        await refresh();
+        const addField = (name, value) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        };
+
+        addField("userId", data.user.id);
+        addField("callbackUrl", callbackUrl || "/dashboard");
+
+        document.body.appendChild(form);
+        form.submit();
+        return; // browser is navigating away — nothing else to do
       }
+
+      // No user returned (unexpected) — show error
+      setOtpError("Verification succeeded but no session could be created. Please try again.");
     } catch (err) {
       setOtpError("Verification failed. Please check your connection.");
     } finally {
