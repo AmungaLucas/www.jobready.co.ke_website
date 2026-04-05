@@ -105,8 +105,12 @@ function LoginForm() {
       return;
     }
 
+    // Don't redirect while profile completion form is showing
+    // (user is authenticated but hasn't finished filling in their details)
+    if (showProfileComplete) return;
+
     router.push(callbackUrl);
-  }, [isAuthenticated, callbackUrl, router, session, justLoggedIn]);
+  }, [isAuthenticated, callbackUrl, router, session, justLoggedIn, showProfileComplete]);
 
   // Show error from URL params (e.g., OAuth errors)
   useEffect(() => {
@@ -248,7 +252,30 @@ function LoginForm() {
         return;
       }
 
-      // Profile complete — refresh session and redirect
+      // Profile complete — create a fresh session with updated data
+      // and redirect via native form submit (proven reliable redirect).
+      if (data.user?.id) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/api/auth/phone-session";
+
+        const addField = (name, value) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        };
+
+        addField("userId", data.user.id);
+        addField("callbackUrl", callbackUrl || "/dashboard");
+
+        document.body.appendChild(form);
+        form.submit();
+        return; // browser is navigating away
+      }
+
+      // Fallback if no user id returned
       await refresh();
       router.push(callbackUrl);
     } catch (err) {
@@ -386,6 +413,28 @@ function LoginForm() {
 
       // Check if profile is incomplete
       if (data.missingFields && !data.missingFields.isComplete) {
+        // Create a session FIRST so that complete-profile can authenticate.
+        // This fixes the Scenario 2 deadlock where:
+        //   verify-otp creates user → complete-profile needs session →
+        //   phone-session creates session → but phone-session only called
+        //   when isComplete (chicken-and-egg).
+        if (data.user) {
+          try {
+            const sessionRes = await fetch("/api/auth/phone-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId: data.user.id }),
+            });
+            if (sessionRes.ok) {
+              await refresh();
+            }
+          } catch (err) {
+            // Session creation failed — still show the form;
+            // complete-profile will return 401 and the user can retry
+            console.warn("[Phone Login] Session creation failed:", err);
+          }
+        }
+
         setProfileMissingFields(data.missingFields);
         setProfileLinkedOrders(data.linkedOrders || 0);
         setShowProfileComplete(true);

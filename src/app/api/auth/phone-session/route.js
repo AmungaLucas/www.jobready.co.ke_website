@@ -6,33 +6,37 @@ import { encode } from "next-auth/jwt";
 /**
  * POST /api/auth/phone-session
  *
- * Creates a NextAuth JWT session for a phone-verified user and
- * redirects the browser to the callbackUrl.
+ * Creates a NextAuth JWT session for a phone-verified user.
  *
- * Accepts both JSON and form-data (so a native <form> submit works).
+ * Two modes of operation:
+ *   1. JSON request  → returns JSON + session cookie (no redirect).
+ *      Used by the login page to create a session before showing the
+ *      profile completion form (Scenario 2: new phone users).
+ *   2. Form submission → returns 303 redirect + session cookie.
+ *      Used by the login page after profile completion to navigate
+ *      the user to the dashboard with zero React interference.
  */
 export async function POST(request) {
   try {
     // Accept both JSON body and form-data (native form submission)
     let userId;
     let callbackUrl;
+    const isJson =
+      (request.headers.get("content-type") || "").includes("application/json");
 
-    const contentType = request.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
+    if (isJson) {
       const body = await request.json();
       userId = body.userId;
       callbackUrl = body.callbackUrl;
     } else {
-      // form-data or urlencoded (native form submission)
       const formData = await request.formData();
       userId = formData.get("userId");
       callbackUrl = formData.get("callbackUrl");
     }
 
+    // --- Validate userId ---
     if (!userId) {
-      // If called as a full page navigation (form submit), redirect back to login
-      if (!contentType.includes("application/json")) {
+      if (!isJson) {
         return NextResponse.redirect(
           new URL("/login?error=phone_session", request.url)
         );
@@ -43,13 +47,13 @@ export async function POST(request) {
       );
     }
 
-    // Fetch user from DB
+    // --- Fetch user from DB ---
     const user = await db.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
-      if (!contentType.includes("application/json")) {
+      if (!isJson) {
         return NextResponse.redirect(
           new URL("/login?error=phone_session", request.url)
         );
@@ -60,11 +64,9 @@ export async function POST(request) {
       );
     }
 
-    // -----------------------------------------------------------------
-    // Determine cookie name: NextAuth uses __Secure- prefix in production
-    // (when accessed via HTTPS). If we use the wrong name, getToken() in
-    // the middleware can't find the cookie → user appears unauthenticated.
-    // -----------------------------------------------------------------
+    // --- Determine cookie name ---
+    // NextAuth uses __Secure- prefix in production (HTTPS).
+    // Using the wrong name makes getToken() unable to find the cookie.
     const useSecureCookies =
       process.env.NODE_ENV === "production" ||
       (process.env.NEXTAUTH_URL || "").startsWith("https://");
@@ -73,7 +75,7 @@ export async function POST(request) {
       ? "__Secure-next-auth.session-token"
       : "next-auth.session-token";
 
-    // Compute missing profile fields + generate JWT (mirrors NextAuth's jwt() callback)
+    // --- Generate JWT (mirrors NextAuth's jwt() callback) ---
     const missingFields = getMissingProfileFields(user);
 
     const token = await encode({
@@ -95,19 +97,38 @@ export async function POST(request) {
       maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
-    // Determine where to send the user
+    // --- Build response ---
     const redirectUrl = callbackUrl || "/dashboard";
 
-    // Build a 303 redirect response — converts POST → GET so the browser
-    // navigates to dashboard with a normal GET request (not POST, which
-    // would cause a 405). This mirrors how NextAuth's own signIn callback
-    // handles post-authentication redirects.
-    const response = NextResponse.redirect(
-      new URL(redirectUrl, request.url),
-      303 // See Other: POST → GET
-    );
+    let response;
 
-    // Attach the session cookie to the redirect response — using the correct name
+    if (isJson) {
+      // JSON mode: return JSON body + cookie (no redirect).
+      // The caller decides what to do next (e.g. show profile form).
+      response = NextResponse.json({
+        message: "Session created",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          role: user.role,
+          emailVerified: user.emailVerified,
+          phoneVerified: user.phoneVerified,
+          missingFields,
+        },
+      });
+    } else {
+      // Form mode: 303 redirect (POST → GET) + cookie.
+      // The browser follows the redirect natively.
+      response = NextResponse.redirect(
+        new URL(redirectUrl, request.url),
+        303
+      );
+    }
+
+    // Attach the session cookie
     response.cookies.set(sessionCookieName, token, {
       httpOnly: true,
       secure: useSecureCookies,
@@ -117,16 +138,17 @@ export async function POST(request) {
     });
 
     console.log(
-      `[Phone Session] Session created for user ${user.id} (${user.email || user.phone}), cookie: ${sessionCookieName}, redirect: ${redirectUrl}`
+      `[Phone Session] Session created for user ${user.id} (${user.email || user.phone}), cookie: ${sessionCookieName}, mode: ${isJson ? "json" : "redirect"}`
     );
 
     return response;
   } catch (error) {
     console.error("[Phone Session API] Error:", error);
 
-    // If called as a full page navigation, redirect back to login
-    const contentType = request.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
+    const isJson =
+      (request.headers.get("content-type") || "").includes("application/json");
+
+    if (!isJson) {
       return NextResponse.redirect(
         new URL("/login?error=phone_session", request.url)
       );
