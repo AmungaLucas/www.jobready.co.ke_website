@@ -155,44 +155,48 @@ export async function PATCH(request) {
             );
           }
 
-          // ── Merge ghost into current user ──
-          // 1. Remove phone from ghost so linkPhoneToUser won't throw
-          await db.user.update({
-            where: { id: phoneOwner.id },
-            data: { phone: null, phoneVerified: false },
-          });
+          // ── Merge ghost into current user, then delete ghost ──
 
-          // 2. Transfer any orders from ghost to current user
+          // 1. Transfer orders
           const transferredOrders = await db.order.updateMany({
             where: { userId: phoneOwner.id },
             data: { userId },
           });
 
-          // 3. Transfer saved jobs (skip if duplicate to avoid unique constraint)
+          // 2. Transfer saved jobs (skip duplicates via unique constraint)
           const ghostSavedJobs = await db.savedJob.findMany({
             where: { userId: phoneOwner.id },
             select: { jobId: true },
           });
           for (const sj of ghostSavedJobs) {
             try {
-              await db.savedJob.create({
-                data: { userId, jobId: sj.jobId },
-              });
+              await db.savedJob.create({ data: { userId, jobId: sj.jobId } });
             } catch (e) {
-              if (e.code !== "P2002") throw e; // ignore duplicate, re-throw real errors
+              if (e.code !== "P2002") throw e;
             }
           }
 
-          // 4. Transfer saved articles (skip duplicates)
+          // 3. Transfer saved articles (skip duplicates)
           const ghostSavedArticles = await db.savedArticle.findMany({
             where: { userId: phoneOwner.id },
             select: { articleId: true },
           });
           for (const sa of ghostSavedArticles) {
             try {
-              await db.savedArticle.create({
-                data: { userId, articleId: sa.articleId },
-              });
+              await db.savedArticle.create({ data: { userId, articleId: sa.articleId } });
+            } catch (e) {
+              if (e.code !== "P2002") throw e;
+            }
+          }
+
+          // 4. Transfer job applications (skip duplicates)
+          const ghostApplications = await db.application.findMany({
+            where: { userId: phoneOwner.id },
+            select: { jobId: true },
+          });
+          for (const app of ghostApplications) {
+            try {
+              await db.application.create({ data: { userId, jobId: app.jobId } });
             } catch (e) {
               if (e.code !== "P2002") throw e;
             }
@@ -204,11 +208,14 @@ export async function PATCH(request) {
             data: { userId },
           });
 
-          // 6. Now link the phone to the current user
+          // 6. Delete the ghost record (cascade handles remaining relations)
+          await db.user.delete({ where: { id: phoneOwner.id } });
+
+          // 7. Now link the phone to the current user
           updatedUser = await linkPhoneToUser(userId, normalizedPhone);
 
           console.log(
-            `[Complete Profile] Merged ghost user ${phoneOwner.id} → ${userId} (phone: ${normalizedPhone}, orders: ${transferredOrders.count})`
+            `[Complete Profile] Merged + deleted ghost user ${phoneOwner.id} → ${userId} (phone: ${normalizedPhone}, orders: ${transferredOrders.count})`
           );
         } else {
           throw linkErr;
