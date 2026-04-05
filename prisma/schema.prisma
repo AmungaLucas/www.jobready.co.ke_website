@@ -81,8 +81,8 @@ model User {
 
 model AuthAccount {
   id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider         String                              // "google" | "email" | "phone"
   providerAccountId String   @unique                   // Google sub, phone number, email
   accessToken      String?   @db.Text                    // OAuth token (Google tokens can be very long)

@@ -186,7 +186,7 @@ export async function POST(request) {
               amount = callbackMetadata.Item.find(i => i.Name === "Amount")?.Value;
             }
 
-            // Update payment to SUCCESS
+            // Update payment to SUCCESS (with full callback data for audit)
             await db.payment.update({
               where: { id: paymentId },
               data: {
@@ -194,23 +194,26 @@ export async function POST(request) {
                 mpesaReceiptNumber: receiptNo,
                 resultDesc: "Payment confirmed via auto-retry",
                 resultCode: "0",
+                mpesaCallbackData: queryResult,
                 ...(amount && { amount }),
               },
             });
 
-            // Update order
+            // Update order (including status → CONFIRMED)
             const freshOrder = await db.order.findUnique({ where: { id: payment.orderId } });
             if (freshOrder) {
               const newPaid = freshOrder.paidAmount + (amount || payment.amount);
               const newDue = freshOrder.totalAmount - newPaid;
               const newPayStatus = newDue <= 0 ? "PAID" : freshOrder.paidAmount > 0 ? "PARTIALLY_PAID" : "UNPAID";
+              const newOrderStatus = freshOrder.status === "PENDING" ? "CONFIRMED" : freshOrder.status;
               await db.order.update({
                 where: { id: freshOrder.id },
                 data: {
                   paidAmount: newPaid,
                   balanceDue: Math.max(0, newDue),
                   paymentStatus: newPayStatus,
-                  ...(newPayStatus === "PAID" ? { confirmedAt: new Date() } : {}),
+                  status: newOrderStatus,
+                  ...((newOrderStatus === "CONFIRMED" || newPayStatus === "PAID") ? { confirmedAt: new Date() } : {}),
                 },
               });
               await db.orderActivity.create({
@@ -218,10 +221,30 @@ export async function POST(request) {
                   orderId: freshOrder.id,
                   action: "PAYMENT_RECEIVED",
                   description: `Payment of KSh ${(amount || payment.amount).toLocaleString()} confirmed via auto-retry after 4999${receiptNo ? ` — Receipt: ${receiptNo}` : ""}`,
-                  metadata: { paymentId, checkoutRequestId: CheckoutRequestID, resultCode: "0", autoRetry: true },
+                  metadata: { paymentId, checkoutRequestId: CheckoutRequestID, resultCode: "0", autoRetry: true, mpesaReceiptNumber: receiptNo },
                 },
               });
-              console.log(`[M-Pesa Auto-Retry] Order ${freshOrder.orderNumber} updated: paid=${newPaid}, status=${newPayStatus}`);
+              console.log(`[M-Pesa Auto-Retry] Order ${freshOrder.orderNumber} updated: status=${newOrderStatus}, paymentStatus=${newPayStatus}, paid=${newPaid}`);
+
+              // Create notification for the user
+              if (freshOrder.userId) {
+                await db.notification.create({
+                  data: {
+                    userId: freshOrder.userId,
+                    type: "PAYMENT",
+                    title: "Payment Received ✓",
+                    message: `KSh ${(amount || payment.amount).toLocaleString()} received for order ${freshOrder.orderNumber}${receiptNo ? ` (Receipt: ${receiptNo})` : ""}. ${newPayStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newDue).toLocaleString()}`}`,
+                    data: {
+                      orderId: freshOrder.id,
+                      orderNumber: freshOrder.orderNumber,
+                      paymentId,
+                      amount: amount || payment.amount,
+                      mpesaReceiptNumber: receiptNo,
+                      paymentStatus: newPayStatus,
+                    },
+                  },
+                });
+              }
             }
           } else if (queryResultCode === "1032" || queryResultCode === "1037") {
             // User cancelled or timed out on retry
@@ -297,7 +320,8 @@ export async function POST(request) {
           balanceDue: Math.max(0, newBalanceDue),
           paymentStatus: newPaymentStatus,
           status: newOrderStatus,
-          ...(newPaymentStatus === "PAID" ? { confirmedAt: new Date() } : {}),
+          // Set confirmedAt when order transitions to CONFIRMED or is fully PAID
+          ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
         },
       });
 

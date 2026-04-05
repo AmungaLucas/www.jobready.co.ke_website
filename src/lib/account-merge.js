@@ -922,11 +922,11 @@ async function _linkProviderAndUpdate(
     });
 
     if (globalExisting) {
-      if (globalExisting.userId !== user.id) {
+      if (!globalExisting.userId || globalExisting.userId !== user.id) {
         // Reassign to this user (e.g. providerAccountId was created during send-otp
         // without a userId, or belonged to a now-merged-away user)
         console.log(
-          `[AccountMerge] reassigning authAccount ${providerAccountId} from user ${globalExisting.userId} → ${user.id}`
+          `[AccountMerge] reassigning authAccount ${providerAccountId} from user ${globalExisting.userId || 'null'} → ${user.id}`
         );
         await db.authAccount.update({
           where: { id: globalExisting.id },

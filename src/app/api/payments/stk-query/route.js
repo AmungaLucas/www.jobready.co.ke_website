@@ -147,7 +147,7 @@ export async function POST(request) {
                   balanceDue: Math.max(0, newBalanceDue),
                   paymentStatus: newPaymentStatus,
                   status: newOrderStatus,
-                  ...(newPaymentStatus === "PAID" ? { confirmedAt: new Date() } : {}),
+                  ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
                 },
               });
 
