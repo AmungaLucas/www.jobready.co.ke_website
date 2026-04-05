@@ -286,8 +286,12 @@ function LoginForm() {
   };
 
   const skipProfileComplete = () => {
-    refresh();
-    router.push(callbackUrl);
+    // The session cookie was already set by phone-session (JSON call in
+    // handleVerifyOtp).  We just need a full page navigation so the
+    // server-side middleware sees the cookie.  refresh() + router.push()
+    // is unreliable here — the SWR cache doesn't always pick up cookies
+    // set by an external endpoint.
+    window.location.href = callbackUrl || "/dashboard";
   };
 
   // ─── Email Login ───
