@@ -4,14 +4,18 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { FiAlertCircle } from "react-icons/fi";
 
-export default function SocialLoginButtons({ mode = "login", className = "" }) {
+export default function SocialLoginButtons({ mode = "login", callbackUrl, className = "" }) {
   const [loading, setLoading] = useState(false);
+
+  // Use provided callbackUrl, default to /login so Google users get
+  // intercepted by the login page's onboarding detection logic
+  const redirectUrl = callbackUrl || "/login";
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
       await signIn("google", {
-        callbackUrl: "/",
+        callbackUrl: redirectUrl,
         redirect: true,
       });
       // If signIn succeeds with redirect:true, the browser navigates away.

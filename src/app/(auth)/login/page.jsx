@@ -89,8 +89,18 @@ function LoginForm() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // If user just logged in and needs a password, show the banner
-    if (justLoggedIn && session?.user?.missingFields?.needsPassword) {
+    const missing = session?.user?.missingFields;
+
+    // New Google user: no password set → redirect to onboarding (required)
+    // This also catches phone-only users who never set a password
+    if (missing?.needsPassword && !missing?.needsName && !missing?.needsEmail) {
+      // User has name + email but no password → fresh Google sign-up
+      router.push("/onboarding");
+      return;
+    }
+
+    // Incomplete profile from phone OTP (missing name, email, etc.)
+    if (justLoggedIn && missing?.needsPassword && (missing?.needsName || missing?.needsEmail)) {
       setShowNeedsPassword(true);
       return;
     }
@@ -824,7 +834,7 @@ function LoginForm() {
             )}
           </button>
 
-          <SocialLoginButtons mode="login" />
+          <SocialLoginButtons mode="login" callbackUrl={callbackUrl} />
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}
@@ -979,7 +989,7 @@ function LoginForm() {
             </div>
           )}
 
-          <SocialLoginButtons mode="login" />
+          <SocialLoginButtons mode="login" callbackUrl={callbackUrl} />
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}
