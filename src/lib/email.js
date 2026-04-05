@@ -364,6 +364,29 @@ export function paymentConfirmationTemplate({ name, orderNumber, amount, receipt
   return { html, text: `Payment confirmed — Order ${orderNumber}: KSh ${amount}. Receipt: ${receiptNumber}. Date: ${date}.` };
 }
 
+/**
+ * Email link verification code (6-digit code sent to email for account linking)
+ */
+export function emailLinkVerificationTemplate(name, code) {
+  const html = wrapEmail(
+    "Verify Your Email to Link Accounts",
+    "Account linking request",
+    `
+      <p>Hello${name ? ` ${name}` : ""},</p>
+      <p>We received a request to link your email address to an existing JobReady account. To confirm this is your email, enter the code below:</p>
+      <div style="text-align:center;margin:24px 0;">
+        <span style="display:inline-block;background:#f3f4f6;border-radius:8px;padding:12px 24px;font-size:28px;font-weight:700;letter-spacing:6px;color:#111827;">
+          ${code}
+        </span>
+      </div>
+      <p style="font-size:13px;color:#6b7280;">
+        This code will expire in <strong>10 minutes</strong>. If you did not request this, you can safely ignore this email — no changes will be made to your account.
+      </p>
+    `
+  );
+  return { html, text: `Verify your email to link JobReady accounts. Code: ${code}` };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 /** Strip HTML tags for plain text fallback */

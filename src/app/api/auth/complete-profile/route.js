@@ -78,8 +78,26 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-      updatedUser = await linkEmailToUser(userId, trimmedEmail);
-      updateResults.push("email");
+
+      try {
+        updatedUser = await linkEmailToUser(userId, trimmedEmail);
+        updateResults.push("email");
+      } catch (linkErr) {
+        if (linkErr.message?.includes("already belongs to")) {
+          // Email belongs to another (real) user — tell the frontend
+          // to start the email verification + merge flow.
+          return NextResponse.json(
+            {
+              error: "EMAIL_IN_USE",
+              message: "An account with this email already exists. Verify your email to link accounts.",
+              email: trimmedEmail,
+              requiresVerification: true,
+            },
+            { status: 409 }
+          );
+        }
+        throw linkErr;
+      }
     }
 
     // Phone — only allow if currently missing

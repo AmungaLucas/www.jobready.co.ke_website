@@ -65,6 +65,15 @@ function LoginForm() {
   const [linkLoading, setLinkLoading] = useState(false);
   const [linkSuccess, setLinkSuccess] = useState(false);
 
+  // Email verification for account linking (Scenario 3)
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [emailToVerify, setEmailToVerify] = useState("");
+  const [emailVerifyCode, setEmailVerifyCode] = useState("".padEnd(6, ""));
+  const [emailVerifySent, setEmailVerifySent] = useState(false);
+  const [emailVerifyLoading, setEmailVerifyLoading] = useState(false);
+  const [emailVerifyError, setEmailVerifyError] = useState("");
+  const [emailVerifyCountdown, setEmailVerifyCountdown] = useState(0);
+
   // Set password banner (shown after login if user has no password)
   const [showNeedsPassword, setShowNeedsPassword] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
@@ -126,7 +135,7 @@ function LoginForm() {
     }
   }, [errorParam]);
 
-  // Resend countdown timer
+  // Resend countdown timer (phone OTP)
   useEffect(() => {
     if (resendCountdown <= 0) return;
     const timer = setInterval(() => {
@@ -134,6 +143,15 @@ function LoginForm() {
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCountdown]);
+
+  // Email verification countdown timer
+  useEffect(() => {
+    if (emailVerifyCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setEmailVerifyCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [emailVerifyCountdown]);
 
   // ─── Google Account Linking ───
   const handleLinkGoogle = async (e) => {
@@ -232,6 +250,12 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
+        // Handle EMAIL_IN_USE — switch to email verification flow
+        if (data.error === "EMAIL_IN_USE" && data.requiresVerification) {
+          setEmailToVerify(data.email);
+          setShowEmailVerification(true);
+          return;
+        }
         setProfileError(data.error || "Failed to update profile. Please try again.");
         return;
       }
@@ -283,6 +307,68 @@ function LoginForm() {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  // ─── Email Verification for Account Linking (Scenario 3) ───
+  const handleSendEmailVerify = async () => {
+    setEmailVerifyError("");
+    setEmailVerifyLoading(true);
+    try {
+      const res = await fetch("/api/auth/send-email-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEmailVerifyError(data.error || "Failed to send verification email.");
+        return;
+      }
+      setEmailVerifySent(true);
+      setEmailVerifyCountdown(60);
+    } catch (err) {
+      setEmailVerifyError("Something went wrong. Please try again.");
+    } finally {
+      setEmailVerifyLoading(false);
+    }
+  };
+
+  const handleVerifyEmailLink = async (e) => {
+    e.preventDefault();
+    setEmailVerifyError("");
+    const cleanCode = emailVerifyCode.replace(/\s/g, "");
+    if (cleanCode.length !== 6) {
+      setEmailVerifyError("Please enter the complete 6-digit code");
+      return;
+    }
+    setEmailVerifyLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify-email-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify, code: cleanCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEmailVerifyError(data.error || "Verification failed. Please try again.");
+        return;
+      }
+      // Accounts merged — the response sets a new session cookie.
+      // Navigate to dashboard via full page load.
+      window.location.href = callbackUrl || "/dashboard";
+    } catch (err) {
+      setEmailVerifyError("Something went wrong. Please try again.");
+    } finally {
+      setEmailVerifyLoading(false);
+    }
+  };
+
+  const handleBackToProfile = () => {
+    setShowEmailVerification(false);
+    setEmailVerifySent(false);
+    setEmailVerifyCode("".padEnd(6, ""));
+    setEmailVerifyError("");
+    setEmailVerifyCountdown(0);
   };
 
   const skipProfileComplete = () => {
@@ -657,6 +743,141 @@ function LoginForm() {
             Skip for now &rarr;
           </button>
         </div>
+      </AuthCard>
+    );
+  }
+
+  // ─── Email Verification Screen (Scenario 3: split identity merge) ───
+  if (showEmailVerification && showProfileComplete) {
+    return (
+      <AuthCard>
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
+            <FiMail className="text-[#1a56db]" size={28} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Verify Your Email</h1>
+          <p className="text-sm text-gray-500">
+            An account with{" "}
+            <span className="font-semibold text-gray-700">{emailToVerify}</span>{" "}
+            already exists. Verify ownership to link your accounts.
+          </p>
+        </div>
+
+        {emailVerifyError && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-100 rounded-xl">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle className="text-red-500 mt-0.5 shrink-0" size={16} />
+              <p className="text-sm text-red-600">{emailVerifyError}</p>
+            </div>
+          </div>
+        )}
+
+        {!emailVerifySent ? (
+          <div className="space-y-4">
+            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+              <p className="text-sm text-amber-700">
+                We&apos;ll send a 6-digit verification code to{" "}
+                <strong>{emailToVerify}</strong>. Open the email and enter the code below to confirm you own this account.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSendEmailVerify}
+              disabled={emailVerifyLoading}
+              className="w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {emailVerifyLoading ? (
+                <>
+                  <FiLoader className="animate-spin" size={18} />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  Send Verification Code
+                  <FiArrowRight size={16} />
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleBackToProfile}
+              className="w-full py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              &larr; Back to profile form
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleVerifyEmailLink}>
+            <div className="text-center mb-6">
+              <p className="text-sm text-gray-600">
+                Enter the 6-digit code sent to{" "}
+                <span className="font-semibold text-gray-800">{emailToVerify}</span>
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-sm font-medium text-gray-700 mb-3 block text-center">
+                Verification code
+              </label>
+              <OtpInput
+                value={emailVerifyCode}
+                onChange={setEmailVerifyCode}
+                length={6}
+                autoFocus
+                error={emailVerifyError}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={emailVerifyLoading}
+              className="w-full py-3 bg-[#1a56db] hover:bg-[#1e40af] text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {emailVerifyLoading ? (
+                <>
+                  <FiLoader className="animate-spin" size={18} />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  Verify &amp; Link Accounts
+                  <FiArrowRight size={16} />
+                </>
+              )}
+            </button>
+
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-500">
+                Didn&apos;t receive the code?{" "}
+                {emailVerifyCountdown > 0 ? (
+                  <span className="text-gray-400">
+                    Resend in {emailVerifyCountdown}s
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSendEmailVerify}
+                    className="text-[#1a56db] hover:underline font-medium"
+                  >
+                    Resend Code
+                  </button>
+                )}
+              </p>
+            </div>
+
+            <div className="text-center mt-3 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={handleBackToProfile}
+                className="text-sm text-gray-500 hover:text-[#1a56db] transition-colors"
+              >
+                &larr; Back to profile form
+              </button>
+            </div>
+          </form>
+        )}
       </AuthCard>
     );
   }
