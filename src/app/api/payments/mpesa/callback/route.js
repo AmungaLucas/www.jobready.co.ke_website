@@ -392,13 +392,17 @@ export async function POST(request) {
           }),
         });
 
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: order.email,
           subject: `Payment Confirmed — ${order.orderNumber} | JobReady.co.ke`,
           html,
           text,
         });
-        console.log("[M-Pesa Callback] Payment confirmation email sent to:", order.email);
+        if (emailResult.success) {
+          console.log("[M-Pesa Callback] Payment confirmation email sent to:", order.email, "id:", emailResult.messageId);
+        } else {
+          console.error("[M-Pesa Callback] Payment confirmation email FAILED:", emailResult.error);
+        }
       } catch (emailError) {
         // Don't fail the callback if email fails
         console.error("[M-Pesa Callback] Email send failed:", emailError.message);

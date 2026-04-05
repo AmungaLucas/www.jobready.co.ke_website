@@ -59,14 +59,18 @@ export async function sendEmail({ to, subject, html, text, from, replyTo }) {
     text: text || stripHtml(html),
   };
 
-  // If no SMTP configured, log and return success (dev mode)
+  // If no SMTP configured, log warning and return failure in production
   if (!transport) {
-    console.log(`[Email Service] SMTP not configured. Would have sent:`);
-    console.log(`  To: ${to}`);
-    console.log(`  Subject: ${subject}`);
-    console.log(`  From: ${mailOptions.from}`);
+    console.warn(`[Email Service] SMTP not configured — email NOT sent:`);
+    console.warn(`  To: ${to}`);
+    console.warn(`  Subject: ${subject}`);
+    console.warn(`  From: ${mailOptions.from}`);
     if (process.env.NODE_ENV === "development") {
       console.log(`  HTML preview: ${html?.substring(0, 200)}...`);
+    }
+    // In production, return failure so callers know the email wasn't sent
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: "SMTP not configured — set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS" };
     }
     return { success: true, messageId: `dev-${Date.now()}` };
   }
