@@ -274,7 +274,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("[Verify Email Link API] Error:", error);
     return NextResponse.json(
-      { error: "Failed to link accounts. Please try again." },
+      { error: "Failed to link accounts. Please try again.", debug: error.message, code: error.code },
       { status: 500 }
     );
   }
