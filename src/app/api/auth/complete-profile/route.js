@@ -130,7 +130,7 @@ export async function PATCH(request) {
       try {
         updatedUser = await linkPhoneToUser(userId, normalizedPhone);
       } catch (linkErr) {
-        if (linkErr.message?.includes("already belongs to another")) {
+        if (linkErr.message?.includes("already belongs to")) {
           // Phone belongs to another user — check if it's a mergeable ghost
           // (e.g. a phone-only signup that was never completed)
           const phoneOwner = await findUserByPhone(normalizedPhone);
