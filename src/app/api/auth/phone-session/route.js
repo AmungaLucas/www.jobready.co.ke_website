@@ -98,9 +98,13 @@ export async function POST(request) {
     // Determine where to send the user
     const redirectUrl = callbackUrl || "/dashboard";
 
-    // Build a redirect response — the browser follows this natively
+    // Build a 303 redirect response — converts POST → GET so the browser
+    // navigates to dashboard with a normal GET request (not POST, which
+    // would cause a 405). This mirrors how NextAuth's own signIn callback
+    // handles post-authentication redirects.
     const response = NextResponse.redirect(
-      new URL(redirectUrl, request.url)
+      new URL(redirectUrl, request.url),
+      303 // See Other: POST → GET
     );
 
     // Attach the session cookie to the redirect response — using the correct name
