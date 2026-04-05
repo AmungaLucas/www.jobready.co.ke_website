@@ -310,7 +310,9 @@ export function getMissingProfileFields(user) {
 
   const needsPhone = !user.phone;
 
-  const needsPassword = !user.passwordHash;
+  // Support both passwordHash (Prisma model) and hasPassword (NextAuth user stub)
+  const hasPassword = !!(user.passwordHash || user.hasPassword);
+  const needsPassword = !hasPassword;
 
   const isComplete = !needsName && !needsEmail && !needsPhone && !needsPassword;
 

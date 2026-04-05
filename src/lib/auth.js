@@ -67,6 +67,9 @@ function attachUserFields(target, dbUser, googlePicture) {
   target.googleId = dbUser.googleId || null;
   target.emailVerified = dbUser.emailVerified;
   target.phoneVerified = dbUser.phoneVerified;
+  // Safe flag — never expose the actual hash to the client JWT,
+  // just a boolean so getMissingProfileFields can calculate correctly.
+  target.hasPassword = !!dbUser.passwordHash;
 }
 
 // ===========================================================================
@@ -85,7 +88,7 @@ export const authOptions = {
     // -----------------------------------------------------------------------
     // JWT callback — embeds user data into the JWT on every sign-in
     // -----------------------------------------------------------------------
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // Initial sign-in: embed user data into JWT token
       if (user) {
         token.id = user.id;
@@ -101,6 +104,26 @@ export const authOptions = {
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
       }
+
+      // When session.update() is called (e.g. after password set),
+      // re-fetch the user from DB and refresh missingFields so the
+      // middleware onboarding gate sees the updated state.
+      if (trigger === "update" && token?.id) {
+        const freshUser = await db.user.findUnique({
+          where: { id: token.id },
+        });
+        if (freshUser) {
+          token.name = freshUser.name;
+          token.phone = freshUser.phone;
+          token.avatar = freshUser.avatar;
+          token.role = freshUser.role;
+          token.googleId = freshUser.googleId || null;
+          token.emailVerified = freshUser.emailVerified;
+          token.phoneVerified = freshUser.phoneVerified;
+          token.missingFields = getMissingProfileFields(freshUser);
+        }
+      }
+
       return token;
     },
 

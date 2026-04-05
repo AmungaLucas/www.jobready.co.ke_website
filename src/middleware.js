@@ -77,6 +77,23 @@ export async function middleware(request) {
       return NextResponse.redirect(loginUrl);
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // Onboarding gate: force new Google/phone-only users who haven't
+    // set a password to visit /onboarding before accessing dashboard.
+    // ──────────────────────────────────────────────────────────────
+    const missing = token.missingFields;
+    if (
+      missing?.needsPassword &&
+      !missing?.needsName &&
+      !missing?.needsEmail
+    ) {
+      // User has name + email (fresh Google sign-up) but no password →
+      // redirect to onboarding (unless they're already there).
+      if (pathname !== "/onboarding") {
+        return NextResponse.redirect(new URL("/onboarding", request.url));
+      }
+    }
+
     // User is authenticated, allow access
     return NextResponse.next();
   }
