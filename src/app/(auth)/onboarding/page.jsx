@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useSession";
 import {
   FiLock,
   FiPhone,
   FiArrowRight,
+  FiArrowLeft,
   FiLoader,
   FiCheck,
   FiShield,
+  FiAlertCircle,
 } from "react-icons/fi";
 import AuthCard from "../_components/AuthCard";
 import InputField from "../_components/InputField";
@@ -44,6 +46,15 @@ export default function OnboardingPage() {
   const [otpError, setOtpError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
+
+  // Resend countdown timer
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
 
   // Redirect if not authenticated
   if (!authLoading && !isAuthenticated) {
@@ -170,7 +181,7 @@ export default function OnboardingPage() {
       const res = await fetch("/api/auth/complete-profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone }),
+        body: JSON.stringify({ phone: fullPhone, otp: cleanOtp }),
       });
 
       const data = await res.json();
@@ -411,6 +422,29 @@ export default function OnboardingPage() {
                   </button>
                 )}
               </p>
+            </div>
+
+            {/* Back + Skip actions */}
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp("".padEnd(6, ""));
+                  setOtpError("");
+                }}
+                className="text-sm text-gray-500 hover:text-[#1a56db] transition-colors flex items-center gap-1"
+              >
+                <FiArrowLeft size={14} />
+                Change number
+              </button>
+              <button
+                type="button"
+                onClick={handleSkipPhone}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Skip for now &rarr;
+              </button>
             </div>
           </form>
         )}

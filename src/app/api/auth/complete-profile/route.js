@@ -32,7 +32,7 @@ export async function PATCH(request) {
 
     const userId = session.user.id;
     const body = await request.json();
-    const { name, email, phone, password } = body;
+    const { name, email, phone, otp, password } = body;
 
     // --- Fetch current user ---
     const user = await db.user.findUnique({
@@ -89,6 +89,41 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
+
+      // Verify OTP if provided (required for phone linking from onboarding)
+      if (otp) {
+        if (!/^\d{6}$/.test(otp)) {
+          return NextResponse.json(
+            { error: "A valid 6-digit OTP is required" },
+            { status: 400 }
+          );
+        }
+
+        const otpRecord = await db.otp.findFirst({
+          where: {
+            phone: normalizedPhone,
+            code: otp,
+            purpose: "auth",
+            verified: false,
+            expiresAt: { gte: new Date() },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+
+        if (!otpRecord) {
+          return NextResponse.json(
+            { error: "Invalid or expired verification code. Please request a new one." },
+            { status: 400 }
+          );
+        }
+
+        // Mark OTP as consumed
+        await db.otp.update({
+          where: { id: otpRecord.id },
+          data: { verified: true },
+        });
+      }
+
       updatedUser = await linkPhoneToUser(userId, normalizedPhone);
       updateResults.push("phone");
     }
