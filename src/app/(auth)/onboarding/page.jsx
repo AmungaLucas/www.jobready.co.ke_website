@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("      "); // 6 spaces → split gives 6 elements for input rendering
+  const [otpDigits, setOtpDigits] = useState(Array(6).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -169,7 +169,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setOtpError("");
 
-    const cleanOtp = otp.replace(/\s/g, "");
+    const cleanOtp = otpDigits.join("");
     if (cleanOtp.length !== 6) {
       setOtpError("Please enter the complete 6-digit code");
       return;
@@ -355,19 +355,18 @@ export default function OnboardingPage() {
                 Enter verification code
               </label>
               <div className="flex justify-center gap-2">
-                {otp.split("").map((char, i) => (
+                {otpDigits.map((digit, i) => (
                   <input
                     key={i}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
-                    value={char}
+                    value={digit}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      const newOtp = otp.split("");
-                      newOtp[i] = val;
-                      const joined = newOtp.join("");
-                      setOtp(joined);
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 1);
+                      const newDigits = [...otpDigits];
+                      newDigits[i] = val;
+                      setOtpDigits(newDigits);
                       // Auto-focus next input
                       if (val && i < 5) {
                         const next = e.target.nextElementSibling;
@@ -375,7 +374,7 @@ export default function OnboardingPage() {
                       }
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Backspace" && !otp[i] && i > 0) {
+                      if (e.key === "Backspace" && !otpDigits[i] && i > 0) {
                         const prev = e.target.previousElementSibling;
                         if (prev) prev.focus();
                       }
@@ -430,7 +429,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => {
                   setOtpSent(false);
-                  setOtp("      ");
+                  setOtpDigits(Array(6).fill(""));
                   setOtpError("");
                 }}
                 className="text-sm text-gray-500 hover:text-[#1a56db] transition-colors flex items-center gap-1"
