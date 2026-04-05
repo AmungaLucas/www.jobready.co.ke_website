@@ -100,7 +100,7 @@ export const authOptions = {
         token.googleId = user.googleId || null;
         token.emailVerified = user.emailVerified;
         token.phoneVerified = user.phoneVerified;
-        token.missingFields = getMissingProfileFields(user);
+        token.missingFields = user.missingFields || getMissingProfileFields(user);
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
       }
@@ -288,6 +288,7 @@ export const authOptions = {
           googleId: user.googleId || null,
           emailVerified: user.emailVerified,
           phoneVerified: user.phoneVerified,
+          hasPassword: true, // just authenticated with password
           missingFields,
         };
       },
