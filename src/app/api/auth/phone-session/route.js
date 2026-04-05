@@ -34,7 +34,27 @@ export async function POST(request) {
       );
     }
 
-    // Generate JWT token
+    // -----------------------------------------------------------------
+    // Determine cookie name: NextAuth uses __Secure- prefix in production
+    // (when accessed via HTTPS). If we use the wrong name, getToken() in
+    // the middleware can't find the cookie → user appears unauthenticated.
+    // -----------------------------------------------------------------
+    const useSecureCookies =
+      process.env.NODE_ENV === "production" ||
+      (process.env.NEXTAUTH_URL || "").startsWith("https://");
+
+    const sessionCookieName = useSecureCookies
+      ? "__Secure-next-auth.session-token"
+      : "next-auth.session-token";
+
+    const callbackCookieName = useSecureCookies
+      ? "__Secure-next-auth.callback-url"
+      : "next-auth.callback-url";
+
+    // Generate JWT token — include hasPassword + missingFields so the
+    // middleware onboarding gate works correctly without needing refresh().
+    const missingFields = getMissingProfileFields(user);
+
     const token = await encode({
       token: {
         id: user.id,
@@ -43,15 +63,18 @@ export async function POST(request) {
         phone: user.phone,
         avatar: user.avatar,
         role: user.role,
+        googleId: user.googleId || null,
         emailVerified: user.emailVerified,
         phoneVerified: user.phoneVerified,
+        hasPassword: !!user.passwordHash,
+        missingFields,
         issuedAt: Date.now(),
       },
       secret: process.env.NEXTAUTH_SECRET,
       maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
-    // Set the JWT as an httpOnly cookie
+    // Build response
     const response = NextResponse.json({
       message: "Session created",
       user: {
@@ -63,25 +86,31 @@ export async function POST(request) {
         role: user.role,
         emailVerified: user.emailVerified,
         phoneVerified: user.phoneVerified,
+        missingFields,
       },
     });
 
-    response.cookies.set("next-auth.session-token", token, {
+    // Set the JWT as an httpOnly cookie — using the correct name
+    response.cookies.set(sessionCookieName, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: useSecureCookies,
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: "/",
     });
 
     // Also set the callback-url cookie for NextAuth
-    response.cookies.set("next-auth.callback-url", "/dashboard", {
+    response.cookies.set(callbackCookieName, "/dashboard", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: useSecureCookies,
       sameSite: "lax",
       maxAge: 60 * 5, // 5 minutes
       path: "/",
     });
+
+    console.log(
+      `[Phone Session] Session created for user ${user.id} (${user.email || user.phone}), cookie: ${sessionCookieName}`
+    );
 
     return response;
   } catch (error) {
