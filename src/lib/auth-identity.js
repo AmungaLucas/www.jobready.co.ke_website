@@ -428,7 +428,69 @@ export function placeholderEmail(phone) {
 }
 
 // ---------------------------------------------------------------------------
-// 15. linkWalkInOrders(userId, email, phone)
+// 15. cleanupOrphanedGhosts()
+// ---------------------------------------------------------------------------
+
+/**
+ * Find and delete orphaned ghost accounts that are unreachable.
+ * An orphaned ghost is a user record that was created via phone OTP signup
+ * but was partially merged (phone cleared) without being deleted.
+ * Criteria: placeholder email, no phone, no googleId, no passwordHash.
+ *
+ * Cascade deletes will handle: SavedJob, SavedArticle, Application,
+ * JobAlert, ArticleReaction, Notification, AuthAccount.
+ * Orders get userId set to null (SetNull), preserving walk-in orders.
+ *
+ * Returns { deleted: number } count of cleaned-up ghosts.
+ */
+export async function cleanupOrphanedGhosts() {
+  try {
+    const orphans = await db.user.findMany({
+      where: {
+        phone: null,
+        googleId: null,
+        passwordHash: null,
+        email: { startsWith: "phone_" },
+      },
+      select: { id: true, email: true, createdAt: true },
+    });
+
+    if (orphans.length === 0) return { deleted: 0 };
+
+    let deleted = 0;
+    for (const ghost of orphans) {
+      // Extra safety: verify it's truly a placeholder email
+      if (!isPlaceholderEmail(ghost.email)) continue;
+
+      try {
+        await db.user.delete({ where: { id: ghost.id } });
+        deleted++;
+        console.log(
+          `[AuthIdentity] cleanupOrphanedGhosts: deleted orphaned ghost ${ghost.id} (${ghost.email}, created: ${ghost.createdAt.toISOString()})`
+        );
+      } catch (err) {
+        console.error(
+          `[AuthIdentity] cleanupOrphanedGhosts: failed to delete ghost ${ghost.id}:`,
+          err.message
+        );
+      }
+    }
+
+    if (deleted > 0) {
+      console.log(
+        `[AuthIdentity] cleanupOrphanedGhosts: cleaned up ${deleted} orphaned ghost(s)`
+      );
+    }
+
+    return { deleted };
+  } catch (error) {
+    console.error("[AuthIdentity] cleanupOrphanedGhosts error:", error);
+    return { deleted: 0 };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 16. linkWalkInOrders(userId, email, phone)
 // ---------------------------------------------------------------------------
 
 /**

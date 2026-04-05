@@ -7,10 +7,16 @@ import {
   createUser,
   linkWalkInOrders,
   getMissingProfileFields,
+  cleanupOrphanedGhosts,
 } from "@/lib/auth-identity";
 
 export async function POST(request) {
   try {
+    // Fire-and-forget: clean up any orphaned ghost accounts in the background.
+    // These are unreachable records left from partial merges before the
+    // deletion logic was added. Non-blocking — errors are caught internally.
+    cleanupOrphanedGhosts().catch(() => {});
+
     const body = await request.json();
     const { phone, otp, name, email, password } = body;
 
