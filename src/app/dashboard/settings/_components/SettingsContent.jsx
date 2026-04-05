@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -40,6 +40,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
+  Send,
+  Plus,
+  Pencil,
+  RefreshCw,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/useSession";
 import { useRouter } from "next/navigation";
@@ -47,6 +52,19 @@ import { signOut } from "next-auth/react";
 
 export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState("account");
+
+  // Handle hash-based navigation (e.g. #phone, #email from banner)
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash === "phone" || hash === "email" || hash === "account") {
+      setActiveTab("account");
+      // Scroll to the relevant section after a brief delay for render
+      setTimeout(() => {
+        const el = document.getElementById(`settings-${hash}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -102,16 +120,64 @@ export default function SettingsContent() {
 function AccountSettings() {
   const { user, refresh } = useAuth();
   const router = useRouter();
+  const emailSectionRef = useRef(null);
+  const phoneSectionRef = useRef(null);
 
   const [name, setName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState("");
 
+  // Email verification state
+  const [emailStep, setEmailStep] = useState("idle"); // idle | sending | sent | verifying | verified | error
+  const [emailCode, setEmailCode] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailSentTime, setEmailSentTime] = useState(null);
+
+  // Phone add/verify state
+  const [phoneStep, setPhoneStep] = useState("idle"); // idle | entering | sending | sent | verifying | verified | error
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneSentTime, setPhoneSentTime] = useState(null);
+
   // Populate form from session user
   useEffect(() => {
     if (user?.name) setName(user.name);
   }, [user]);
+
+  // Handle hash navigation after mount
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash === "phone" && phoneSectionRef.current) {
+      setTimeout(() => phoneSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      setPhoneStep("entering");
+    }
+    if (hash === "email" && emailSectionRef.current) {
+      setTimeout(() => emailSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+    }
+  }, [user]);
+
+  // Countdown timer helper
+  const [countdown, setCountdown] = useState(0);
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  // Start countdown when code sent
+  useEffect(() => {
+    if (emailStep === "sent" && emailSentTime) {
+      setCountdown(60);
+    }
+  }, [emailStep, emailSentTime]);
+
+  useEffect(() => {
+    if (phoneStep === "sent" && phoneSentTime) {
+      setCountdown(60);
+    }
+  }, [phoneStep, phoneSentTime]);
 
   if (!user) {
     return (
@@ -123,6 +189,9 @@ function AccountSettings() {
     );
   }
 
+  const isPlaceholder = user.email?.startsWith("phone_") || user.email?.includes("@jobready.co.ke");
+
+  // ── Name save ──
   const handleSave = async () => {
     setError("");
     const trimmedName = name.trim();
@@ -153,10 +222,140 @@ function AccountSettings() {
     }
   };
 
+  // ── Email verification ──
+  const handleSendEmailCode = async () => {
+    setEmailError("");
+    setEmailStep("sending");
+
+    try {
+      const res = await fetch("/api/user/send-verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEmailError(data.error || "Failed to send verification code");
+        setEmailStep("error");
+        return;
+      }
+
+      setEmailStep("sent");
+      setEmailSentTime(Date.now());
+      setEmailCode("");
+    } catch {
+      setEmailError("Something went wrong. Please try again.");
+      setEmailStep("error");
+    }
+  };
+
+  const handleVerifyEmailCode = async () => {
+    if (!/^\d{6}$/.test(emailCode)) {
+      setEmailError("Enter a valid 6-digit code");
+      return;
+    }
+
+    setEmailError("");
+    setEmailStep("verifying");
+
+    try {
+      const res = await fetch("/api/user/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: emailCode }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEmailError(data.error || "Verification failed");
+        setEmailStep("error");
+        return;
+      }
+
+      setEmailStep("verified");
+      await refresh();
+    } catch {
+      setEmailError("Something went wrong. Please try again.");
+      setEmailStep("error");
+    }
+  };
+
+  // ── Phone add/verify ──
+  const handleSendPhoneOtp = async () => {
+    setPhoneError("");
+
+    if (!user.phone) {
+      // Need phone input first
+      if (!phoneInput.trim()) {
+        setPhoneError("Enter a phone number first");
+        return;
+      }
+    }
+
+    const phone = phoneInput.trim() || user.phone;
+    setPhoneStep("sending");
+
+    try {
+      const res = await fetch("/api/user/send-verify-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPhoneError(data.error || "Failed to send OTP");
+        setPhoneStep("error");
+        return;
+      }
+
+      setPhoneStep("sent");
+      setPhoneSentTime(Date.now());
+      setPhoneCode("");
+    } catch {
+      setPhoneError("Something went wrong. Please try again.");
+      setPhoneStep("error");
+    }
+  };
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!/^\d{6}$/.test(phoneCode)) {
+      setPhoneError("Enter a valid 6-digit code");
+      return;
+    }
+
+    setPhoneError("");
+    setPhoneStep("verifying");
+
+    const phone = phoneInput.trim() || user.phone;
+
+    try {
+      const res = await fetch("/api/user/verify-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, otp: phoneCode }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPhoneError(data.error || "Verification failed");
+        setPhoneStep("error");
+        return;
+      }
+
+      setPhoneStep("verified");
+      await refresh();
+    } catch {
+      setPhoneError("Something went wrong. Please try again.");
+      setPhoneStep("error");
+    }
+  };
+
   const hasPassword = user.hasPassword;
 
   return (
     <div className="space-y-4">
+      {/* ── Name Card ── */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Personal Information</CardTitle>
@@ -173,88 +372,6 @@ function AccountSettings() {
               onChange={(e) => { setName(e.target.value); setIsSaved(false); }}
               placeholder="Your full name"
             />
-          </div>
-
-          <Separator />
-
-          {/* Email — read-only display */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2">
-                <Mail className="size-4 text-muted-foreground" />
-                Email Address
-              </Label>
-              {user.emailVerified ? (
-                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                  Verified
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                  Unverified
-                </Badge>
-              )}
-            </div>
-            <Input
-              type="email"
-              value={user.email || ""}
-              disabled
-              className="bg-muted/50"
-            />
-            <p className="text-xs text-muted-foreground">
-              Email is managed through your authentication provider.
-            </p>
-          </div>
-
-          {/* Phone — read-only display */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2">
-                <Phone className="size-4 text-muted-foreground" />
-                Phone Number
-              </Label>
-              {user.phone ? (
-                user.phoneVerified ? (
-                  <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                    Verified
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                    Unverified
-                  </Badge>
-                )
-              ) : (
-                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-200">
-                  Not set
-                </Badge>
-              )}
-            </div>
-            <Input
-              type="tel"
-              value={user.phone ? `${user.phone}` : "Not added"}
-              disabled
-              className="bg-muted/50"
-            />
-          </div>
-
-          {/* Auth Methods Summary */}
-          <Separator />
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Sign-in Methods</Label>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {hasPassword ? "✓ Email & Password" : "✗ No Password Set"}
-              </Badge>
-              {user.phone && (
-                <Badge variant="secondary" className="text-xs">
-                  ✓ Phone OTP
-                </Badge>
-              )}
-              {!user.phone && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">
-                  ✗ Phone
-                </Badge>
-              )}
-            </div>
           </div>
 
           {error && (
@@ -280,6 +397,520 @@ function AccountSettings() {
                 </>
               )}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Email Card ── */}
+      <Card id="settings-email" ref={emailSectionRef}>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Mail className="size-5 text-muted-foreground" />
+            Email Address
+          </CardTitle>
+          <CardDescription>
+            {isPlaceholder
+              ? "Add a real email address for password recovery and important updates."
+              : "Your email address for account notifications and recovery."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* ── Placeholder email — needs real email ── */}
+          {isPlaceholder && (
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Mail className="size-5 text-purple-600 mt-0.5 shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-purple-800">
+                      Add a real email address
+                    </p>
+                    <p className="text-xs text-purple-600 mt-1">
+                      Your current email is a placeholder. Add your real email to enable password recovery and receive notifications.
+                    </p>
+                  </div>
+                  <div className="text-xs text-purple-700 bg-purple-100 px-3 py-1.5 rounded-lg font-mono">
+                    {user.email}
+                  </div>
+                  <p className="text-xs text-purple-600">
+                    To add a real email, go to your{" "}
+                    <a
+                      href="/dashboard/profile"
+                      className="underline font-medium hover:text-purple-800"
+                    >
+                      Profile page
+                    </a>{" "}
+                    and update your email — or sign in with Google to link your Gmail account.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Real email, not verified ── */}
+          {!isPlaceholder && !user.emailVerified && (
+            <div className="space-y-3">
+              {/* Warning banner */}
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    Email not verified
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    Verify your email to receive important notifications and enable password recovery.
+                  </p>
+                </div>
+              </div>
+
+              {/* Current email display */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Current Email</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={user.email || ""}
+                    disabled
+                    className="bg-muted/50 text-sm"
+                  />
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+                    Unverified
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Step: idle — show send code button */}
+              {emailStep === "idle" && (
+                <Button
+                  onClick={handleSendEmailCode}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  <Send className="mr-2 size-4" />
+                  Send Verification Code
+                </Button>
+              )}
+
+              {/* Step: sending */}
+              {emailStep === "sending" && (
+                <Button disabled className="w-full sm:w-auto">
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Sending...
+                </Button>
+              )}
+
+              {/* Step: code sent — show input */}
+              {(emailStep === "sent" || emailStep === "error") && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
+                  <p className="text-sm">
+                    A 6-digit code was sent to{" "}
+                    <span className="font-medium">{user.email}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="000000"
+                      value={emailCode}
+                      onChange={(e) => {
+                        setEmailCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                        setEmailError("");
+                      }}
+                      className="w-36 text-center text-lg tracking-widest font-mono"
+                      maxLength={6}
+                    />
+                    <Button
+                      onClick={handleVerifyEmailCode}
+                      disabled={emailCode.length !== 6 || emailStep === "verifying"}
+                    >
+                      {emailStep === "verifying" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="mr-2 size-4" />
+                      )}
+                      Verify
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {emailError && (
+                      <p className="text-xs text-destructive">{emailError}</p>
+                    )}
+                    <div className="ml-auto">
+                      {countdown > 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Resend in {countdown}s
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleSendEmailCode}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="size-3" />
+                          Resend code
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step: verifying */}
+              {emailStep === "verifying" && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Verifying...
+                </div>
+              )}
+
+              {/* Step: verified */}
+              {emailStep === "verified" && (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+                  <CheckCircle2 className="size-4" />
+                  Email verified successfully!
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Real email, verified ── */}
+          {!isPlaceholder && user.emailVerified && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Verified Email</Label>
+                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <CheckCircle2 className="size-3 mr-1" />
+                  Verified
+                </Badge>
+              </div>
+              <Input
+                value={user.email || ""}
+                disabled
+                className="bg-muted/50"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your email is verified and receiving notifications.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Phone Card ── */}
+      <Card id="settings-phone" ref={phoneSectionRef}>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Phone className="size-5 text-muted-foreground" />
+            Phone Number
+          </CardTitle>
+          <CardDescription>
+            {user.phone
+              ? "Your phone number for job alerts and account recovery."
+              : "Add a phone number for job alerts and easier account recovery."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* ── No phone — show add flow ── */}
+          {!user.phone && (
+            <div className="space-y-3">
+              {/* Info banner */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+                <Phone className="size-4 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800">
+                    Add your phone number
+                  </p>
+                  <p className="text-xs text-blue-600 mt-0.5">
+                    Used for job alerts, SMS notifications, and phone-based sign-in.
+                  </p>
+                </div>
+              </div>
+
+              {/* Phone input */}
+              {phoneStep === "idle" || phoneStep === "error" || phoneStep === "entering" ? (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone-input">Phone Number</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="phone-input"
+                        type="tel"
+                        placeholder="07XXXXXXXX"
+                        value={phoneInput}
+                        onChange={(e) => {
+                          setPhoneInput(e.target.value);
+                          setPhoneError("");
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleSendPhoneOtp}
+                        disabled={!phoneInput.trim() || phoneStep === "sending"}
+                      >
+                        {phoneStep === "sending" ? (
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 size-4" />
+                        )}
+                        Send OTP
+                      </Button>
+                    </div>
+                    {phoneError && (
+                      <p className="text-xs text-destructive">{phoneError}</p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Step: OTP sent — show code input */}
+              {phoneStep === "sent" && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
+                  <p className="text-sm">
+                    A 6-digit OTP was sent to{" "}
+                    <span className="font-medium">{phoneInput.trim()}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="000000"
+                      value={phoneCode}
+                      onChange={(e) => {
+                        setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                        setPhoneError("");
+                      }}
+                      className="w-36 text-center text-lg tracking-widest font-mono"
+                      maxLength={6}
+                    />
+                    <Button
+                      onClick={handleVerifyPhoneOtp}
+                      disabled={phoneCode.length !== 6 || phoneStep === "verifying"}
+                    >
+                      {phoneStep === "verifying" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="mr-2 size-4" />
+                      )}
+                      Verify
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {phoneError && (
+                      <p className="text-xs text-destructive">{phoneError}</p>
+                    )}
+                    <div className="ml-auto flex items-center gap-3">
+                      <button
+                        onClick={() => { setPhoneStep("entering"); setPhoneCode(""); }}
+                        className="text-xs text-muted-foreground hover:underline"
+                      >
+                        Change number
+                      </button>
+                      {countdown > 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Resend in {countdown}s
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleSendPhoneOtp}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="size-3" />
+                          Resend OTP
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step: verifying */}
+              {phoneStep === "verifying" && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Verifying...
+                </div>
+              )}
+
+              {/* Step: verified */}
+              {phoneStep === "verified" && (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+                  <CheckCircle2 className="size-4" />
+                  Phone number added and verified successfully!
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Has phone, not verified ── */}
+          {user.phone && !user.phoneVerified && (
+            <div className="space-y-3">
+              {/* Warning banner */}
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    Phone not verified
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    Verify your phone number to enable SMS alerts and phone-based sign-in.
+                  </p>
+                </div>
+              </div>
+
+              {/* Current phone display */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Current Phone</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={user.phone || ""}
+                    disabled
+                    className="bg-muted/50 text-sm"
+                  />
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+                    Unverified
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Step: idle — show send OTP button */}
+              {phoneStep === "idle" && (
+                <Button
+                  onClick={handleSendPhoneOtp}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  <Send className="mr-2 size-4" />
+                  Send Verification OTP
+                </Button>
+              )}
+
+              {/* Step: sending */}
+              {phoneStep === "sending" && (
+                <Button disabled className="w-full sm:w-auto">
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Sending...
+                </Button>
+              )}
+
+              {/* Step: OTP sent */}
+              {(phoneStep === "sent" || phoneStep === "error") && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
+                  <p className="text-sm">
+                    A 6-digit OTP was sent to{" "}
+                    <span className="font-medium">{user.phone}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="000000"
+                      value={phoneCode}
+                      onChange={(e) => {
+                        setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                        setPhoneError("");
+                      }}
+                      className="w-36 text-center text-lg tracking-widest font-mono"
+                      maxLength={6}
+                    />
+                    <Button
+                      onClick={handleVerifyPhoneOtp}
+                      disabled={phoneCode.length !== 6 || phoneStep === "verifying"}
+                    >
+                      {phoneStep === "verifying" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="mr-2 size-4" />
+                      )}
+                      Verify
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {phoneError && (
+                      <p className="text-xs text-destructive">{phoneError}</p>
+                    )}
+                    <div className="ml-auto">
+                      {countdown > 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Resend in {countdown}s
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleSendPhoneOtp}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="size-3" />
+                          Resend OTP
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step: verifying */}
+              {phoneStep === "verifying" && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Verifying...
+                </div>
+              )}
+
+              {/* Step: verified */}
+              {phoneStep === "verified" && (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+                  <CheckCircle2 className="size-4" />
+                  Phone number verified successfully!
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Has phone, verified ── */}
+          {user.phone && user.phoneVerified && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Verified Phone</Label>
+                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <CheckCircle2 className="size-3 mr-1" />
+                  Verified
+                </Badge>
+              </div>
+              <Input
+                value={user.phone || ""}
+                disabled
+                className="bg-muted/50"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your phone number is verified and can be used for SMS alerts and phone sign-in.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Auth Methods Summary ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Sign-in Methods</CardTitle>
+          <CardDescription>
+            Ways you can sign in to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {hasPassword ? "✓ Email & Password" : "✗ No Password Set"}
+            </Badge>
+            {user.phone && user.phoneVerified ? (
+              <Badge variant="secondary" className="text-xs">
+                ✓ Phone OTP
+              </Badge>
+            ) : user.phone ? (
+              <Badge variant="outline" className="text-xs text-amber-600">
+                ⚠ Phone (unverified)
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs text-muted-foreground">
+                ✗ Phone
+              </Badge>
+            )}
+            {user.googleId && (
+              <Badge variant="secondary" className="text-xs">
+                ✓ Google
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>

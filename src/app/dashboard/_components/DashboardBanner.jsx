@@ -8,9 +8,13 @@ import { X, Mail, Lock, Smartphone, AlertCircle } from "lucide-react";
  * DashboardBanner — Shows verification/setup prompts.
  *
  * Displayed when:
- *  - Email not verified → "Please verify your email"
- *  - No password set → "Add a password for easier login"
- *  - Phone not verified → "Verify your phone"
+ *  - Email not verified (real email) → "Please verify your email" → #email
+ *  - Placeholder email (phone-only user) → "Add a real email" → profile page
+ *  - No phone → "Add your phone number" → #phone
+ *  - Phone not verified → "Verify your phone" → #phone
+ *
+ * Action buttons navigate to /dashboard/settings#email or #phone
+ * which auto-scrolls to the relevant section and opens the flow.
  *
  * Dismissible — stores dismissed state in sessionStorage.
  */
@@ -36,7 +40,10 @@ export default function DashboardBanner() {
 
     // Show banner if any verification is needed
     const needsAttention =
-      !user.emailVerified || !user.phoneVerified || !user.phone;
+      !user.emailVerified ||
+      !user.phone ||
+      (user.phone && !user.phoneVerified) ||
+      user.email?.includes("@jobready.co.ke");
 
     setVisible(needsAttention);
   }, [status, session]);
@@ -51,15 +58,27 @@ export default function DashboardBanner() {
   const user = session?.user;
   const banners = [];
 
-  // Email not verified
-  if (user && !user.emailVerified && user.email) {
+  // Email not verified (real email, not placeholder)
+  if (user && !user.emailVerified && user.email && !user.email.includes("@jobready.co.ke") && !user.email.startsWith("phone_")) {
     banners.push({
       id: "email-verify",
       icon: Mail,
       color: "bg-amber-50 border-amber-200 text-amber-800",
       iconColor: "text-amber-600",
       message: "Please verify your email address to receive important notifications.",
-      action: null, // Could add a "Resend verification" button
+      action: { label: "Verify Email", href: "/dashboard/settings#email" },
+    });
+  }
+
+  // Placeholder email (phone-only user)
+  if (user && user.email && (user.email.startsWith("phone_") || user.email.includes("@jobready.co.ke"))) {
+    banners.push({
+      id: "add-email",
+      icon: Mail,
+      color: "bg-purple-50 border-purple-200 text-purple-800",
+      iconColor: "text-purple-600",
+      message: "Add a real email address for password recovery and important updates.",
+      action: { label: "Add Email", href: "/dashboard/settings#email" },
     });
   }
 
@@ -71,7 +90,7 @@ export default function DashboardBanner() {
       color: "bg-blue-50 border-blue-200 text-blue-800",
       iconColor: "text-blue-600",
       message: "Add your phone number for job alerts and easier account recovery.",
-      action: { label: "Add Phone", href: "/dashboard/settings" },
+      action: { label: "Add Phone", href: "/dashboard/settings#phone" },
     });
   }
 
@@ -83,19 +102,7 @@ export default function DashboardBanner() {
       color: "bg-blue-50 border-blue-200 text-blue-800",
       iconColor: "text-blue-600",
       message: "Verify your phone number to enable all features.",
-      action: { label: "Verify Phone", href: "/dashboard/settings" },
-    });
-  }
-
-  // Placeholder email (phone-only user)
-  if (user && user.email && user.email.includes("@jobready.co.ke")) {
-    banners.push({
-      id: "add-email",
-      icon: Mail,
-      color: "bg-purple-50 border-purple-200 text-purple-800",
-      iconColor: "text-purple-600",
-      message: "Add a real email address for password recovery and important updates.",
-      action: { label: "Add Email", href: "/dashboard/settings" },
+      action: { label: "Verify Phone", href: "/dashboard/settings#phone" },
     });
   }
 
