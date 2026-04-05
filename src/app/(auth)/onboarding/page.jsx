@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("".padEnd(6, ""));
+  const [otp, setOtp] = useState("      "); // 6 spaces → split gives 6 elements for input rendering
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -430,7 +430,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => {
                   setOtpSent(false);
-                  setOtp("".padEnd(6, ""));
+                  setOtp("      ");
                   setOtpError("");
                 }}
                 className="text-sm text-gray-500 hover:text-[#1a56db] transition-colors flex items-center gap-1"
