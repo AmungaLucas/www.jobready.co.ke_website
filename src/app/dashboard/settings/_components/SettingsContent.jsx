@@ -450,56 +450,39 @@ function AccountSettings() {
           {/* ── Real email, not verified ── */}
           {!isPlaceholder && !user.emailVerified && (
             <div className="space-y-3">
-              {/* Warning banner */}
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-amber-800">
-                    Email not verified
-                  </p>
-                  <p className="text-xs text-amber-600 mt-0.5">
-                    Verify your email to receive important notifications and enable password recovery.
+              {/* Email + Send Code inline */}
+              {(emailStep === "idle" || emailStep === "sending" || emailStep === "error") && (
+                <div className="space-y-1.5">
+                  <Label>Email Address</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={user.email || ""}
+                      disabled
+                      className="bg-muted/50 text-sm flex-1"
+                    />
+                    <Button
+                      onClick={handleSendEmailCode}
+                      disabled={emailStep === "sending"}
+                    >
+                      {emailStep === "sending" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <Send className="mr-2 size-4" />
+                      )}
+                      Send Code
+                    </Button>
+                  </div>
+                  {emailError && (
+                    <p className="text-xs text-destructive">{emailError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Click &quot;Send Code&quot; to receive a 6-digit verification code at this address.
                   </p>
                 </div>
-              </div>
-
-              {/* Current email display */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Current Email</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={user.email || ""}
-                    disabled
-                    className="bg-muted/50 text-sm"
-                  />
-                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 shrink-0">
-                    Unverified
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Step: idle — show send code button */}
-              {emailStep === "idle" && (
-                <Button
-                  onClick={handleSendEmailCode}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  <Send className="mr-2 size-4" />
-                  Send Verification Code
-                </Button>
               )}
 
-              {/* Step: sending */}
-              {emailStep === "sending" && (
-                <Button disabled className="w-full sm:w-auto">
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Sending...
-                </Button>
-              )}
-
-              {/* Step: code sent — show input */}
-              {(emailStep === "sent" || emailStep === "error") && (
+              {/* Step: code sent — show code input */}
+              {emailStep === "sent" && (
                 <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
                   <p className="text-sm">
                     A 6-digit code was sent to{" "}
@@ -515,6 +498,7 @@ function AccountSettings() {
                       }}
                       className="w-36 text-center text-lg tracking-widest font-mono"
                       maxLength={6}
+                      autoFocus
                     />
                     <Button
                       onClick={handleVerifyEmailCode}
