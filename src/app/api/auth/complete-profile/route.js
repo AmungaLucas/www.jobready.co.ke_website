@@ -5,6 +5,8 @@ import {
   linkWalkInOrders,
   getMissingProfileFields,
   normalizePhone,
+  findUserByPhone,
+  isPlaceholderEmail,
   linkPhoneToUser,
   linkEmailToUser,
   setUserPassword,
@@ -124,7 +126,94 @@ export async function PATCH(request) {
         });
       }
 
-      updatedUser = await linkPhoneToUser(userId, normalizedPhone);
+      // Try to link phone — may conflict with an existing ghost account
+      try {
+        updatedUser = await linkPhoneToUser(userId, normalizedPhone);
+      } catch (linkErr) {
+        if (linkErr.message?.includes("already belongs to another")) {
+          // Phone belongs to another user — check if it's a mergeable ghost
+          // (e.g. a phone-only signup that was never completed)
+          const phoneOwner = await findUserByPhone(normalizedPhone);
+
+          if (!phoneOwner) {
+            return NextResponse.json(
+              { error: "This phone number is already linked to another account." },
+              { status: 409 }
+            );
+          }
+
+          const isGhost =
+            isPlaceholderEmail(phoneOwner.email) &&
+            !phoneOwner.googleId &&
+            !phoneOwner.passwordHash;
+
+          if (!isGhost) {
+            // Real conflict — another verified user owns this phone
+            return NextResponse.json(
+              { error: "This phone number is already linked to another account. Please sign in with that account instead." },
+              { status: 409 }
+            );
+          }
+
+          // ── Merge ghost into current user ──
+          // 1. Remove phone from ghost so linkPhoneToUser won't throw
+          await db.user.update({
+            where: { id: phoneOwner.id },
+            data: { phone: null, phoneVerified: false },
+          });
+
+          // 2. Transfer any orders from ghost to current user
+          const transferredOrders = await db.order.updateMany({
+            where: { userId: phoneOwner.id },
+            data: { userId },
+          });
+
+          // 3. Transfer saved jobs (skip if duplicate to avoid unique constraint)
+          const ghostSavedJobs = await db.savedJob.findMany({
+            where: { userId: phoneOwner.id },
+            select: { jobId: true },
+          });
+          for (const sj of ghostSavedJobs) {
+            try {
+              await db.savedJob.create({
+                data: { userId, jobId: sj.jobId },
+              });
+            } catch (e) {
+              if (e.code !== "P2002") throw e; // ignore duplicate, re-throw real errors
+            }
+          }
+
+          // 4. Transfer saved articles (skip duplicates)
+          const ghostSavedArticles = await db.savedArticle.findMany({
+            where: { userId: phoneOwner.id },
+            select: { articleId: true },
+          });
+          for (const sa of ghostSavedArticles) {
+            try {
+              await db.savedArticle.create({
+                data: { userId, articleId: sa.articleId },
+              });
+            } catch (e) {
+              if (e.code !== "P2002") throw e;
+            }
+          }
+
+          // 5. Transfer job alerts
+          await db.jobAlert.updateMany({
+            where: { userId: phoneOwner.id },
+            data: { userId },
+          });
+
+          // 6. Now link the phone to the current user
+          updatedUser = await linkPhoneToUser(userId, normalizedPhone);
+
+          console.log(
+            `[Complete Profile] Merged ghost user ${phoneOwner.id} → ${userId} (phone: ${normalizedPhone}, orders: ${transferredOrders.count})`
+          );
+        } else {
+          throw linkErr;
+        }
+      }
       updateResults.push("phone");
     }
 
