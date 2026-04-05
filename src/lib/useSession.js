@@ -27,6 +27,7 @@ export function useAuth() {
       avatar: session.user.avatar,
       emailVerified: session.user.emailVerified || false,
       phoneVerified: session.user.phoneVerified || false,
+      hasPassword: session.user.hasPassword || false,
     };
   }, [session]);
 
