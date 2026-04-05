@@ -373,6 +373,20 @@ export default function OnboardingPage() {
                         if (next) next.focus();
                       }
                     }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                      if (pasted.length === 0) return;
+                      const newDigits = [...otpDigits];
+                      for (let j = 0; j < 6; j++) {
+                        newDigits[j] = pasted[j] || "";
+                      }
+                      setOtpDigits(newDigits);
+                      // Focus the next empty slot (or last field)
+                      const focusIdx = Math.min(pasted.length, 5);
+                      const inputs = e.currentTarget.parentElement.querySelectorAll("input");
+                      if (inputs[focusIdx]) inputs[focusIdx].focus();
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Backspace" && !otpDigits[i] && i > 0) {
                         const prev = e.target.previousElementSibling;
