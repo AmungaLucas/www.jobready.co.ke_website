@@ -4,36 +4,46 @@ import { siteConfig } from "@/config/site-config";
 /**
  * Email service utility for JobReady.co.ke
  *
- * Uses Nodemailer with SMTP transport. Falls back gracefully
- * if SMTP is not configured (logs to console in development).
+ * Uses Nodemailer with SMTP transport via mail.jobready.co.ke.
+ * Supports contextual sender addresses (noreply, payments, cv, support).
+ * Falls back gracefully in development if SMTP is not configured.
  */
 
-let transporter = null;
+// ─── Transporter cache (keyed by auth user) ───────────────────────────
+const transporters = {};
 
-function getTransporter() {
-  if (transporter) return transporter;
+/**
+ * Get or create a transporter for a specific SMTP user.
+ * Defaults to the main SMTP_USER if no user specified.
+ */
+function getTransporter(smtpUser, smtpPass) {
+  const cacheKey = smtpUser || "default";
+  if (transporters[cacheKey]) return transporters[cacheKey];
 
-  // Check if SMTP is configured
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT;
 
   if (host && port) {
-    transporter = nodemailer.createTransport({
+    transporters[cacheKey] = nodemailer.createTransport({
       host,
       port: parseInt(port, 10),
       secure: parseInt(port, 10) === 465,
       auth: {
-        user: process.env.SMTP_USER || "",
-        pass: process.env.SMTP_PASS || "",
+        user: smtpUser || process.env.SMTP_USER || "",
+        pass: smtpPass || process.env.SMTP_PASS || "",
       },
-      // Connection timeout — fail fast
       connectionTimeout: 5000,
       greetingTimeout: 3000,
       socketTimeout: 10000,
     });
   }
 
-  return transporter;
+  return transporters[cacheKey] || null;
+}
+
+// Backward-compatible alias
+function getTransporterLegacy() {
+  return getTransporter(process.env.SMTP_USER, process.env.SMTP_PASS);
 }
 
 /**
@@ -47,11 +57,26 @@ function getTransporter() {
  * @param {string} [options.replyTo] - Reply-to address
  * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
-export async function sendEmail({ to, subject, html, text, from, replyTo }) {
-  const transport = getTransporter();
+export async function sendEmail({ to, subject, html, text, from, replyTo, senderType }) {
+  // Resolve contextual SMTP credentials based on sender type
+  let smtpUser = process.env.SMTP_USER;
+  let smtpPass = process.env.SMTP_PASS;
+
+  if (senderType === "payments" && process.env.SMTP_USER_PAYMENTS) {
+    smtpUser = process.env.SMTP_USER_PAYMENTS;
+    smtpPass = process.env.SMTP_PASS_PAYMENTS;
+  } else if (senderType === "cv" && process.env.SMTP_USER_CV) {
+    smtpUser = process.env.SMTP_USER_CV;
+    smtpPass = process.env.SMTP_PASS_CV;
+  } else if (senderType === "support" && process.env.SMTP_USER_SUPPORT) {
+    smtpUser = process.env.SMTP_USER_SUPPORT;
+    smtpPass = process.env.SMTP_PASS_SUPPORT;
+  }
+
+  const transport = getTransporter(smtpUser, smtpPass);
 
   const mailOptions = {
-    from: from || `"JobReady Kenya" <${siteConfig.email.noreply}>`,
+    from: from || `"JobReady Kenya" <${smtpUser || siteConfig.email.noreply}>`,
     to,
     subject,
     replyTo: replyTo || siteConfig.email.support,
@@ -364,7 +389,7 @@ function stripHtml(html) {
  * Call this at startup or from an admin endpoint
  */
 export async function verifyEmailConnection() {
-  const transport = getTransporter();
+  const transport = getTransporter(process.env.SMTP_USER, process.env.SMTP_PASS);
   if (!transport) {
     return { ok: false, reason: "SMTP not configured" };
   }

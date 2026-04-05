@@ -397,6 +397,7 @@ export async function POST(request) {
           subject: `Payment Confirmed — ${order.orderNumber} | JobReady.co.ke`,
           html,
           text,
+          senderType: "payments",
         });
         if (emailResult.success) {
           console.log("[M-Pesa Callback] Payment confirmation email sent to:", order.email, "id:", emailResult.messageId);
