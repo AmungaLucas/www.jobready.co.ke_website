@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
-import { sendEmail, welcomeTemplate } from "@/lib/email";
+import { sendEmail, welcomeCredentialSignup } from "@/lib/email";
 import {
   normalizePhone,
   findUserByEmail,
@@ -108,7 +108,7 @@ export async function POST(request) {
     sendEmail({
       to: trimmedEmail,
       subject: "Welcome to JobReady!",
-      ...welcomeTemplate(trimmedName, trimmedEmail),
+      ...welcomeCredentialSignup({ name: trimmedName, email: trimmedEmail, hasPhone: !!normalizedPhone }),
     }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
 
     return NextResponse.json(

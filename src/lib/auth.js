@@ -10,6 +10,7 @@ import {
   linkWalkInOrders,
   migrateExistingGoogleUsers,
 } from "@/lib/auth-identity";
+import { sendEmail, welcomeGoogleSignup } from "@/lib/email";
 
 // ---------------------------------------------------------------------------
 // One-time migration: populate googleId from AuthAccount table
@@ -225,6 +226,13 @@ export const authOptions = {
 
         await upsertGoogleAuthAccount(dbUser.id, account);
         await linkWalkInOrders(dbUser.id, email, null);
+
+        // Send welcome email (non-blocking)
+        sendEmail({
+          to: email,
+          subject: "Welcome to JobReady!",
+          ...welcomeGoogleSignup({ name: dbUser.name, email }),
+        }).catch((err) => console.error("[Auth] Google welcome email failed:", err.message));
 
         console.log(`[Auth] Google OAuth: created new user id=${dbUser.id}`);
         attachUserFields(user, dbUser, profile?.picture);

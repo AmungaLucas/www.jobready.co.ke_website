@@ -3,6 +3,12 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isPlaceholderEmail, findUserByEmail, linkWalkInOrders } from "@/lib/auth-identity";
+import {
+  sendEmail,
+  emailVerifiedConfirmation,
+  accountCompleteEmail,
+  accountsMergedEmail,
+} from "@/lib/email";
 
 /**
  * POST /api/user/verify-email
@@ -205,6 +211,15 @@ export async function POST(request) {
           (inheritPhone ? `, inherited phone: ${inheritPhone}` : "") +
           (inheritName ? `, inherited name: ${inheritName}` : "")
         );
+
+        // Send merge notification email (non-blocking)
+        const mergedName = inheritName || user.name;
+        const mergedPhone = inheritPhone || user.phone;
+        sendEmail({
+          to: targetEmail,
+          subject: "Accounts Merged — Your JobReady data is combined",
+          ...accountsMergedEmail({ name: mergedName, email: targetEmail, mergedInto: { phone: mergedPhone } }),
+        }).catch((err) => console.error("[Verify Email] Merge email failed:", err.message));
       } else {
         // No merge needed — just update email
         await db.user.update({
@@ -214,6 +229,18 @@ export async function POST(request) {
 
         // Link any walk-in orders matching the new email
         await linkWalkInOrders(userId, targetEmail, user.phone);
+
+        // Send "account complete" email (placeholder → real email = first real email)
+        sendEmail({
+          to: targetEmail,
+          subject: "Your Account is Ready!",
+          ...accountCompleteEmail({
+            name: user.name,
+            email: targetEmail,
+            phone: user.phone,
+            hasPassword: !!user.passwordHash,
+          }),
+        }).catch((err) => console.error("[Verify Email] Account complete email failed:", err.message));
       }
 
       return NextResponse.json({
@@ -263,6 +290,13 @@ export async function POST(request) {
     console.log(
       `[Verify Email] Email verified for user ${session.user.id} (${user.email})`
     );
+
+    // Send email verified confirmation (non-blocking)
+    sendEmail({
+      to: user.email,
+      subject: "Email Verified ✅",
+      ...emailVerifiedConfirmation({ name: user.name, email: user.email, phoneVerified: !!user.phoneVerified }),
+    }).catch((err) => console.error("[Verify Email] Confirmation email failed:", err.message));
 
     return NextResponse.json({
       message: "Email verified successfully",

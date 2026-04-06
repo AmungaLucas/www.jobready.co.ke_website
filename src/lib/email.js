@@ -274,16 +274,46 @@ export function applicationReceiptTemplate({ userName, jobTitle, companyName, sl
   return { html, text: `Your application for ${jobTitle} at ${companyName} has been submitted via JobReady.co.ke.` };
 }
 
+// ═══════════════════════════════════════════════════════════════
+// SCENARIO-SPECIFIC WELCOME & ACCOUNT EMAILS
+// ═══════════════════════════════════════════════════════════════
+
 /**
- * Welcome email for new registrations
+ * 1. Credential sign-up welcome — user has email + phone + password
+ *    but nothing is verified yet.
  */
-export function welcomeTemplate(name, email) {
+export function welcomeCredentialSignup({ name, email, hasPhone }) {
   const html = wrapEmail(
-    "Welcome to JobReady!",
+    "Welcome to JobReady! 👋",
     "Your account has been created",
     `
       <p>Welcome${name ? ` ${name}` : ""} to JobReady.co.ke!</p>
       <p>Your account has been successfully created. You're now part of Kenya's fastest-growing job board and career platform.</p>
+
+      <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;font-weight:600;color:#92400e;">
+          ⚡ To get the most out of your account, complete these steps:
+        </p>
+      </div>
+
+      <h2>Complete Your Account</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;">
+        <tr>
+          <td style="padding:8px 0;color:#374151;">
+            ${hasPhone ? "✅" : "⬜"} &nbsp; <strong>Verify your email</strong> — Check your inbox for a verification code
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#374151;">
+            ${hasPhone ? "⬜" : "✅"} &nbsp; <strong>Verify your phone</strong> — Enables SMS alerts and phone-based sign-in
+          </td>
+        </tr>
+      </table>
+
+      <p style="font-size:13px;color:#6b7280;margin-top:8px;">
+        You can verify both from your <a href="${BASE_URL}/dashboard/settings" style="color:#1a56db;">Account Settings</a>.
+      </p>
+
       <h2>Get Started</h2>
       <ul>
         <li><a href="${BASE_URL}/jobs" style="color:#1a56db;">Browse Jobs</a> — Find your next opportunity from thousands of listings</li>
@@ -294,13 +324,249 @@ export function welcomeTemplate(name, email) {
       <p style="text-align:center;margin-top:16px;">
         <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard</a>
       </p>
+    `
+  );
+  return { html, text: `Welcome to JobReady.co.ke! Verify your email and phone from your account settings. ${BASE_URL}/dashboard/settings` };
+}
+
+/**
+ * 2. Google sign-up welcome — email verified via Google, no phone, no password.
+ */
+export function welcomeGoogleSignup({ name, email }) {
+  const html = wrapEmail(
+    "Welcome to JobReady! 🎉",
+    "Signed in with Google",
+    `
+      <p>Welcome${name ? ` ${name}` : ""} to JobReady.co.ke!</p>
+      <p>Your account has been created via Google sign-in. Your email is already verified — great start!</p>
+
+      <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#166534;">
+          ✅ Email verified via Google
+        </p>
+      </div>
+
+      <h2>Complete Your Account</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;">
+        <tr>
+          <td style="padding:8px 0;color:#374151;">
+            ✅ &nbsp; <strong>Email verified</strong> — Connected via Google
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#374151;">
+            ⬜ &nbsp; <strong>Set a password</strong> — Sign in without Google anytime
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#374151;">
+            ⬜ &nbsp; <strong>Add your phone</strong> — Enable SMS alerts and phone sign-in
+          </td>
+        </tr>
+      </table>
+
+      <p style="text-align:center;margin-top:16px;">
+        <a href="${BASE_URL}/onboarding" class="btn">Complete Setup</a>
+      </p>
       <p style="font-size:13px;color:#6b7280;margin-top:8px;">
-        Need professional help? Check out our{" "}
-        <a href="${BASE_URL}/cv-services">CV Writing Services</a> starting from KSh 500.
+        Or set up later from your <a href="${BASE_URL}/dashboard/settings" style="color:#1a56db;">Account Settings</a>.
+      </p>
+
+      <h2>Get Started</h2>
+      <ul>
+        <li><a href="${BASE_URL}/jobs" style="color:#1a56db;">Browse Jobs</a> — Find your next opportunity from thousands of listings</li>
+        <li><a href="${BASE_URL}/profile" style="color:#1a56db;">Complete Your Profile</a> — Help employers find you with a detailed profile</li>
+        <li><a href="${BASE_URL}/dashboard/alerts" style="color:#1a56db;">Set Up Job Alerts</a> — Get notified when new jobs match your preferences</li>
+      </ul>
+    `
+  );
+  return { html, text: `Welcome to JobReady.co.ke! Set a password and add your phone to complete your account. ${BASE_URL}/onboarding` };
+}
+
+/**
+ * 3. Phone OTP user adds real email — account is now "complete"
+ *    This doubles as a welcome email since they never got one.
+ */
+export function accountCompleteEmail({ name, email, phone, hasPassword }) {
+  const missing = [];
+  if (!hasPassword) missing.push("set a password to sign in with email");
+  if (!phone) missing.push("add your phone number for SMS alerts");
+
+  const html = wrapEmail(
+    "Your Account is Ready! ✅",
+    "All set on JobReady",
+    `
+      <p>${name ? `Hi ${name}` : "Hello"}!</p>
+      <p>Your email has been verified and your account is now fully set up on JobReady.co.ke. You can sign in with your email anytime.</p>
+
+      <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#166534;font-weight:600;">
+          ✅ Email verified — ${email}
+          ${phone ? `<br>✅ Phone verified — ${phone}` : ""}
+          ${hasPassword ? `<br>✅ Password set` : ""}
+        </p>
+      </div>
+
+      ${missing.length > 0 ? `
+      <h2>Recommended Next Steps</h2>
+      <ul>
+        ${missing.map(m => `<li>${m}</li>`).join("")}
+      </ul>
+      <p style="font-size:13px;color:#6b7280;">
+        Update these from your <a href="${BASE_URL}/dashboard/settings" style="color:#1a56db;">Account Settings</a>.
+      </p>
+      ` : `
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">
+          🎉 Your account is fully complete!
+        </p>
+      </div>
+      `}
+
+      <h2>What's Next?</h2>
+      <ul>
+        <li><a href="${BASE_URL}/jobs" style="color:#1a56db;">Browse Jobs</a> — Find your next opportunity</li>
+        <li><a href="${BASE_URL}/profile" style="color:#1a56db;">Complete Your Profile</a> — Stand out to employers</li>
+        <li><a href="${BASE_URL}/dashboard/alerts" style="color:#1a56db;">Set Up Job Alerts</a> — Get matched automatically</li>
+        <li><a href="${BASE_URL}/cv-services" style="color:#1a56db;">CV Writing</a> — Professional CV from KSh 500</li>
+      </ul>
+      <p style="text-align:center;margin-top:16px;">
+        <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard</a>
       </p>
     `
   );
-  return { html, text: `Welcome to JobReady.co.ke! Complete your profile at ${BASE_URL}/dashboard` };
+  return { html, text: `Your JobReady account is ready! ${BASE_URL}/dashboard` };
+}
+
+/**
+ * 4. Email verified confirmation — credential user verifies their email.
+ */
+export function emailVerifiedConfirmation({ name, email, phoneVerified }) {
+  const html = wrapEmail(
+    "Email Verified ✅",
+    "Your email is now confirmed",
+    `
+      <p>${name ? `Hi ${name}` : "Hello"}!</p>
+      <p>Your email address <strong>${email}</strong> has been successfully verified.</p>
+
+      <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#166534;">
+          ✅ Email verified — ${email}
+        </p>
+      </div>
+
+      ${!phoneVerified ? `
+      <h2>One More Thing</h2>
+      <p>Verify your phone number to enable SMS job alerts and phone-based sign-in. It only takes a minute!</p>
+      <p style="text-align:center;">
+        <a href="${BASE_URL}/dashboard/settings#phone" class="btn">Verify Phone Number</a>
+      </p>
+      ` : `
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">
+          🎉 Your account is fully verified!
+        </p>
+      </div>
+      `}
+
+      <p style="text-align:center;margin-top:16px;">
+        <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard</a>
+      </p>
+    `
+  );
+  return { html, text: `Your email ${email} has been verified on JobReady.co.ke!` };
+}
+
+/**
+ * 5. Phone verified confirmation — user adds/verifies a phone number.
+ */
+export function phoneVerifiedConfirmation({ name, phone, emailVerified }) {
+  const html = wrapEmail(
+    "Phone Verified ✅",
+    "Your phone number is now confirmed",
+    `
+      <p>${name ? `Hi ${name}` : "Hello"}!</p>
+      <p>Your phone number <strong>${phone}</strong> has been successfully verified.</p>
+
+      <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#166534;">
+          ✅ Phone verified — ${phone}
+        </p>
+      </div>
+
+      ${!emailVerified ? `
+      <h2>One More Thing</h2>
+      <p>Verify your email address to secure your account and receive important notifications.</p>
+      <p style="text-align:center;">
+        <a href="${BASE_URL}/dashboard/settings#email" class="btn">Verify Email Address</a>
+      </p>
+      ` : `
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">
+          🎉 Your account is fully verified!
+        </p>
+      </div>
+      `}
+
+      <p style="font-size:13px;color:#6b7280;margin-top:16px;">
+        You'll now receive job alert notifications via SMS. Manage your alerts in your
+        <a href="${BASE_URL}/dashboard/settings" style="color:#1a56db;">Account Settings</a>.
+      </p>
+    `
+  );
+  return { html, text: `Your phone ${phone} has been verified on JobReady.co.ke!` };
+}
+
+/**
+ * 6. Accounts merged — two accounts combined into one.
+ */
+export function accountsMergedEmail({ name, email, mergedInto }) {
+  const html = wrapEmail(
+    "Accounts Merged 🔗",
+    "Your data has been combined",
+    `
+      <p>${name ? `Hi ${name}` : "Hello"}!</p>
+      <p>Great news! We've detected that you have multiple JobReady accounts and merged them into one. All your data has been safely combined.</p>
+
+      <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#1e40af;">
+          <strong>What was merged:</strong><br>
+          Saved jobs, applications, job alerts, and notifications have been combined into your primary account.
+        </p>
+      </div>
+
+      <h2>Your Account</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;">
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;">Email</td>
+          <td style="padding:8px 0;text-align:right;font-weight:600;">${email}</td>
+        </tr>
+        ${mergedInto?.phone ? `
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;">Phone</td>
+          <td style="padding:8px 0;text-align:right;font-weight:600;">${mergedInto.phone}</td>
+        </tr>
+        ` : ""}
+      </table>
+
+      <p style="font-size:13px;color:#6b7280;margin-top:16px;">
+        No action needed from you. Everything is in one place now.
+        Visit your <a href="${BASE_URL}/dashboard/settings" style="color:#1a56db;">Account Settings</a> to review.
+      </p>
+      <p style="text-align:center;margin-top:16px;">
+        <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard</a>
+      </p>
+    `
+  );
+  return { html, text: `Your JobReady accounts have been merged. All data is now in one place.` };
+}
+
+/**
+ * Legacy welcome template — kept for backward compatibility.
+ * @deprecated Use scenario-specific templates instead.
+ */
+export function welcomeTemplate(name, email) {
+  return welcomeCredentialSignup({ name, email, hasPhone: true });
 }
 
 /**

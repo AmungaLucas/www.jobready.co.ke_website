@@ -3,6 +3,11 @@ import { db } from "@/lib/db";
 import { normalizePhone, findUserByPhone, isPlaceholderEmail } from "@/lib/auth-identity";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import {
+  sendEmail,
+  phoneVerifiedConfirmation,
+  accountsMergedEmail,
+} from "@/lib/email";
 
 /**
  * POST /api/user/verify-phone
@@ -205,6 +210,17 @@ export async function POST(request) {
         (inheritEmail ? `, inherited email: ${inheritEmail}` : "")
       );
 
+      // Send merge notification email (non-blocking) — use the email the user now has
+      const mergedEmail = inheritEmail || user.email;
+      const mergedName = inheritName || user.name;
+      if (mergedEmail && !isPlaceholderEmail(mergedEmail)) {
+        sendEmail({
+          to: mergedEmail,
+          subject: "Accounts Merged — Your JobReady data is combined",
+          ...accountsMergedEmail({ name: mergedName, email: mergedEmail, mergedInto: { phone: normalizedPhone } }),
+        }).catch((err) => console.error("[Verify Phone] Merge email failed:", err.message));
+      }
+
       return NextResponse.json({
         message: "Phone number verified and accounts merged successfully",
         phone: normalizedPhone,
@@ -224,6 +240,15 @@ export async function POST(request) {
     console.log(
       `[Verify Phone] Phone ${normalizedPhone} verified for user ${userId}`
     );
+
+    // Send phone verified confirmation email (non-blocking) — only if user has a real email
+    if (updatedUser.email && !isPlaceholderEmail(updatedUser.email)) {
+      sendEmail({
+        to: updatedUser.email,
+        subject: "Phone Verified ✅",
+        ...phoneVerifiedConfirmation({ name: updatedUser.name, phone: normalizedPhone, emailVerified: !!updatedUser.emailVerified }),
+      }).catch((err) => console.error("[Verify Phone] Confirmation email failed:", err.message));
+    }
 
     return NextResponse.json({
       message: "Phone number verified successfully",
