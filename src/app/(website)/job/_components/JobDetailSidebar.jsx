@@ -1,20 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/format";
 import { formatCurrency } from "@/lib/format";
 import { formatRelativeDate } from "@/lib/format";
 import { siteConfig } from "@/config/site-config";
+import { useAuth } from "@/lib/useSession";
 import { FiUsers, FiMapPin } from "react-icons/fi";
 import {
   HiOutlineChatBubbleLeftRight,
   HiShieldCheck,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import { HiOutlineBriefcase } from "react-icons/hi2";
 import AdSlot from "../../_components/AdSlot";
 import SidebarCard from "../../_components/SidebarCard";
 import CVReviewCTA from "../../_components/CVReviewCTA";
 import JobCard from "../../_components/JobCard";
+import ApplyModal from "./ApplyModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -25,13 +31,12 @@ function getInitials(name) {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = [] }) {
+export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = [], hasApplied: initialApplied = false }) {
+  const { isAuthenticated } = useAuth();
+  const [applyOpen, setApplyOpen] = useState(false);
   const company = job.company || {};
 
-  const whatsappMessage = encodeURIComponent(
-    `Hi JobReady, I'm applying for "${job.title}" at ${company.name}. Please help me.`
-  );
-  const whatsappUrl = `${siteConfig.whatsapp.link}?text=${whatsappMessage}`;
+  const hasExternalUrl = !!job.externalApplyUrl;
 
   return (
     <aside>
@@ -111,15 +116,40 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
           )}
         </ul>
 
-        {/* Apply button */}
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full text-center px-5 py-3 rounded-lg bg-white text-[#1a56db] text-[0.9rem] font-bold hover:bg-gray-100 transition-colors no-underline mb-2.5"
-        >
-          Apply Now via WhatsApp
-        </a>
+        {/* Apply button — smart routing */}
+        {initialApplied ? (
+          /* Already Applied */
+          <div className="block w-full text-center px-5 py-3 rounded-lg bg-white/20 text-white text-[0.9rem] font-bold mb-2.5">
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineCheckCircle className="w-[18px] h-[18px]" />
+              Applied
+            </span>
+          </div>
+        ) : hasExternalUrl ? (
+          /* External Apply */
+          <a
+            href={job.externalApplyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-center px-5 py-3 rounded-lg bg-white text-[#1a56db] text-[0.9rem] font-bold hover:bg-gray-100 transition-colors no-underline mb-2.5"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <HiOutlineArrowTopRightOnSquare className="w-[18px] h-[18px]" />
+              Apply on Company Site
+            </span>
+          </a>
+        ) : (
+          /* In-app Apply */
+          <button
+            onClick={() => setApplyOpen(true)}
+            className="block w-full text-center px-5 py-3 rounded-lg bg-white text-[#1a56db] text-[0.9rem] font-bold hover:bg-gray-100 transition-colors cursor-pointer mb-2.5"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <HiOutlineChatBubbleLeftRight className="w-[18px] h-[18px]" />
+              Apply Now
+            </span>
+          </button>
+        )}
 
         <p className="text-center text-[0.78rem] opacity-70">
           Free to apply. No middlemen.
@@ -197,6 +227,15 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
 
       {/* Ad */}
       <AdSlot position="sidebar" />
+
+      {/* Apply Modal */}
+      {!hasExternalUrl && (
+        <ApplyModal
+          job={job}
+          open={applyOpen}
+          onOpenChange={setApplyOpen}
+        />
+      )}
     </aside>
   );
 }

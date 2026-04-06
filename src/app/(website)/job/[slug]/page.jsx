@@ -22,7 +22,38 @@ async function fetchJob(slug, userId) {
   try {
     const job = await db.job.findUnique({
       where: { slug },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        excerpt: true,
+        location: true,
+        isRemote: true,
+        salaryMin: true,
+        salaryMax: true,
+        salaryCurrency: true,
+        showSalary: true,
+        jobType: true,
+        experienceLevel: true,
+        employmentType: true,
+        category: true,
+        requirements: true,
+        responsibilities: true,
+        skills: true,
+        highlights: true,
+        isFeatured: true,
+        isNew: true,
+        isUrgent: true,
+        deadline: true,
+        deadlineLabel: true,
+        source: true,
+        externalApplyUrl: true,
+        viewsCount: true,
+        applicationCount: true,
+        publishedAt: true,
+        createdAt: true,
+        updatedAt: true,
         company: {
           select: {
             id: true,
@@ -48,18 +79,22 @@ async function fetchJob(slug, userId) {
 
     if (!job) return null;
 
-    // Check if user has saved this job
+    // Check if user has saved / applied to this job
     let isSaved = false;
+    let hasApplied = false;
     if (userId) {
-      const saved = await db.savedJob.findUnique({
-        where: {
-          userId_jobId: {
-            userId,
-            jobId: job.id,
-          },
-        },
-      });
+      const [saved, applied] = await Promise.all([
+        db.savedJob.findUnique({
+          where: { userId_jobId: { userId, jobId: job.id } },
+          select: { id: true },
+        }),
+        db.application.findUnique({
+          where: { userId_jobId: { userId, jobId: job.id } },
+          select: { id: true },
+        }),
+      ]);
       isSaved = !!saved;
+      hasApplied = !!applied;
     }
 
     // Increment view count (fire and forget)
@@ -97,7 +132,7 @@ async function fetchJob(slug, userId) {
       },
     });
 
-    return { job, similarJobs, isSaved };
+    return { job, similarJobs, isSaved, hasApplied };
   } catch (error) {
     console.error("[fetchJob] Error:", error);
     return null;
@@ -137,7 +172,7 @@ export default async function JobDetailPage({ params }) {
     notFound();
   }
 
-  const { job, similarJobs = [], isSaved = false } = data;
+  const { job, similarJobs = [], isSaved = false, hasApplied = false } = data;
   const company = job.company || {};
 
   // Normalize API data for component compatibility:
@@ -151,8 +186,8 @@ export default async function JobDetailPage({ params }) {
     },
   };
 
-  // Pass isSaved to header so the save button starts in the correct state
-  const headerProps = { job: normalizedJob, isSaved };
+  // Pass isSaved + hasApplied to header so buttons show correct initial state
+  const headerProps = { job: normalizedJob, isSaved, hasApplied };
 
   const jobJsonLd = generateJobJsonLd({
     ...normalizedJob,
@@ -270,12 +305,13 @@ export default async function JobDetailPage({ params }) {
             job={normalizedJob}
             similarJobs={similarJobs}
             companyJobs={[]}
+            hasApplied={hasApplied}
           />
         </div>
       </div>
 
       {/* Mobile Apply Bar */}
-      <MobileApplyBar job={normalizedJob} />
+      <MobileApplyBar job={normalizedJob} hasApplied={hasApplied} />
     </>
   );
 }

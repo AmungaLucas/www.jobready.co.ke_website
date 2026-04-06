@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/format";
 import { siteConfig } from "@/config/site-config";
-import { HiOutlineChatBubbleLeftRight } from "react-icons/hi2";
+import {
+  HiOutlineChatBubbleLeftRight,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineCheckCircle,
+} from "react-icons/hi2";
+import ApplyModal from "./ApplyModal";
 
-export default function MobileApplyBar({ job }) {
+export default function MobileApplyBar({ job, hasApplied: initialApplied = false }) {
+  const [applyOpen, setApplyOpen] = useState(false);
   const company = job.company || {};
-  const whatsappMessage = encodeURIComponent(
-    `Hi JobReady, I'm applying for "${job.title}" at ${company.name}. Please help me.`
-  );
-  const whatsappUrl = `${siteConfig.whatsapp.link}?text=${whatsappMessage}`;
+  const hasExternalUrl = !!job.externalApplyUrl;
 
   return (
     <>
@@ -32,17 +36,41 @@ export default function MobileApplyBar({ job }) {
           )}
         </div>
 
-        {/* Apply button */}
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#059669] text-white text-[0.87rem] font-bold hover:bg-[#047857] transition-colors no-underline shrink-0"
-        >
-          <HiOutlineChatBubbleLeftRight className="w-[18px] h-[18px]" />
-          Apply
-        </a>
+        {/* Apply button — smart routing */}
+        {initialApplied ? (
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-100 text-emerald-700 text-[0.87rem] font-bold shrink-0">
+            <HiOutlineCheckCircle className="w-[18px] h-[18px]" />
+            Applied
+          </div>
+        ) : hasExternalUrl ? (
+          <a
+            href={job.externalApplyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#059669] text-white text-[0.87rem] font-bold hover:bg-[#047857] transition-colors no-underline shrink-0"
+          >
+            <HiOutlineArrowTopRightOnSquare className="w-[18px] h-[18px]" />
+            Apply
+          </a>
+        ) : (
+          <button
+            onClick={() => setApplyOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#059669] text-white text-[0.87rem] font-bold hover:bg-[#047857] transition-colors cursor-pointer shrink-0"
+          >
+            <HiOutlineChatBubbleLeftRight className="w-[18px] h-[18px]" />
+            Apply
+          </button>
+        )}
       </div>
+
+      {/* Apply Modal */}
+      {!hasExternalUrl && (
+        <ApplyModal
+          job={job}
+          open={applyOpen}
+          onOpenChange={setApplyOpen}
+        />
+      )}
     </>
   );
 }
