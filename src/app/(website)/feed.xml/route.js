@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const SITE_URL = "https://jobready.co.ke";
 
 // ─── Opportunity type → hub slug mapping ───────────────────
@@ -92,7 +94,7 @@ export async function GET() {
     return new Response(xml, {
       headers: {
         "Content-Type": "application/xml; charset=utf-8",
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+        "Cache-Control": "public, s-maxage=600, stale-while-revalidate=300",
       },
     });
   } catch (error) {

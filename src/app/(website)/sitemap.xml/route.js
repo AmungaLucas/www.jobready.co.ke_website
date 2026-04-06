@@ -1,6 +1,8 @@
 import { getJobHubs, getOpportunityHubs } from "@/config/hub-config";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const SITE_URL = "https://jobready.co.ke";
 
 // ─── Static pages ──────────────────────────────────────────
@@ -148,7 +150,7 @@ ${urls}
   return new Response(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      "Cache-Control": "public, s-maxage=600, stale-while-revalidate=300",
     },
   });
 }
