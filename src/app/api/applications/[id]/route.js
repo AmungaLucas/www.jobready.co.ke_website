@@ -16,7 +16,7 @@ export async function PUT(request, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

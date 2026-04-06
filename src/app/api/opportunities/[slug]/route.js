@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 // Get single opportunity by slug + similar opportunities
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(

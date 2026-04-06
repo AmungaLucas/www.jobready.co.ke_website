@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 // Get company profile by slug + active jobs + similar companies
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(

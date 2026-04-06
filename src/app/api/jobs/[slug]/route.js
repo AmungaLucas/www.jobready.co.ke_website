@@ -8,7 +8,7 @@ import { generateSlug } from "@/lib/slug";
 // Get single job by slug + similar jobs
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(
@@ -110,7 +110,7 @@ export async function PUT(request, { params }) {
       );
     }
 
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(
@@ -399,7 +399,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(

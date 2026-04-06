@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(
@@ -101,7 +101,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(
