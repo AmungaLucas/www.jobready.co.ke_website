@@ -1,7 +1,7 @@
 import { getJobHubs, getOpportunityHubs } from "@/config/hub-config";
 import { db } from "@/lib/db";
 
-const SITE_URL = "https://jobready.co.ke";
+const SITE_URL = "https://jonet.co.ke";
 
 // Static pages
 const staticPages = [
