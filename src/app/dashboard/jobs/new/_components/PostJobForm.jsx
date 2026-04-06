@@ -117,7 +117,7 @@ const INITIAL_FORM = {
   title: "",
   category: "",
   subcategory: "",
-  type: "",
+  jobType: "",
   experienceLevel: "",
   country: "",
   region: "",
@@ -239,7 +239,7 @@ export default function PostJobForm() {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = "Job title is required";
     if (!form.category) newErrors.category = "Category is required";
-    if (!form.type) newErrors.type = "Employment type is required";
+    if (!form.jobType) newErrors.jobType = "Job type is required";
     if (!form.experienceLevel)
       newErrors.experienceLevel = "Experience level is required";
     if (!form.location.trim()) newErrors.location = "Location is required";

@@ -209,7 +209,7 @@ export default async function HomePage() {
     ? urgentJobs.slice(0, 3).map((j) => ({
         slug: j.slug,
         title: j.title,
-        company: j.company?.name || j.companyName || "",
+        company: j.company?.name || "",
         deadline: j.deadline,
       }))
     : [];
