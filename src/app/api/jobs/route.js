@@ -25,16 +25,6 @@ function mapEmploymentType(val) {
 // List / search jobs with filters and pagination
 export async function GET(request) {
   try {
-    // Quick DB connectivity test
-    try {
-      await db.job.count();
-    } catch (dbErr) {
-      return NextResponse.json(
-        { error: "DB connection failed", detail: dbErr?.message, code: dbErr?.code },
-        { status: 503 }
-      );
-    }
-
     const { searchParams } = request.nextUrl;
 
     // Parse query params
@@ -154,7 +144,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("[GET /api/jobs] Error:", error);
     return NextResponse.json(
-      { error: "Internal server error", detail: error?.message, code: error?.code, stack: error?.stack?.split('\n').slice(0, 5) },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
