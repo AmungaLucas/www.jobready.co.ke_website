@@ -182,88 +182,72 @@ model Company {
 // ============================================================
 // Mobile-first, SEO-optimized. Google Jobs structured data via JSON-LD.
 // Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
+// categories is now a JSON array (was single string "category")
+// Column naming: mix of camelCase (id, title, slug, ...) and snake_case (is_remote, employment_type, ...)
 
 model Job {
-  id              String    @id @default(cuid())
-  title           String                               // "Senior Accountant — Financial Reporting"
-  slug            String    @unique                    // "senior-accountant-safaricom-2026"
-  description     String    @db.LongText               // Full job description (HTML/Markdown)
-  excerpt         String?                              // 2-line excerpt for cards
+  id                  String    @id                   // Primary key (varchar, NOT cuid — set by app/seed)
+  title               String                           // "Senior Accountant — Financial Reporting"
+  slug                String    @unique                // "senior-accountant-safaricom-2026"
+  description         String    @db.LongText           // Full job description (HTML/Markdown)
+  categories          Json?                            // JSON array: ["TECHNOLOGY", "FINANCE_ACCOUNTING"]
+  shortDescription    String?   @map("short_description") @db.Text  // 2-line excerpt for cards
 
   // Company
-  companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
+  companyId           String                           // FK to companies.id
+  company             Company   @relation(fields: [companyId], references: [id])
 
   // Location
-  location        String                               // "Westlands, Nairobi" (display string for backward compat)
-  town            String?                              // Specific area (manual input)
-  city            String?                              // Structured: "Nairobi"
-  country         String?   @default("Kenya")          // Structured: "Kenya"
-  isRemote        Boolean   @default(false)
+  location            String                           // "Westlands, Nairobi" (display string)
+  country             String?                          // Structured: "Kenya"
+  city                String?                          // Structured: "Nairobi"
+  town                String?                          // Specific area (manual input)
+  isRemote            Boolean   @default(false)  @map("is_remote")
 
-  // Salary — ONLY shown on job detail page, NEVER on cards/listings
-  // Required for Google Jobs JSON-LD (baseSalary) + ranking boost
-  salaryMin       Int?                                 // Minimum salary (e.g. 80000)
-  salaryMax       Int?                                 // Maximum salary (e.g. 120000)
-  salaryCurrency  String    @default("KES")
-  salaryPeriod    String    @default("MONTHLY")         // "MONTHLY", "ANNUALLY", "HOURLY", "WEEKLY"
-  isSalaryNegotiable Boolean  @default(false)           // Toggle: salary is negotiable
-  showSalary      Boolean   @default(false)             // Toggle: display salary on job detail page
+  // Salary
+  salaryMin           Int?       @map("salary_min")      // Minimum salary (e.g. 80000)
+  salaryMax           Int?       @map("salary_max")      // Maximum salary (e.g. 120000)
+  salaryCurrency      String    @default("KES") @map("salary_currency")
+  salaryPeriod        String    @default("Monthly") @map("salary_period")  // "Monthly", "Annually", "Hourly", "Weekly"
+  isSalaryNegotiable  Boolean   @default(false) @map("is_salary_negotiable")
 
-  // Classification (validated against data.js)
-  jobType         String                               // "FULL_TIME", "PART_TIME", etc.
-  experienceLevel String                               // "ENTRY", "MID", "SENIOR", etc.
-  category        String                               // "TECHNOLOGY", "FINANCE_ACCOUNTING", etc.
-
-  // Badge states (from prototypes)
-  isFeatured      Boolean   @default(false)             // Featured badge (paid)
-  isNew           Boolean   @default(true)              // "New" badge (first 48h)
+  // Classification
+  employmentType      String    @map("employment_type")  // "Full-time", "Part-time", "Contract", etc.
+  experienceLevel     String    @map("experience_level") // "Entry", "Mid", "Senior", etc.
 
   // Vacancy
-  positions       Int       @default(1)                  // Number of open positions
+  positions           Int       @default(1)              // Number of open positions
 
-  // Deadline & Source
-  deadline        DateTime?
-  source          String    @default("DIRECT")          // "DIRECT", "SCRAPED", "PARTNER"
-  externalApplyUrl String?                             // External application URL
+  // Deadline & Application
+  applicationDeadline DateTime? @map("application_deadline")
+  applicationUrl      String?   @map("application_url")  // External application URL
+  applicationEmail    String?   @map("application_email")
+  howToApply          String?   @map("how_to_apply") @db.Text
 
-  // Application
-  applicationEmail String?                              // Email to apply to
-  howToApply      String?   @db.Text                   // Rich text for application instructions
+  // Status & Source
+  isFeatured          Boolean   @default(false) @map("is_featured")
+  isActive            Boolean   @default(true)  @map("is_active")
+  status              String    @default("Draft")        // "Draft", "Published", "Closed", "Archived"
+  source              String    @default("Manual")       // "Manual", "Scraped", "Employer Submitted", "Imported"
 
-  // Tags & Metadata
-  tags            Json?                                // ["tag1", "tag2"]
-  sourceUrl       String?                              // Original source URL
-
-  // Status
-  status          String    @default("DRAFT")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
-  isActive        Boolean   @default(true)
-
-  // SEO
-  noIndex         Boolean   @default(false)
-  metaTitle       String?
-  metaDescription String?
-  ogImage         String?
-
-  // Denormalized counters
-  viewsCount       Int       @default(0)
-  applicationCount Int      @default(0)
+  // Tags & SEO
+  tags                Json?                            // ["tag1", "tag2"]
+  metaTitle           String?   @map("meta_title")
+  metaDescription     String?   @map("meta_description")
 
   // Timestamps
-  publishedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
-  savedBy         SavedJob[]
-  applications    Application[]
+  savedBy             SavedJob[]
+  applications        Application[]
 
-  @@index([jobType])
+  @@index([employmentType])
   @@index([experienceLevel])
-  @@index([category])
-  @@index([location])
   @@index([companyId])
-  @@index([isActive, publishedAt])
+  @@index([location])
+  @@index([isActive])
   @@index([isFeatured])
   @@index([status])
   @@index([country])
@@ -301,7 +285,7 @@ model Opportunity {
 
   // Deadline & Source
   deadline          DateTime?
-  source            String    @default("DIRECT")
+  source            String    @default("Manual")
   externalApplyUrl  String?                              // For backward compat alongside howToApply
   howToApply        String?   @db.Text                   // Rich text instructions
 
@@ -312,7 +296,7 @@ model Opportunity {
   sourceUrl         String?                              // Original source URL
 
   // Status
-  status            String    @default("DRAFT")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
+  status            String    @default("Draft")           // "Draft", "Published", "Closed", "Archived"
   isFeatured        Boolean   @default(false)
   isActive          Boolean   @default(true)
 

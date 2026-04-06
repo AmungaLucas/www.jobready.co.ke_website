@@ -125,8 +125,8 @@ export async function POST(request, { params }) {
         id: true,
         title: true,
         isActive: true,
-        publishedAt: true,
-        deadline: true,
+        status: true,
+        applicationDeadline: true,
       },
     });
 
@@ -138,7 +138,7 @@ export async function POST(request, { params }) {
     }
 
     // Check: job is active and published
-    if (!job.isActive || !job.publishedAt) {
+    if (!job.isActive || job.status !== "Published") {
       return NextResponse.json(
         { error: "This job is no longer available" },
         { status: 400 }
@@ -146,9 +146,9 @@ export async function POST(request, { params }) {
     }
 
     // Check: deadline not passed
-    if (job.deadline) {
+    if (job.applicationDeadline) {
       const now = new Date();
-      if (new Date(job.deadline) < now) {
+      if (new Date(job.applicationDeadline) < now) {
         return NextResponse.json(
           { error: "The application deadline for this job has passed" },
           { status: 400 }
@@ -224,12 +224,6 @@ export async function POST(request, { params }) {
             },
           },
         },
-      });
-
-      // Increment application count on job
-      await tx.job.update({
-        where: { id: job.id },
-        data: { applicationCount: { increment: 1 } },
       });
 
       return app;

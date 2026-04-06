@@ -97,8 +97,9 @@ export function formatReadingTime(wordCount) {
 }
 
 /**
- * Format a job type enum value to display string.
- * "FULL_TIME" → "Full-time", "INTERNSHIP" → "Internship", etc.
+ * Format an employment type value to display string.
+ * New DB values are already display-ready ("Full-time", "Part-time", etc.).
+ * Legacy enum values ("FULL_TIME", "INTERNSHIP", etc.) are mapped for backward compat.
  *
  * @param {string} value
  * @returns {string}
@@ -106,17 +107,23 @@ export function formatReadingTime(wordCount) {
 export function formatJobType(value) {
   if (!value) return "";
   const map = {
+    // Legacy enum values
     FULL_TIME: "Full-time",
     PART_TIME: "Part-time",
     CONTRACT: "Contract",
     INTERNSHIP: "Internship",
+    TEMPORARY: "Temporary",
+    PERMANENT: "Full-time",
+    FREELANCE: "Freelance",
+    VOLUNTEER: "Volunteer",
   };
   return map[value] || value;
 }
 
 /**
- * Format an experience level enum value to display string.
- * "ENTRY" → "Entry Level", "MID" → "Mid Level", etc.
+ * Format an experience level value to display string.
+ * New DB values are already display-ready ("Entry Level", "Mid Level", etc.).
+ * Legacy enum values ("ENTRY", "MID", etc.) are mapped for backward compat.
  *
  * @param {string} value
  * @returns {string}
@@ -124,10 +131,15 @@ export function formatJobType(value) {
 export function formatExperienceLevel(value) {
   if (!value) return "";
   const map = {
+    // Legacy enum values
     ENTRY: "Entry Level",
+    JUNIOR: "Junior",
     MID: "Mid Level",
+    MID_LEVEL: "Mid Level",
     SENIOR: "Senior",
+    LEAD: "Lead",
     MANAGER: "Manager",
+    DIRECTOR: "Director",
     EXECUTIVE: "Executive",
   };
   return map[value] || value;

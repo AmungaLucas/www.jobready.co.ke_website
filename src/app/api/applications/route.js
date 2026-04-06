@@ -106,7 +106,7 @@ export async function GET(request) {
             id: true,
             title: true,
             slug: true,
-            jobType: true,
+            employmentType: true,
             location: true,
             isRemote: true,
             company: {

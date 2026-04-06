@@ -206,7 +206,7 @@ export default function SavedJobsPage() {
             const initials = getInitials(companyName);
             const logoColor = job.company?.logoColor || "#6366f1";
             const salary = formatSalary(job.salaryMin, job.salaryMax);
-            const jobType = formatJobType(job.jobType);
+            const jobType = formatJobType(job.employmentType);
             const jobSlug = job.slug;
 
             return (

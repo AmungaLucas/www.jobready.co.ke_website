@@ -114,15 +114,10 @@ function buildHubQueryString(hubFilters, searchQuery, sortBy, page, activeFilter
 
 /** Enrich API job objects with computed display fields */
 function enrichJob(job) {
-  const now = Date.now();
-  const published = job.publishedAt ? new Date(job.publishedAt).getTime() : 0;
-  const deadline = job.deadline ? new Date(job.deadline).getTime() : 0;
-
   return {
     ...job,
-    jobType: formatJobType(job.jobType),
+    employmentType: formatJobType(job.employmentType),
     experienceLevel: formatExperienceLevel(job.experienceLevel),
-    isNew: published > 0 && (now - published) < 24 * 60 * 60 * 1000,
   };
 }
 

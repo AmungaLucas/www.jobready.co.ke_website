@@ -4,6 +4,23 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateSlug } from "@/lib/slug";
 
+// ─── Value mapping: old uppercase → new Title Case ─────────
+const EMPLOYMENT_TYPE_MAP = {
+  FULL_TIME: "Full-time",
+  "FULL-TIME": "Full-time",
+  PART_TIME: "Part-time",
+  "PART-TIME": "Part-time",
+  CONTRACT: "Contract",
+  INTERNSHIP: "Internship",
+  FREELANCE: "Freelance",
+  VOLUNTEER: "Volunteer",
+};
+
+function mapEmploymentType(val) {
+  if (!val) return undefined;
+  return EMPLOYMENT_TYPE_MAP[val] || EMPLOYMENT_TYPE_MAP[val.toUpperCase()] || val;
+}
+
 // ─── GET /api/jobs/[slug] ─────────────────────────────────────
 // Get single job by slug + similar jobs
 export async function GET(request, { params }) {
@@ -48,28 +65,28 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Increment view count (fire and forget — no await for performance)
-    db.job.update({
-      where: { id: job.id },
-      data: { viewsCount: { increment: 1 } },
-    }).catch(() => {});
+    // Fetch similar jobs (same categories, different job, active, published)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Fetch similar jobs (same category, different job, active, published)
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Build category filter from JSON array
+    const jobCategories = Array.isArray(job.categories) ? job.categories : [];
+    const categoryFilter = jobCategories.length > 0
+      ? { OR: jobCategories.map((cat) => ({ categories: { string_contains: `"${cat}"` } })) }
+      : {};
 
     const similarJobs = await db.job.findMany({
       where: {
         id: { not: job.id },
-        category: job.category,
+        ...categoryFilter,
         isActive: true,
-        publishedAt: { not: null, lte: now },
+        status: "Published",
         OR: [
-          { deadline: null },
-          { deadline: { gte: today } },
+          { applicationDeadline: null },
+          { applicationDeadline: { gte: today } },
         ],
       },
-      orderBy: { publishedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 5,
       include: {
         company: {
@@ -165,12 +182,11 @@ export async function PUT(request, { params }) {
       salaryMax,
       salaryPeriod,
       isSalaryNegotiable,
-      showSalary,
       deadline,
       howToApply,
       tags,
       applicationEmail,
-      sourceUrl,
+      externalApplyUrl,
       country,
       city,
       town,
@@ -220,7 +236,7 @@ export async function PUT(request, { params }) {
           { status: 400 }
         );
       }
-      updateData.category = category.trim();
+      updateData.categories = Array.isArray(category) ? category : [category.trim()];
     }
 
     if (jobType !== undefined) {
@@ -230,7 +246,7 @@ export async function PUT(request, { params }) {
           { status: 400 }
         );
       }
-      updateData.jobType = jobType.trim();
+      updateData.employmentType = mapEmploymentType(jobType.trim());
     }
 
     if (experienceLevel !== undefined) {
@@ -273,13 +289,9 @@ export async function PUT(request, { params }) {
       updateData.isSalaryNegotiable = Boolean(isSalaryNegotiable);
     }
 
-    if (showSalary !== undefined) {
-      updateData.showSalary = Boolean(showSalary);
-    }
-
     if (deadline !== undefined) {
       if (deadline === null) {
-        updateData.deadline = null;
+        updateData.applicationDeadline = null;
       } else {
         const parsed = new Date(deadline);
         if (isNaN(parsed.getTime())) {
@@ -288,7 +300,7 @@ export async function PUT(request, { params }) {
             { status: 400 }
           );
         }
-        updateData.deadline = parsed;
+        updateData.applicationDeadline = parsed;
       }
     }
 
@@ -308,8 +320,8 @@ export async function PUT(request, { params }) {
       updateData.applicationEmail = applicationEmail || null;
     }
 
-    if (sourceUrl !== undefined) {
-      updateData.sourceUrl = sourceUrl || null;
+    if (externalApplyUrl !== undefined) {
+      updateData.applicationUrl = externalApplyUrl || null;
     }
 
     if (country !== undefined) {
@@ -334,9 +346,9 @@ export async function PUT(request, { params }) {
 
     if (isActive !== undefined) {
       updateData.isActive = Boolean(isActive);
-      // When activating, also set publishedAt if not already set
-      if (isActive === true && !existingJob.publishedAt) {
-        updateData.publishedAt = new Date();
+      // When activating, also set status to Published
+      if (isActive === true) {
+        updateData.status = "Published";
       }
     }
 
@@ -441,10 +453,10 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Soft delete: set isActive=false
+    // Soft delete: set isActive=false and status=Archived
     await db.job.update({
       where: { id: existingJob.id },
-      data: { isActive: false },
+      data: { isActive: false, status: "Archived" },
     });
 
     return NextResponse.json({

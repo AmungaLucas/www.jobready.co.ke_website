@@ -62,8 +62,8 @@ export async function GET() {
               title: true,
               slug: true,
               location: true,
-              jobType: true,
-              deadline: true,
+              employmentType: true,
+              applicationDeadline: true,
               company: {
                 select: {
                   name: true,

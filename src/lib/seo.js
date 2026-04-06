@@ -79,7 +79,7 @@ export function generateMeta({
 
 /**
  * Generate Google Jobs JobPosting JSON-LD from a job record.
- * Always includes salary (even when showSalary is false) for ranking.
+ * Always includes salary for Google ranking.
  *
  * @param {Object} job - Prisma Job record (with company included)
  * @returns {Object} JSON-LD structure
@@ -102,11 +102,11 @@ export function generateJobJsonLd(job) {
     "@type": "JobPosting",
     title: job.title,
     description: job.description,
-    datePosted: job.publishedAt
-      ? new Date(job.publishedAt).toISOString()
-      : new Date(job.createdAt).toISOString(),
+    datePosted: job.createdAt
+      ? new Date(job.createdAt).toISOString()
+      : new Date().toISOString(),
     url: `${SITE_URL}/job/${job.slug}`,
-    employmentType: mapEmploymentType(job.jobType),
+    employmentType: mapEmploymentType(job.employmentType),
     hiringOrganization: {
       "@type": "Organization",
       name: company.name || "JobReady Kenya",
@@ -160,13 +160,22 @@ export function generateJobJsonLd(job) {
   }
 
   // Deadline
-  if (job.deadline) {
-    jsonLd.validThrough = new Date(job.deadline).toISOString();
+  if (job.applicationDeadline) {
+    jsonLd.validThrough = new Date(job.applicationDeadline).toISOString();
   }
 
   // Experience level
   if (job.experienceLevel) {
     const qualMapping = {
+      "Entry Level": "No experience required",
+      "Junior": "1-2 years experience",
+      "Mid Level": "1-3 years experience",
+      "Senior": "5+ years experience",
+      "Lead": "5+ years experience",
+      "Manager": "7+ years experience",
+      "Director": "10+ years experience",
+      "Executive": "10+ years experience",
+      // Legacy enum values (backward compat)
       ENTRY: "No experience required",
       MID: "1-3 years experience",
       SENIOR: "5+ years experience",
@@ -539,6 +548,14 @@ export function mergeJsonLd(...jsonLdObjects) {
  */
 function mapEmploymentType(type) {
   const mapping = {
+    // New display-ready values
+    "Full-time": "FULL_TIME",
+    "Part-time": "PART_TIME",
+    "Contract": "CONTRACTOR",
+    "Internship": "INTERN",
+    "Freelance": "CONTRACTOR",
+    "Volunteer": "VOLUNTEER",
+    // Legacy enum values (backward compat)
     FULL_TIME: "FULL_TIME",
     PART_TIME: "PART_TIME",
     CONTRACT: "CONTRACTOR",

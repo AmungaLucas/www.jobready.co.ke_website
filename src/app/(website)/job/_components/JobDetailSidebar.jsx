@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, formatCurrency, formatRelativeDate, formatJobType, formatExperienceLevel } from "@/lib/format";
+import { formatDate, formatCurrency } from "@/lib/format";
 import { siteConfig } from "@/config/site-config";
 import { useAuth } from "@/lib/useSession";
-import { FiUsers, FiMapPin } from "react-icons/fi";
 import {
   HiOutlineChatBubbleLeftRight,
   HiShieldCheck,
@@ -34,7 +33,7 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
   const [applyOpen, setApplyOpen] = useState(false);
   const company = job.company || {};
 
-  const hasExternalUrl = !!job.externalApplyUrl;
+  const hasExternalUrl = !!job.applicationUrl;
 
   return (
     <aside>
@@ -44,28 +43,20 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
           Apply for this Position
         </h3>
 
-        {/* Stats */}
-        <div className="mb-4">
-          <p className="text-[0.82rem] opacity-90 flex items-center gap-1.5 mb-1.5">
-            <FiUsers className="w-4 h-4" />
-            <strong>{job.applicationCount}</strong> people have applied
-          </p>
-        </div>
-
         {/* Deadline box */}
-        {job.deadline && (
+        {job.applicationDeadline && (
           <div className="bg-white/15 rounded-lg p-3 mb-4">
             <strong className="block text-[0.7rem] uppercase tracking-wider opacity-75 mb-1">
               Application Deadline
             </strong>
             <span className="text-[1.05rem] font-bold">
-              {formatDate(job.deadline)}
+              {formatDate(job.applicationDeadline)}
             </span>
           </div>
         )}
 
         {/* Salary display */}
-        {job.showSalary && (job.salaryMin || job.salaryMax) && !job.isSalaryNegotiable && (
+        {(job.salaryMin || job.salaryMax) && !job.isSalaryNegotiable && (
           <div className="text-center py-3 mb-4">
             <div className="text-[1.5rem] font-extrabold text-white">
               {job.salaryMin && job.salaryMax
@@ -87,7 +78,7 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
         )}
 
         {/* Negotiable salary indicator */}
-        {job.showSalary && job.isSalaryNegotiable && (
+        {job.isSalaryNegotiable && (job.salaryMin || job.salaryMax) && (
           <div className="text-center py-3 mb-4">
             <div className="text-[1.1rem] font-bold text-white">
               Salary Negotiable
@@ -108,22 +99,22 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
               <span className="text-white font-semibold text-right">{job.location}</span>
             </li>
           )}
-          {job.jobType && (
+          {job.employmentType && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Job Type</span>
-              <span className="text-white font-semibold text-right">{formatJobType(job.jobType)}</span>
+              <span className="text-white font-semibold text-right">{job.employmentType}</span>
             </li>
           )}
           {job.experienceLevel && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Experience</span>
-              <span className="text-white font-semibold text-right">{formatExperienceLevel(job.experienceLevel)}</span>
+              <span className="text-white font-semibold text-right">{job.experienceLevel}</span>
             </li>
           )}
-          {job.category && (
+          {job.categories && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Category</span>
-              <span className="text-white font-semibold text-right">{job.category.replace(/_/g, ' ')}</span>
+              <span className="text-white font-semibold text-right">{Array.isArray(job.categories) ? job.categories.join(", ") : ""}</span>
             </li>
           )}
           {job.positions && job.positions > 1 && (
@@ -146,7 +137,7 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
         ) : hasExternalUrl ? (
           /* External Apply */
           <a
-            href={job.externalApplyUrl}
+            href={job.applicationUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full text-center px-5 py-3 rounded-lg bg-white text-[#1a56db] text-[0.9rem] font-bold hover:bg-gray-100 transition-colors no-underline mb-2.5"
@@ -227,7 +218,7 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
                     </h4>
                     <div className="flex gap-2.5 mt-1 text-[0.75rem] text-gray-500">
                       {job.location && <span>{job.location}</span>}
-                      {job.jobType && <span>&middot; {job.jobType}</span>}
+                      {job.employmentType && <span>&middot; {job.employmentType}</span>}
                     </div>
                   </div>
                 </Link>

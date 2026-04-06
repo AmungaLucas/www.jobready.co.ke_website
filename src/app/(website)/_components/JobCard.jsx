@@ -9,7 +9,6 @@ import {
   Heart,
   ShieldCheck,
   Star,
-  Sparkles,
   Loader2,
 } from "lucide-react";
 import { formatRelativeDate } from "@/lib/format";
@@ -34,11 +33,10 @@ export default function JobCard({ job }) {
     slug,
     company,
     location,
-    jobType,
+    employmentType,
     experienceLevel,
     isFeatured,
-    isNew,
-    publishedAt,
+    createdAt,
   } = job;
 
   const companyName = company?.name || "Unknown";
@@ -116,12 +114,6 @@ export default function JobCard({ job }) {
               Featured
             </span>
           )}
-          {isNew && (
-            <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-emerald-100 text-emerald-700">
-              <Sparkles size={10} />
-              New
-            </span>
-          )}
 
         </div>
 
@@ -149,10 +141,10 @@ export default function JobCard({ job }) {
               {location}
             </span>
           )}
-          {jobType && (
+          {employmentType && (
             <span className="inline-flex items-center gap-1">
               <Briefcase size={14} />
-              {jobType}
+              {employmentType}
             </span>
           )}
           {experienceLevel && (
@@ -161,10 +153,10 @@ export default function JobCard({ job }) {
               {experienceLevel}
             </span>
           )}
-          {publishedAt && (
+          {createdAt && (
             <span className="inline-flex items-center gap-1">
               <Clock size={14} />
-              {formatRelativeDate(publishedAt)}
+              {formatRelativeDate(createdAt)}
             </span>
           )}
         </div>

@@ -23,11 +23,11 @@ export async function GET() {
     const [jobs, opportunities] = await Promise.allSettled([
       // Latest 50 published jobs
       db.job.findMany({
-        where: { isActive: true, publishedAt: { not: null } },
+        where: { status: "Published" },
         include: {
           company: { select: { name: true } },
         },
-        orderBy: { publishedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         take: 50,
       }),
       // Latest 20 published opportunities
@@ -56,9 +56,9 @@ export async function GET() {
       <title><![CDATA[${job.title} at ${job.company?.name || "Confidential"}]]></title>
       <link>${SITE_URL}/job/${job.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/job/${job.slug}</guid>
-      <category>${job.jobType || "Job"}</category>
+      <category>${job.employmentType || "Job"}</category>
       <description><![CDATA[${job.description ? job.description.substring(0, 500) : ""}]]></description>
-      <pubDate>${job.publishedAt?.toUTCString()}</pubDate>
+      <pubDate>${job.createdAt?.toUTCString()}</pubDate>
     </item>`
       )
       .join("");

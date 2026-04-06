@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 /**
  * GET /api/saved-jobs
  * Returns the authenticated user's saved jobs with pagination.
- * Includes job details: title, slug, company, location, jobType, salaryMin, salaryMax, deadline
+ * Includes job details: title, slug, company, location, employmentType, salaryMin, salaryMax, applicationDeadline
  */
 export async function GET(request) {
   try {
@@ -34,13 +34,12 @@ export async function GET(request) {
               title: true,
               slug: true,
               location: true,
-              jobType: true,
+              employmentType: true,
               salaryMin: true,
               salaryMax: true,
-              deadline: true,
+              applicationDeadline: true,
               isRemote: true,
               isFeatured: true,
-              isNew: true,
               isActive: true,
               company: {
                 select: {

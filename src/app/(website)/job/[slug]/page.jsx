@@ -27,35 +27,29 @@ async function fetchJob(slug, userId) {
         title: true,
         slug: true,
         description: true,
-        excerpt: true,
+        shortDescription: true,
         location: true,
         isRemote: true,
         salaryMin: true,
         salaryMax: true,
         salaryCurrency: true,
-        showSalary: true,
-        jobType: true,
+        employmentType: true,
         experienceLevel: true,
-        category: true,
+        categories: true,
         isFeatured: true,
-        isNew: true,
         positions: true,
-        deadline: true,
+        applicationDeadline: true,
         salaryPeriod: true,
         isSalaryNegotiable: true,
         howToApply: true,
         status: true,
         tags: true,
         applicationEmail: true,
-        sourceUrl: true,
         country: true,
         city: true,
         town: true,
         source: true,
-        externalApplyUrl: true,
-        viewsCount: true,
-        applicationCount: true,
-        publishedAt: true,
+        applicationUrl: true,
         createdAt: true,
         updatedAt: true,
         company: {
@@ -75,9 +69,7 @@ async function fetchJob(slug, userId) {
             phoneNumber: true,
           },
         },
-        _count: {
-          select: { applications: true },
-        },
+
       },
     });
 
@@ -101,27 +93,28 @@ async function fetchJob(slug, userId) {
       hasApplied = !!applied;
     }
 
-    // Increment view count (fire and forget)
-    db.job
-      .update({
-        where: { id: job.id },
-        data: { viewsCount: { increment: 1 } },
-      })
-      .catch(() => {});
+    // Fetch similar jobs (same categories, different job, active, published)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Fetch similar jobs (same category, different job, active, published)
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Build category filter from JSON array
+    const jobCategories = Array.isArray(job.categories) ? job.categories : [];
+    const categoryFilter = jobCategories.length > 0
+      ? { OR: jobCategories.map((cat) => ({ categories: { string_contains: `"${cat}"` } })) }
+      : {};
 
     const similarJobs = await db.job.findMany({
       where: {
         id: { not: job.id },
-        category: job.category,
+        ...categoryFilter,
         isActive: true,
-        publishedAt: { not: null, lte: now },
-        OR: [{ deadline: null }, { deadline: { gte: today } }],
+        status: "Published",
+        OR: [
+          { applicationDeadline: null },
+          { applicationDeadline: { gte: today } },
+        ],
       },
-      orderBy: { publishedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 5,
       include: {
         company: {
@@ -157,10 +150,11 @@ export async function generateMetadata({ params }) {
 
   const { job } = data;
   const company = job.company || {};
+  const firstCategory = Array.isArray(job.categories) ? job.categories?.[0] || "" : "";
 
   return generateMeta({
     title: `${job.title} at ${company.name}`,
-    description: `Apply for ${job.title} at ${company.name} in ${job.location}. ${job.jobType}, ${job.experienceLevel} level. Deadline: ${job.deadline}. Get your CV reviewed — JobReady.co.ke`,
+    description: `Apply for ${job.title} at ${company.name} in ${job.location}. ${job.employmentType}, ${job.experienceLevel} level. Deadline: ${job.applicationDeadline}. Get your CV reviewed — JobReady.co.ke`,
     path: `/job/${job.slug}`,
   });
 }
@@ -182,7 +176,6 @@ export default async function JobDetailPage({ params }) {
   // Normalize data for component compatibility
   const normalizedJob = {
     ...job,
-    applicationCount: job.applicationCount || job._count?.applications || 0,
     tags: job.tags || [],
     company: {
       ...company,
@@ -194,7 +187,7 @@ export default async function JobDetailPage({ params }) {
 
   const jobJsonLd = generateJobJsonLd({
     ...normalizedJob,
-    publishedAt: normalizedJob.publishedAt,
+    createdAt: normalizedJob.createdAt,
     company: {
       ...normalizedJob.company,
       logo:
@@ -203,10 +196,12 @@ export default async function JobDetailPage({ params }) {
     },
   });
 
+  const firstCategory = Array.isArray(normalizedJob.categories) ? normalizedJob.categories?.[0] || "All Categories" : "All Categories";
+
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
-    { name: normalizedJob.category || "All Categories", href: `/jobs` },
+    { name: firstCategory, href: `/jobs` },
     { name: normalizedJob.title, href: `/job/${normalizedJob.slug}` },
   ]);
 
@@ -267,15 +262,15 @@ export default async function JobDetailPage({ params }) {
             {/* Pain trigger */}
             <div className="bg-gray-900 text-white rounded-lg p-5 md:p-6 mt-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
               <div className="text-[1.6rem] font-extrabold text-[#f59e0b] leading-none whitespace-nowrap">
-                {normalizedJob.applicationCount || 0}
+                CV
                 <small className="block text-[0.7rem] text-gray-400 font-normal mt-1">
-                  applicants
+                  matters
                 </small>
               </div>
               <div className="flex-1">
                 <p className="text-[0.85rem] text-gray-300 leading-relaxed">
                   <strong className="text-white">
-                    Stand out from {normalizedJob.applicationCount || 0} applicants.
+                    Your CV is your first impression.
                   </strong>{" "}
                   A professional CV tailored to this role gets you 3x more
                   interview calls.

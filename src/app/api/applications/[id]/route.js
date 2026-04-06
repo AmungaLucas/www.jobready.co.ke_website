@@ -115,7 +115,7 @@ export async function PUT(request, { params }) {
             id: true,
             title: true,
             slug: true,
-            jobType: true,
+            employmentType: true,
             location: true,
             company: {
               select: {

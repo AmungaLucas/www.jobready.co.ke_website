@@ -101,10 +101,10 @@ const WORK_MODE = [
 ];
 
 const SOURCE_OPTIONS = [
-  { value: "DIRECT", label: "Direct Post" },
-  { value: "SCRAPED", label: "Scraped" },
-  { value: "PARTNER", label: "Partner" },
-  { value: "EMPLOYER_SUBMITTED", label: "Employer Submitted" },
+  { value: "Manual", label: "Direct Post" },
+  { value: "Scraped", label: "Scraped" },
+  { value: "Partner", label: "Partner" },
+  { value: "Employer Submitted", label: "Employer Submitted" },
 ];
 
 const APPLICATION_METHODS = [
@@ -117,7 +117,7 @@ const INITIAL_FORM = {
   title: "",
   category: "",
   subcategory: "",
-  jobType: "",
+  employmentType: "",
   experienceLevel: "",
   country: "",
   region: "",
@@ -126,13 +126,12 @@ const INITIAL_FORM = {
   salaryCurrency: "KES",
   salaryMin: "",
   salaryMax: "",
-  showSalary: true,
-  source: "DIRECT",
+  source: "Manual",
   tags: [],
   description: "",
   requirements: "",
   responsibilities: "",
-  deadline: "",
+  applicationDeadline: "",
   maxApplicants: "",
   isFeatured: false,
   applicationMethod: "inapp",
@@ -239,13 +238,13 @@ export default function PostJobForm() {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = "Job title is required";
     if (!form.category) newErrors.category = "Category is required";
-    if (!form.jobType) newErrors.jobType = "Job type is required";
+    if (!form.employmentType) newErrors.employmentType = "Job type is required";
     if (!form.experienceLevel)
       newErrors.experienceLevel = "Experience level is required";
     if (!form.location.trim()) newErrors.location = "Location is required";
     if (!form.description.trim())
       newErrors.description = "Job description is required";
-    if (!form.deadline) newErrors.deadline = "Application deadline is required";
+    if (!form.applicationDeadline) newErrors.applicationDeadline = "Application deadline is required";
     if (form.applicationMethod === "email" && !form.contactEmail.trim()) {
       newErrors.contactEmail =
         "Contact email is required for email applications";
@@ -561,25 +560,10 @@ export default function PostJobForm() {
 
             {/* Salary Range */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="font-medium flex items-center gap-2">
-                  <DollarSign className="size-4 text-muted-foreground" />
-                  Salary Range ({currencyLabel})
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Label
-                    htmlFor="showSalary"
-                    className="text-sm text-muted-foreground"
-                  >
-                    Show salary
-                  </Label>
-                  <Switch
-                    id="showSalary"
-                    checked={form.showSalary}
-                    onCheckedChange={(v) => updateField("showSalary", v)}
-                  />
-                </div>
-              </div>
+              <Label className="font-medium flex items-center gap-2">
+                <DollarSign className="size-4 text-muted-foreground" />
+                Salary Range ({currencyLabel})
+              </Label>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label
@@ -763,20 +747,20 @@ export default function PostJobForm() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="deadline">
+                <Label htmlFor="applicationDeadline">
                   Application Deadline{" "}
                   <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="deadline"
+                  id="applicationDeadline"
                   type="date"
-                  value={form.deadline}
-                  onChange={(e) => updateField("deadline", e.target.value)}
-                  className={errors.deadline ? "border-destructive" : ""}
+                  value={form.applicationDeadline}
+                  onChange={(e) => updateField("applicationDeadline", e.target.value)}
+                  className={errors.applicationDeadline ? "border-destructive" : ""}
                 />
-                {errors.deadline && (
+                {errors.applicationDeadline && (
                   <p className="text-xs text-destructive">
-                    {errors.deadline}
+                    {errors.applicationDeadline}
                   </p>
                 )}
               </div>

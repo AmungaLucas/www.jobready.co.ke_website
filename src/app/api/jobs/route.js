@@ -4,6 +4,23 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateSlug } from "@/lib/slug";
 
+// ─── Value mapping: old uppercase → new Title Case ─────────
+const EMPLOYMENT_TYPE_MAP = {
+  FULL_TIME: "Full-time",
+  "FULL-TIME": "Full-time",
+  PART_TIME: "Part-time",
+  "PART-TIME": "Part-time",
+  CONTRACT: "Contract",
+  INTERNSHIP: "Internship",
+  FREELANCE: "Freelance",
+  VOLUNTEER: "Volunteer",
+};
+
+function mapEmploymentType(val) {
+  if (!val) return undefined;
+  return EMPLOYMENT_TYPE_MAP[val] || EMPLOYMENT_TYPE_MAP[val.toUpperCase()] || val;
+}
+
 // ─── GET /api/jobs ────────────────────────────────────────────
 // List / search jobs with filters and pagination
 export async function GET(request) {
@@ -29,16 +46,16 @@ export async function GET(request) {
     if (limit > 50) limit = 50;
 
     // Build where clause using AND array for clean composition
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const conditions = [
       { isActive: true },
-      { publishedAt: { not: null, lte: now } },
+      { status: "Published" },
       {
         OR: [
-          { deadline: null },
-          { deadline: { gte: today } },
+          { applicationDeadline: null },
+          { applicationDeadline: { gte: today } },
         ],
       },
     ];
@@ -55,10 +72,12 @@ export async function GET(request) {
 
     // Additional filters
     if (category) {
-      conditions.push({ category });
+      // categories is a JSON array — search with quoted value for exact match
+      conditions.push({ categories: { string_contains: `"${category}"` } });
     }
     if (jobType) {
-      conditions.push({ jobType });
+      const mappedType = mapEmploymentType(jobType);
+      conditions.push({ employmentType: mappedType });
     }
     if (experienceLevel) {
       conditions.push({ experienceLevel });
@@ -79,14 +98,14 @@ export async function GET(request) {
     let orderBy;
     switch (sort) {
       case "deadline":
-        orderBy = [{ deadline: "asc" }, { publishedAt: "desc" }];
+        orderBy = [{ applicationDeadline: "asc" }, { createdAt: "desc" }];
         break;
       case "featured":
-        orderBy = [{ isFeatured: "desc" }, { publishedAt: "desc" }];
+        orderBy = [{ isFeatured: "desc" }, { createdAt: "desc" }];
         break;
       case "newest":
       default:
-        orderBy = { publishedAt: "desc" };
+        orderBy = { createdAt: "desc" };
         break;
     }
 
@@ -190,12 +209,11 @@ export async function POST(request) {
       salaryMax,
       salaryPeriod,
       isSalaryNegotiable,
-      showSalary,
       deadline,
       howToApply,
       tags,
       applicationEmail,
-      sourceUrl,
+      externalApplyUrl,
       country,
       city,
       town,
@@ -269,30 +287,35 @@ export async function POST(request) {
       }
     }
 
+    // Map employment type to Title Case
+    const mappedJobType = mapEmploymentType(jobType);
+
+    // Build categories JSON array from category string
+    const categories = Array.isArray(category) ? category : [category];
+
     // Build job data
     const jobData = {
       title: title.trim(),
       slug,
       description: description.trim(),
-      category,
-      jobType,
+      categories,
+      employmentType: mappedJobType,
       experienceLevel,
       location: location.trim(),
       isRemote: Boolean(isRemote),
       salaryMin: salaryMin ? parseInt(salaryMin, 10) : null,
       salaryMax: salaryMax ? parseInt(salaryMax, 10) : null,
-      salaryPeriod: salaryPeriod || "MONTHLY",
+      salaryPeriod: salaryPeriod || "Monthly",
       isSalaryNegotiable: Boolean(isSalaryNegotiable),
-      showSalary: Boolean(showSalary),
-      deadline: parsedDeadline,
+      applicationDeadline: parsedDeadline,
       howToApply: howToApply || null,
       tags: tags && Array.isArray(tags) ? tags : null,
       applicationEmail: applicationEmail || null,
-      sourceUrl: sourceUrl || null,
+      applicationUrl: externalApplyUrl || null,
       country: country || null,
       city: city || null,
       town: town || null,
-      status: status || "DRAFT",
+      status: status || "Draft",
       isFeatured: Boolean(isFeatured) && user.role === "ADMIN",
       positions: positions ? parseInt(positions, 10) : 1,
       companyId: company.id,
@@ -301,10 +324,10 @@ export async function POST(request) {
     // If not draft, publish immediately
     if (draft !== true) {
       jobData.isActive = true;
-      jobData.publishedAt = new Date();
+      jobData.status = "Published";
     } else {
       jobData.isActive = false;
-      jobData.publishedAt = null;
+      jobData.status = "Draft";
     }
 
     // Create job

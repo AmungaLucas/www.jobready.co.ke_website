@@ -66,14 +66,14 @@ export function buildLocation(entity) {
 
 /**
  * Normalize a job from the API into the shape expected by JobCard.
- * Adds display-formatted jobType / experienceLevel.
+ * Adds display-formatted employmentType / experienceLevel.
  * @param {object} job — API job record (with nested company)
  * @returns {object}
  */
 export function normalizeJobForCard(job) {
   return {
     ...job,
-    jobType: formatJobType(job.jobType),
+    employmentType: formatJobType(job.employmentType),
     experienceLevel: formatExperienceLevel(job.experienceLevel),
   };
 }

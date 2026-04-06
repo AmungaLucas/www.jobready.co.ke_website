@@ -12,7 +12,7 @@ import CVReviewCTA from "../../_components/CVReviewCTA";
 import AdSlot from "../../_components/AdSlot";
 import NewsletterForm from "../../_components/NewsletterForm";
 import SidebarCard from "../../_components/SidebarCard";
-import { formatJobType, formatExperienceLevel } from "@/lib/format";
+import { formatRelativeDate } from "@/lib/format";
 
 // Static search terms — not DB data
 const popularTags = [
@@ -68,15 +68,8 @@ function buildQueryString(filters, sort, page, urlParams) {
 
 /** Enrich API job objects with computed display fields */
 function enrichJob(job) {
-  const now = Date.now();
-  const published = job.publishedAt ? new Date(job.publishedAt).getTime() : 0;
-  const deadline = job.deadline ? new Date(job.deadline).getTime() : 0;
-
   return {
     ...job,
-    jobType: formatJobType(job.jobType),
-    experienceLevel: formatExperienceLevel(job.experienceLevel),
-    isNew: published > 0 && (now - published) < 24 * 60 * 60 * 1000,
   };
 }
 

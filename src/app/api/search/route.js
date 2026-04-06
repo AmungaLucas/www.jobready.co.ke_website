@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+// ─── Value mapping: old uppercase → new Title Case ─────────
+const EMPLOYMENT_TYPE_MAP = {
+  FULL_TIME: "Full-time",
+  "FULL-TIME": "Full-time",
+  PART_TIME: "Part-time",
+  "PART-TIME": "Part-time",
+  CONTRACT: "Contract",
+  INTERNSHIP: "Internship",
+  FREELANCE: "Freelance",
+  VOLUNTEER: "Volunteer",
+};
+
+function mapEmploymentType(val) {
+  if (!val) return undefined;
+  return EMPLOYMENT_TYPE_MAP[val] || EMPLOYMENT_TYPE_MAP[val.toUpperCase()] || val;
+}
+
 /**
  * GET /api/search
  * Global search across jobs, opportunities, companies, and articles.
@@ -60,9 +77,10 @@ export async function GET(request) {
             { company: { name: searchKeyword } },
           ]},
           { isActive: true },
-          ...(category ? [{ category }] : []),
+          { status: "Published" },
+          ...(category ? [{ categories: { string_contains: `"${category}"` } }] : []),
           ...(location ? [{ location: { contains: location } }] : []),
-          ...(jobType ? [{ jobType }] : []),
+          ...(jobType ? [{ employmentType: mapEmploymentType(jobType) }] : []),
         ],
       };
 
@@ -75,16 +93,14 @@ export async function GET(request) {
             slug: true,
             location: true,
             isRemote: true,
-            jobType: true,
+            employmentType: true,
             experienceLevel: true,
-            category: true,
+            categories: true,
             salaryMin: true,
             salaryMax: true,
-            showSalary: true,
             isFeatured: true,
-            isNew: true,
-            deadline: true,
-            publishedAt: true,
+            applicationDeadline: true,
+            createdAt: true,
             company: {
               select: {
                 id: true,
@@ -96,7 +112,7 @@ export async function GET(request) {
               },
             },
           },
-          orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+          orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
           skip,
           take: limit,
         }),

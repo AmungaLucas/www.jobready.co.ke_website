@@ -75,13 +75,13 @@ export const dynamic = "force-dynamic";
 
 // ─── Shared Prisma where clause for active, published jobs ───
 function activeJobsWhere(overrides = []) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return {
     AND: [
       { isActive: true },
-      { publishedAt: { not: null, lte: now } },
-      { OR: [{ deadline: null }, { deadline: { gte: today } }] },
+      { status: "Published" },
+      { OR: [{ applicationDeadline: null }, { applicationDeadline: { gte: today } }] },
       ...overrides,
     ],
   };
@@ -126,28 +126,28 @@ export default async function HomePage() {
       // Featured jobs
       db.job.findMany({
         where: activeJobsWhere(),
-        orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
         take: 5,
         include: jobInclude,
       }),
       // Latest jobs
       db.job.findMany({
         where: activeJobsWhere(),
-        orderBy: { publishedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         take: 10,
         include: jobInclude,
       }),
       // Internship jobs
       db.job.findMany({
-        where: activeJobsWhere([{ jobType: "INTERNSHIP" }]),
-        orderBy: { publishedAt: "desc" },
+        where: activeJobsWhere([{ employmentType: "Internship" }]),
+        orderBy: { createdAt: "desc" },
         take: 5,
         include: jobInclude,
       }),
       // Deadline jobs (for urgent deadlines + sidebar)
       db.job.findMany({
         where: activeJobsWhere(),
-        orderBy: [{ deadline: "asc" }, { publishedAt: "desc" }],
+        orderBy: [{ applicationDeadline: "asc" }, { createdAt: "desc" }],
         take: 10,
         include: jobInclude,
       }),
@@ -202,8 +202,8 @@ export default async function HomePage() {
   const now = new Date();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
   const urgentJobs = deadlineRaw.filter((j) => {
-    if (!j.deadline) return false;
-    const dl = new Date(j.deadline);
+    if (!j.applicationDeadline) return false;
+    const dl = new Date(j.applicationDeadline);
     return dl > now && dl.getTime() - now.getTime() < sevenDaysMs;
   });
   const urgentDeadlines = urgentJobs.length
@@ -211,7 +211,7 @@ export default async function HomePage() {
         slug: j.slug,
         title: j.title,
         company: j.company?.name || "",
-        deadline: j.deadline,
+        deadline: j.applicationDeadline,
       }))
     : [];
 
@@ -258,7 +258,7 @@ export default async function HomePage() {
   const sidebarDeadlines = deadlineRaw.length > 0
     ? deadlineRaw.slice(0, 5).map((j) => ({
         name: j.title,
-        timeLeft: formatTimeLeft(j.deadline),
+        timeLeft: formatTimeLeft(j.applicationDeadline),
       }))
     : [];
 

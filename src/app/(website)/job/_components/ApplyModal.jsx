@@ -215,10 +215,10 @@ export default function ApplyModal({ job, open, onOpenChange }) {
         ) : (
           <div className="space-y-4 pt-1">
             {/* Deadline warning */}
-            {job.deadline && (
+            {job.applicationDeadline && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
                 <strong>Deadline:</strong>{" "}
-                {new Date(job.deadline).toLocaleDateString("en-KE", {
+                {new Date(job.applicationDeadline).toLocaleDateString("en-KE", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -246,7 +246,7 @@ export default function ApplyModal({ job, open, onOpenChange }) {
             </div>
 
             {/* External apply link notice */}
-            {job.externalApplyUrl && (
+            {job.applicationUrl && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
                 <div className="flex items-center gap-1.5 font-semibold mb-1">
                   <ExternalLink className="w-4 h-4" />

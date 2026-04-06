@@ -1,24 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/format";
 import { siteConfig } from "@/config/site-config";
-import { formatRelativeDate, formatDate, formatJobType, formatExperienceLevel } from "@/lib/format";
-import { useAuth } from "@/lib/useSession";
-import {
-  FiMapPin,
-  FiBriefcase,
-  FiClock,
-  FiHeart,
-  FiShare2,
-  FiBookmark,
-  FiUsers,
-} from "react-icons/fi";
-import { HiShieldCheck } from "react-icons/hi2";
 import {
   HiOutlineChatBubbleLeftRight,
-  HiOutlineDocumentText,
+  HiShieldCheck,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineCheckCircle,
 } from "react-icons/hi2";
@@ -45,7 +34,7 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
   const initials = getInitials(company.name);
 
   // Determine apply button behavior
-  const hasExternalUrl = !!job.externalApplyUrl;
+  const hasExternalUrl = !!job.applicationUrl;
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -144,28 +133,28 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
                 {job.location}
               </span>
             )}
-            {job.jobType && (
+            {job.employmentType && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiBriefcase className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                {formatJobType(job.jobType)}
+                {job.employmentType}
               </span>
             )}
             {job.experienceLevel && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiClock className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                {formatExperienceLevel(job.experienceLevel)}
+                {job.experienceLevel}
               </span>
             )}
-            {job.publishedAt && (
+            {job.createdAt && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiClock className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                {formatRelativeDate(job.publishedAt)}
+                {formatRelativeDate(job.createdAt)}
               </span>
             )}
-            {job.deadline && (
+            {job.applicationDeadline && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiClock className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                Deadline: {formatDate(job.deadline)}
+                Deadline: {formatDate(job.applicationDeadline)}
               </span>
             )}
             {job.positions && job.positions > 1 && (
@@ -207,7 +196,7 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
           ) : hasExternalUrl ? (
             /* External Apply — opens company's career page */
             <a
-              href={job.externalApplyUrl}
+              href={job.applicationUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#059669] text-white text-[0.85rem] font-bold hover:bg-[#047857] transition-colors no-underline"

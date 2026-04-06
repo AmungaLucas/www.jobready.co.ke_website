@@ -44,7 +44,6 @@ import {
   MoreHorizontal,
   Pencil,
   Pause,
-  Play,
   Eye,
   Trash2,
   Users,
@@ -60,90 +59,81 @@ const MOCK_JOBS = [
     id: 1,
     title: "Senior Software Engineer",
     location: "Nairobi, Kenya",
-    jobType: "FULL_TIME",
-    status: "PUBLISHED",
-    applicationCount: 34,
-    publishedAt: "2026-03-15",
-    category: "Technology",
+    employmentType: "Full-time",
+    status: "Published",
+    createdAt: "2026-03-15",
+    categories: ["Technology"],
   },
   {
     id: 2,
     title: "Financial Analyst",
     location: "Nairobi, Kenya",
-    jobType: "FULL_TIME",
-    status: "PUBLISHED",
-    applicationCount: 28,
-    publishedAt: "2026-03-12",
-    category: "Finance & Accounting",
+    employmentType: "Full-time",
+    status: "Published",
+    createdAt: "2026-03-12",
+    categories: ["Finance & Accounting"],
   },
   {
     id: 3,
     title: "Marketing Manager",
     location: "Nairobi, Kenya",
-    jobType: "FULL_TIME",
-    status: "PAUSED",
-    applicationCount: 19,
-    publishedAt: "2026-03-08",
-    category: "Marketing",
+    employmentType: "Full-time",
+    status: "Draft",
+    createdAt: "2026-03-08",
+    categories: ["Marketing"],
   },
   {
     id: 4,
     title: "Network Engineer",
     location: "Mombasa, Kenya",
-    jobType: "FULL_TIME",
-    status: "PUBLISHED",
-    applicationCount: 12,
-    publishedAt: "2026-03-05",
-    category: "Technology",
+    employmentType: "Full-time",
+    status: "Published",
+    createdAt: "2026-03-05",
+    categories: ["Technology"],
   },
   {
     id: 5,
     title: "Human Resources Intern",
     location: "Nairobi, Kenya",
-    jobType: "INTERNSHIP",
-    status: "CLOSED",
-    applicationCount: 45,
-    publishedAt: "2026-02-20",
-    category: "HR",
+    employmentType: "Internship",
+    status: "Closed",
+    createdAt: "2026-02-20",
+    categories: ["HR"],
   },
   {
     id: 6,
     title: "Product Manager — M-PESA",
     location: "Nairobi, Kenya",
-    jobType: "FULL_TIME",
-    status: "PUBLISHED",
-    applicationCount: 22,
-    publishedAt: "2026-03-01",
-    category: "Technology",
+    employmentType: "Full-time",
+    status: "Published",
+    createdAt: "2026-03-01",
+    categories: ["Technology"],
   },
   {
     id: 7,
     title: "Data Analyst",
     location: "Nakuru, Kenya",
-    jobType: "CONTRACT",
-    status: "DRAFT",
-    applicationCount: 0,
-    publishedAt: "2026-03-28",
-    category: "Finance & Accounting",
+    employmentType: "Contract",
+    status: "Draft",
+    createdAt: "2026-03-28",
+    categories: ["Finance & Accounting"],
   },
   {
     id: 8,
     title: "Customer Service Representative",
     location: "Kisumu, Kenya",
-    jobType: "FULL_TIME",
-    status: "DRAFT",
-    applicationCount: 0,
-    publishedAt: "2026-03-28",
-    category: "Customer Service",
+    employmentType: "Full-time",
+    status: "Draft",
+    createdAt: "2026-03-28",
+    categories: ["Customer Service"],
   },
 ];
 
 const STATUS_CONFIG = {
-  PUBLISHED: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  ACTIVE: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  PAUSED: { label: "Paused", className: "bg-amber-50 text-amber-700 border-amber-200" },
-  DRAFT: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
-  CLOSED: { label: "Closed", className: "bg-red-50 text-red-700 border-red-200" },
+  Published: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  Draft: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
+  Closed: { label: "Closed", className: "bg-red-50 text-red-700 border-red-200" },
+  Archived: { label: "Archived", className: "bg-gray-50 text-gray-600 border-gray-200" },
 };
 
 const ITEMS_PER_PAGE = 5;
@@ -158,7 +148,7 @@ export default function MyJobsContent() {
 
   // Filter jobs
   const filteredJobs = MOCK_JOBS.filter((job) => {
-    const matchesFilter = activeFilter === "all" || job.status === activeFilter || (activeFilter === "PUBLISHED" && job.status === "ACTIVE");
+    const matchesFilter = activeFilter === "all" || job.status === activeFilter;
     const matchesSearch =
       searchQuery === "" ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -212,10 +202,9 @@ export default function MyJobsContent() {
         <div className="flex flex-wrap gap-1">
           {[
             { key: "all", label: "All", count: MOCK_JOBS.length },
-            { key: "PUBLISHED", label: "Active", count: (statusCounts["PUBLISHED"] || 0) + (statusCounts["ACTIVE"] || 0) },
-            { key: "PAUSED", label: "Paused", count: statusCounts["PAUSED"] || 0 },
-            { key: "DRAFT", label: "Draft", count: statusCounts["DRAFT"] || 0 },
-            { key: "CLOSED", label: "Closed", count: statusCounts["CLOSED"] || 0 },
+            { key: "Published", label: "Active", count: statusCounts["Published"] || 0 },
+            { key: "Draft", label: "Draft", count: statusCounts["Draft"] || 0 },
+            { key: "Closed", label: "Closed", count: statusCounts["Closed"] || 0 },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -291,20 +280,19 @@ export default function MyJobsContent() {
                       <TableHead className="min-w-[140px]">Location</TableHead>
                       <TableHead className="min-w-[100px]">Type</TableHead>
                       <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="min-w-[100px] text-center">Applicants</TableHead>
                       <TableHead className="min-w-[110px]">Posted</TableHead>
                       <TableHead className="min-w-[60px] text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedJobs.map((job) => {
-                      const statusCfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.DRAFT;
+                      const statusCfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.Draft;
                       return (
                         <TableRow key={job.id} className="group">
                           <TableCell>
                             <div>
                               <p className="font-medium text-sm">{job.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{job.category}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{job.categories?.[0] || ""}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -314,7 +302,7 @@ export default function MyJobsContent() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm">{job.jobType}</span>
+                            <span className="text-sm">{job.employmentType}</span>
                           </TableCell>
                           <TableCell>
                             <span
@@ -323,12 +311,9 @@ export default function MyJobsContent() {
                               {statusCfg.label}
                             </span>
                           </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm font-medium">{job.applicationCount}</span>
-                          </TableCell>
                           <TableCell>
                             <span className="text-sm text-muted-foreground">
-                              {formatDate(job.publishedAt)}
+                              {formatDate(job.createdAt)}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -352,15 +337,10 @@ export default function MyJobsContent() {
                                     Edit
                                   </Link>
                                 </DropdownMenuItem>
-                                {(job.status === "PUBLISHED" || job.status === "ACTIVE") ? (
+                                {job.status === "Published" ? (
                                   <DropdownMenuItem>
                                     <Pause className="mr-2 size-4" />
-                                    Pause Job
-                                  </DropdownMenuItem>
-                                ) : job.status === "PAUSED" ? (
-                                  <DropdownMenuItem>
-                                    <Play className="mr-2 size-4" />
-                                    Resume Job
+                                    Close Job
                                   </DropdownMenuItem>
                                 ) : null}
                                 <DropdownMenuItem asChild>
