@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 export default function WebsiteError({ error, reset }) {
+  const [showDetails, setShowDetails] = useState(false);
+
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error("Website error:", error);
   }, [error]);
+
+  const errorMessage = error?.message || error?.digest || "Unknown error";
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -25,19 +28,30 @@ export default function WebsiteError({ error, reset }) {
           </h1>
 
           {/* Description */}
-          <p className="text-sm text-gray-500 leading-relaxed mb-8">
+          <p className="text-sm text-gray-500 leading-relaxed mb-4">
             We encountered an unexpected error while loading this page. This
             might be a temporary issue — please try again or head back to the
             homepage.
           </p>
 
-          {/* Error details (dev only) */}
-          {process.env.NODE_ENV === "development" && error?.message && (
-            <div className="mb-6 p-3 bg-red-50 rounded-lg border border-red-100 text-left">
-              <p className="text-xs text-red-600 font-mono break-all">
-                {error.message}
-              </p>
-            </div>
+          {/* Error details — always visible for debugging */}
+          <div className="mb-6 p-3 bg-red-50 rounded-lg border border-red-100 text-left">
+            <p className="text-xs text-red-600 font-mono break-all">
+              {errorMessage}
+            </p>
+          </div>
+
+          {/* Full stack toggle */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="text-xs text-gray-400 hover:text-gray-600 mb-4 cursor-pointer"
+          >
+            {showDetails ? "Hide" : "Show"} details
+          </button>
+          {showDetails && error?.stack && (
+            <pre className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-100 text-left text-[10px] text-gray-500 overflow-auto max-h-40">
+              {error.stack}
+            </pre>
           )}
 
           {/* Actions */}
