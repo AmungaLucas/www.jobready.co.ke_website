@@ -323,8 +323,10 @@ function AccountSettings() {
       const data = await res.json();
 
       if (!res.ok) {
-        setEmailError(data.error || "Verification failed");
-        if (data.debug) console.error("[VerifyEmail] Debug:", data.debug);
+        const errorMsg = data.debug
+          ? `${data.error} [${data.debug}]`
+          : (data.error || "Verification failed");
+        setEmailError(errorMsg);
         setEmailStep("error");
         return;
       }
