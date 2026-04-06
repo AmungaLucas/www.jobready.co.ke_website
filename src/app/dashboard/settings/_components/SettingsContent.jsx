@@ -332,9 +332,9 @@ function AccountSettings() {
       if (data.merged) {
         // Merge changed identity fields (email, name, googleId, password).
         // Refresh the JWT first so the new cookie is set,
-        // then hard-reload so the entire page picks up the fresh session.
+        // then navigate to force a completely fresh session.
         await refresh();
-        setTimeout(() => window.location.reload(), 600);
+        window.location.href = "/dashboard/settings";
       } else {
         await refresh();
       }
@@ -412,7 +412,7 @@ function AccountSettings() {
       setPhoneStep("verified");
       if (data.merged) {
         await refresh();
-        setTimeout(() => window.location.reload(), 600);
+        window.location.href = "/dashboard/settings";
       } else {
         await refresh();
       }

@@ -152,18 +152,12 @@ export async function POST(request) {
         data: { userId },
       });
 
-      // Transfer article reactions (skip duplicates)
-      const ownerReactions = await db.articleReaction.findMany({
+      // Transfer article reactions — use updateMany since reactions have
+      // required fields (reactionType, fingerprint) that can't be re-created.
+      await db.articleReaction.updateMany({
         where: { userId: phoneOwner.id },
-        select: { articleId: true },
+        data: { userId },
       });
-      for (const r of ownerReactions) {
-        try {
-          await db.articleReaction.create({ data: { userId, articleId: r.articleId } });
-        } catch (e) {
-          if (e.code !== "P2002") throw e;
-        }
-      }
 
       // Transfer notifications
       await db.notification.updateMany({
@@ -245,8 +239,11 @@ export async function POST(request) {
       );
     }
 
+    const devMsg = process.env.NODE_ENV === "development"
+      ? ` (${error.message || error.code || "unknown"})`
+      : "";
     return NextResponse.json(
-      { error: "Failed to verify phone number. Please try again." },
+      { error: `Failed to verify phone number. Please try again.${devMsg}` },
       { status: 500 }
     );
   }

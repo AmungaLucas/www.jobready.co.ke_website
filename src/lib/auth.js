@@ -106,24 +106,35 @@ export const authOptions = {
         token.issuedAt = Date.now();
       }
 
-      // When session.update() is called (e.g. after password set),
-      // re-fetch the user from DB and refresh missingFields so the
-      // middleware onboarding gate sees the updated state.
-      if (trigger === "update" && token?.id) {
-        const freshUser = await db.user.findUnique({
-          where: { id: token.id },
-        });
-        if (freshUser) {
-          token.email = freshUser.email;
-          token.name = freshUser.name;
-          token.phone = freshUser.phone;
-          token.avatar = freshUser.avatar;
-          token.role = freshUser.role;
-          token.googleId = freshUser.googleId || null;
-          token.emailVerified = freshUser.emailVerified;
-          token.phoneVerified = freshUser.phoneVerified;
-          token.hasPassword = !!freshUser.passwordHash;
-          token.missingFields = getMissingProfileFields(freshUser);
+      // Always refresh from DB when session.update() is called,
+      // OR when the token is older than 5 minutes (ensures post-merge
+      // identity changes are picked up without requiring logout).
+      const needsRefresh =
+        (trigger === "update") ||
+        !token.issuedAt ||
+        (Date.now() - (token.issuedAt || 0)) > 5 * 60 * 1000;
+
+      if (needsRefresh && token?.id) {
+        try {
+          const freshUser = await db.user.findUnique({
+            where: { id: token.id },
+          });
+          if (freshUser) {
+            token.email = freshUser.email;
+            token.name = freshUser.name;
+            token.phone = freshUser.phone;
+            token.avatar = freshUser.avatar;
+            token.role = freshUser.role;
+            token.googleId = freshUser.googleId || null;
+            token.emailVerified = freshUser.emailVerified;
+            token.phoneVerified = freshUser.phoneVerified;
+            token.hasPassword = !!freshUser.passwordHash;
+            token.missingFields = getMissingProfileFields(freshUser);
+            token.issuedAt = Date.now();
+          }
+        } catch (err) {
+          console.error("[Auth] JWT refresh from DB failed:", err.message);
+          // Continue with existing token data — don't break the session
         }
       }
 
