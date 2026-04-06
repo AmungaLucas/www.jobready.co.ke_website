@@ -179,7 +179,10 @@ export async function POST(request) {
         const inheritPhone = emailOwner.phone && !user.phone ? emailOwner.phone : undefined;
         const inheritPhoneVerified = emailOwner.phone && !user.phone ? emailOwner.phoneVerified : undefined;
 
-        // Update current user with new email + inherited fields
+        // Delete the other account FIRST to release the email unique constraint
+        await db.user.delete({ where: { id: emailOwner.id } });
+
+        // Now update current user with new email + inherited fields
         await db.user.update({
           where: { id: userId },
           data: {
@@ -190,9 +193,6 @@ export async function POST(request) {
             ...(inheritPhone && { phone: inheritPhone, phoneVerified: inheritPhoneVerified }),
           },
         });
-
-        // Delete the other account (cascade handles remaining relations)
-        await db.user.delete({ where: { id: emailOwner.id } });
 
         console.log(
           `[Verify Email] Merge complete: ${emailOwner.id} → ${userId}, ` +
