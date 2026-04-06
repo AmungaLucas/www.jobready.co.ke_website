@@ -330,9 +330,11 @@ function AccountSettings() {
 
       setEmailStep("verified");
       if (data.merged) {
-        // Hard reload — identity fields (email, name, googleId) changed,
-        // and NextAuth's session.update() may not flush them properly.
-        window.location.href = "/dashboard/settings";
+        // Merge changed identity fields (email, name, googleId, password).
+        // Refresh the JWT first so the new cookie is set,
+        // then hard-reload so the entire page picks up the fresh session.
+        await refresh();
+        setTimeout(() => window.location.reload(), 600);
       } else {
         await refresh();
       }
@@ -409,8 +411,8 @@ function AccountSettings() {
 
       setPhoneStep("verified");
       if (data.merged) {
-        // Hard reload — identity fields changed during merge
-        window.location.href = "/dashboard/settings";
+        await refresh();
+        setTimeout(() => window.location.reload(), 600);
       } else {
         await refresh();
       }

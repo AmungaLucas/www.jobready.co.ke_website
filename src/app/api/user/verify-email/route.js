@@ -182,6 +182,8 @@ export async function POST(request) {
         const inheritName = (!user.name || user.name.trim() === "Phone User" || user.name.trim() === "")
           && emailOwner.name && emailOwner.name.trim() !== "Phone User"
           ? emailOwner.name : undefined;
+        // Inherit avatar if current user doesn't have one
+        const inheritAvatar = !user.avatar && emailOwner.avatar ? emailOwner.avatar : undefined;
 
         // Delete the other account FIRST to release the email unique constraint
         await db.user.delete({ where: { id: emailOwner.id } });
@@ -193,6 +195,7 @@ export async function POST(request) {
             email: targetEmail,
             emailVerified: true,
             ...(inheritName && { name: inheritName }),
+            ...(inheritAvatar && { avatar: inheritAvatar }),
             ...(inheritGoogleId && { googleId: inheritGoogleId }),
             ...(inheritPassword && { passwordHash: inheritPassword }),
             ...(inheritPhone && { phone: inheritPhone, phoneVerified: inheritPhoneVerified }),
