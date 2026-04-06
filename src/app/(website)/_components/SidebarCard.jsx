@@ -4,8 +4,18 @@ export default function SidebarCard({
   children,
   className = "",
 }) {
-  // icon can be a React component (passed as reference) or a ReactNode
-  const IconElement = typeof icon === "function" ? <span className="text-primary"><icon size={18} /></span> : icon;
+  // icon can be:
+  //   - a React component (function or ForwardRef object like lucide-react icons)
+  //   - a pre-rendered React element (JSX)
+  //   - null/undefined (no icon)
+  let IconElement = icon;
+  if (icon && typeof icon === "object" && icon.$$typeof) {
+    // React element — wrap it
+    IconElement = <span className="text-primary">{icon}</span>;
+  } else if (typeof icon === "function") {
+    // Component reference — render it
+    IconElement = <span className="text-primary"><icon size={18} /></span>;
+  }
 
   return (
     <div className={`bg-white rounded-xl shadow-sm p-6 mb-7 ${className}`}>
