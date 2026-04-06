@@ -114,6 +114,7 @@ export const authOptions = {
           where: { id: token.id },
         });
         if (freshUser) {
+          token.email = freshUser.email;
           token.name = freshUser.name;
           token.phone = freshUser.phone;
           token.avatar = freshUser.avatar;
