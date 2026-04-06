@@ -204,7 +204,8 @@ export async function POST(request) {
           `orders: ${transferredOrders.count}, alerts: ${transferredAlerts.count}` +
           (inheritGoogleId ? `, inherited googleId` : "") +
           (inheritPassword ? `, inherited password` : "") +
-          (inheritPhone ? `, inherited phone: ${inheritPhone}` : "")
+          (inheritPhone ? `, inherited phone: ${inheritPhone}` : "") +
+          (inheritName ? `, inherited name: ${inheritName}` : "")
         );
       } else {
         // No merge needed — just update email
@@ -219,6 +220,7 @@ export async function POST(request) {
 
       return NextResponse.json({
         message: "Email updated and verified successfully",
+        merged: !!emailOwner && emailOwner.id !== userId,
       });
     }
 

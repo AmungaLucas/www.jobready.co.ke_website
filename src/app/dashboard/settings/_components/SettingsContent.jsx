@@ -329,7 +329,13 @@ function AccountSettings() {
       }
 
       setEmailStep("verified");
-      await refresh();
+      if (data.merged) {
+        // Hard reload — identity fields (email, name, googleId) changed,
+        // and NextAuth's session.update() may not flush them properly.
+        window.location.href = "/dashboard/settings";
+      } else {
+        await refresh();
+      }
     } catch {
       setEmailError("Something went wrong. Please try again.");
       setEmailStep("error");
@@ -402,7 +408,12 @@ function AccountSettings() {
       }
 
       setPhoneStep("verified");
-      await refresh();
+      if (data.merged) {
+        // Hard reload — identity fields changed during merge
+        window.location.href = "/dashboard/settings";
+      } else {
+        await refresh();
+      }
     } catch {
       setPhoneError("Something went wrong. Please try again.");
       setPhoneStep("error");

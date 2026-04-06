@@ -211,6 +211,7 @@ export async function POST(request) {
       return NextResponse.json({
         message: "Phone number verified and accounts merged successfully",
         phone: normalizedPhone,
+        merged: true,
       });
     }
 
