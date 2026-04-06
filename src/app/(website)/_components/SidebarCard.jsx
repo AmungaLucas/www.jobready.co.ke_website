@@ -5,16 +5,26 @@ export default function SidebarCard({
   className = "",
 }) {
   // icon can be:
-  //   - a React component (function or ForwardRef object like lucide-react icons)
-  //   - a pre-rendered React element (JSX)
+  //   - A React component: function, or ForwardRef/ExoticComponent object (e.g. lucide-react icons)
+  //   - A pre-rendered React element (JSX like <SomeIcon />)
   //   - null/undefined (no icon)
   let IconElement = icon;
-  if (icon && typeof icon === "object" && icon.$$typeof) {
-    // React element — wrap it
-    IconElement = <span className="text-primary">{icon}</span>;
+
+  if (icon == null) {
+    IconElement = null;
   } else if (typeof icon === "function") {
-    // Component reference — render it
+    // Plain function component — render it
     IconElement = <span className="text-primary"><icon size={18} /></span>;
+  } else if (typeof icon === "object" && icon.$$typeof) {
+    // Could be a React element OR a ForwardRef/ExoticComponent
+    // React elements have .props, component references don't
+    if (icon.props) {
+      // It's an already-rendered React element — wrap it
+      IconElement = <span className="text-primary">{icon}</span>;
+    } else {
+      // It's a ForwardRef / ExoticComponent (like lucide-react icons) — render it
+      IconElement = <span className="text-primary"><icon size={18} /></span>;
+    }
   }
 
   return (
