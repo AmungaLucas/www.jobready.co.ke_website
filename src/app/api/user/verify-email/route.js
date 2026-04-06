@@ -12,6 +12,8 @@ import { isPlaceholderEmail, findUserByEmail, linkWalkInOrders } from "@/lib/aut
  * Two purposes:
  *   - "email_verify": marks emailVerified = true on the current email
  *   - "email_update": replaces placeholder email with the verified new email
+ *     If the new email belongs to another user, merges that user into the
+ *     current one (transfers data + deletes the other account).
  *
  * Body: { code: "123456", newEmail?: "user@example.com" }
  *   newEmail is required when purpose was "email_update"
@@ -51,9 +53,9 @@ export async function POST(request) {
 
     // Determine purpose: if newEmail is provided, this is an email update (placeholder → real)
     const purpose = newEmail ? "email_update" : "email_verify";
-    const targetEmail = (newEmail || user.email).toLowerCase().trim();
+    const targetEmail = newEmail.toLowerCase().trim();
 
-    // ── email_update: replacing placeholder ──
+    // ── email_update: replacing placeholder (with optional merge) ──
     if (purpose === "email_update") {
       if (!isPlaceholderEmail(user.email)) {
         return NextResponse.json(
@@ -87,27 +89,128 @@ export async function POST(request) {
         data: { verified: true },
       });
 
-      // Double-check email isn't taken by someone else (race condition guard)
-      const existingUser = await findUserByEmail(targetEmail);
-      if (existingUser && existingUser.id !== session.user.id) {
-        return NextResponse.json(
-          { error: "This email is already linked to another account" },
-          { status: 409 }
+      const userId = session.user.id;
+
+      // Check if email belongs to another user → merge
+      const emailOwner = await findUserByEmail(targetEmail);
+
+      if (emailOwner && emailOwner.id !== userId) {
+        console.log(
+          `[Verify Email] Email ${targetEmail} owned by user ${emailOwner.id} — merging into ${userId}`
         );
+
+        // ── Merge: transfer data from emailOwner → current user ──
+
+        // Transfer orders
+        const transferredOrders = await db.order.updateMany({
+          where: { userId: emailOwner.id },
+          data: { userId },
+        });
+
+        // Transfer saved jobs (skip duplicates)
+        const ownerSavedJobs = await db.savedJob.findMany({
+          where: { userId: emailOwner.id },
+          select: { jobId: true },
+        });
+        for (const sj of ownerSavedJobs) {
+          try {
+            await db.savedJob.create({ data: { userId, jobId: sj.jobId } });
+          } catch (e) {
+            if (e.code !== "P2002") throw e;
+          }
+        }
+
+        // Transfer saved articles (skip duplicates)
+        const ownerSavedArticles = await db.savedArticle.findMany({
+          where: { userId: emailOwner.id },
+          select: { articleId: true },
+        });
+        for (const sa of ownerSavedArticles) {
+          try {
+            await db.savedArticle.create({ data: { userId, articleId: sa.articleId } });
+          } catch (e) {
+            if (e.code !== "P2002") throw e;
+          }
+        }
+
+        // Transfer job applications (skip duplicates)
+        const ownerApplications = await db.application.findMany({
+          where: { userId: emailOwner.id },
+          select: { jobId: true },
+        });
+        for (const app of ownerApplications) {
+          try {
+            await db.application.create({ data: { userId, jobId: app.jobId } });
+          } catch (e) {
+            if (e.code !== "P2002") throw e;
+          }
+        }
+
+        // Transfer job alerts
+        const transferredAlerts = await db.jobAlert.updateMany({
+          where: { userId: emailOwner.id },
+          data: { userId },
+        });
+
+        // Transfer article reactions (skip duplicates)
+        const ownerReactions = await db.articleReaction.findMany({
+          where: { userId: emailOwner.id },
+          select: { articleId: true },
+        });
+        for (const r of ownerReactions) {
+          try {
+            await db.articleReaction.create({ data: { userId, articleId: r.articleId } });
+          } catch (e) {
+            if (e.code !== "P2002") throw e;
+          }
+        }
+
+        // Transfer notifications
+        await db.notification.updateMany({
+          where: { userId: emailOwner.id },
+          data: { userId },
+        });
+
+        // Inherit googleId if the other user had one and we don't
+        const inheritGoogleId = emailOwner.googleId && !user.googleId ? emailOwner.googleId : undefined;
+        // Inherit passwordHash if the other user had one and we don't
+        const inheritPassword = emailOwner.passwordHash && !user.passwordHash ? emailOwner.passwordHash : undefined;
+        // Inherit phone if the other user had one and we don't
+        const inheritPhone = emailOwner.phone && !user.phone ? emailOwner.phone : undefined;
+        const inheritPhoneVerified = emailOwner.phone && !user.phone ? emailOwner.phoneVerified : undefined;
+
+        // Update current user with new email + inherited fields
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            email: targetEmail,
+            emailVerified: true,
+            ...(inheritGoogleId && { googleId: inheritGoogleId }),
+            ...(inheritPassword && { passwordHash: inheritPassword }),
+            ...(inheritPhone && { phone: inheritPhone, phoneVerified: inheritPhoneVerified }),
+          },
+        });
+
+        // Delete the other account (cascade handles remaining relations)
+        await db.user.delete({ where: { id: emailOwner.id } });
+
+        console.log(
+          `[Verify Email] Merge complete: ${emailOwner.id} → ${userId}, ` +
+          `orders: ${transferredOrders.count}, alerts: ${transferredAlerts.count}` +
+          (inheritGoogleId ? `, inherited googleId` : "") +
+          (inheritPassword ? `, inherited password` : "") +
+          (inheritPhone ? `, inherited phone: ${inheritPhone}` : "")
+        );
+      } else {
+        // No merge needed — just update email
+        await db.user.update({
+          where: { id: userId },
+          data: { email: targetEmail, emailVerified: true },
+        });
+
+        // Link any walk-in orders matching the new email
+        await linkWalkInOrders(userId, targetEmail, user.phone);
       }
-
-      // Update user's email and mark verified
-      await db.user.update({
-        where: { id: session.user.id },
-        data: { email: targetEmail, emailVerified: true },
-      });
-
-      // Link any walk-in orders that match the new email
-      await linkWalkInOrders(session.user.id, targetEmail, user.phone);
-
-      console.log(
-        `[Verify Email] Email updated from "${user.email}" → "${targetEmail}" for user ${session.user.id}`
-      );
 
       return NextResponse.json({
         message: "Email updated and verified successfully",
@@ -161,6 +264,14 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("[Verify Email API] Error:", error);
+
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { error: "This email is already linked to another account" },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to verify email. Please try again." },
       { status: 500 }

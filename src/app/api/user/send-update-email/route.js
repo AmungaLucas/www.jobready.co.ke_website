@@ -79,9 +79,10 @@ export async function POST(request) {
     // Check if the new email is already taken by another user
     const existingUser = await findUserByEmail(normalized);
     if (existingUser && existingUser.id !== session.user.id) {
-      return NextResponse.json(
-        { error: "This email address is already linked to another account" },
-        { status: 409 }
+      // Don't block — send OTP anyway. Ownership is proven by receiving the code.
+      // The verify step will handle merging the other account into this one.
+      console.log(
+        `[Send Update Email] Email ${normalized} belongs to user ${existingUser.id} — sending OTP, will merge on verify`
       );
     }
 
