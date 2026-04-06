@@ -5,10 +5,11 @@ import {
   MapPin,
   Globe,
   ExternalLink,
-  MessageCircle,
   CalendarDays,
   Eye,
   GraduationCap,
+  BookOpen,
+  MessageCircle,
 } from "lucide-react";
 import { formatDate, formatRelativeDate } from "@/lib/format";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
@@ -41,6 +42,7 @@ export default function OpportunityDetailContent({ data }) {
     typeBadgeColors[opp.opportunityType] || "bg-gray-100 text-gray-700";
 
   const isExpired = opp.deadline && new Date(opp.deadline) < new Date();
+  const hasExternalUrl = !!opp.externalApplyUrl;
   // Maps opportunity types to hub slugs for correct URL routing
   const typeToHubSlug = {
     scholarship: "scholarships",
@@ -248,39 +250,35 @@ export default function OpportunityDetailContent({ data }) {
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
-              {opp.externalApplyUrl ? (
+              {isExpired ? (
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-500 font-semibold text-sm rounded-xl">
+                  <Clock className="w-4 h-4" />
+                  Expired
+                </div>
+              ) : hasExternalUrl ? (
                 <a
                   href={opp.externalApplyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  disabled={isExpired}
-                  className={`inline-flex items-center gap-2 px-6 py-3 bg-[#1a56db] hover:bg-[#1648b8] text-white font-semibold text-sm rounded-xl transition-colors no-underline ${
-                    isExpired
-                      ? "opacity-50 cursor-not-allowed pointer-events-none"
-                      : ""
-                  }`}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a56db] hover:bg-[#1648b8] text-white font-semibold text-sm rounded-xl transition-colors no-underline"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Apply Now
+                  Apply on {opp.organizationName ? `${opp.organizationName.split(" ")[0]}'s Site` : "Organization Site"}
                 </a>
               ) : (
                 <a
-                  href={`${siteConfig.whatsapp.link}?text=${encodeURIComponent(
-                    `Hi JobReady, I'm interested in: ${opp.title} (${pageUrl})`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#opp-description"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#059669] hover:bg-[#047857] text-white font-semibold text-sm rounded-xl transition-colors no-underline"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  Apply via WhatsApp
+                  <BookOpen className="w-4 h-4" />
+                  Read How to Apply
                 </a>
               )}
               <CopyLinkButton url={pageUrl} />
             </div>
 
             {/* Description */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-8 mb-6">
+            <div id="opp-description" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-8 mb-6 scroll-mt-4">
               <h2 className="text-lg font-bold text-gray-900 mb-4">
                 About This Opportunity
               </h2>
