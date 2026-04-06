@@ -130,10 +130,11 @@ function AccountSettings() {
   const [error, setError] = useState("");
 
   // Email verification state
-  const [emailStep, setEmailStep] = useState("idle"); // idle | sending | sent | verifying | verified | error
+  const [emailStep, setEmailStep] = useState("idle"); // idle | entering | sending | sent | verifying | verified | error
   const [emailCode, setEmailCode] = useState("");
   const [emailError, setEmailError] = useState("");
   const [emailSentTime, setEmailSentTime] = useState(null);
+  const [newEmailInput, setNewEmailInput] = useState(""); // for placeholder email users
 
   // Phone add/verify state
   const [phoneStep, setPhoneStep] = useState("idle"); // idle | entering | sending | sent | verifying | verified | error
@@ -226,7 +227,7 @@ function AccountSettings() {
     }
   };
 
-  // ── Email verification ──
+  // ── Email verification (real email, not yet verified) ──
   const handleSendEmailCode = async () => {
     setEmailError("");
     setEmailStep("sending");
@@ -235,6 +236,46 @@ function AccountSettings() {
       const res = await fetch("/api/user/send-verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEmailError(data.error || "Failed to send verification code");
+        setEmailStep("error");
+        return;
+      }
+
+      setEmailStep("sent");
+      setEmailSentTime(Date.now());
+      setEmailCode("");
+    } catch {
+      setEmailError("Something went wrong. Please try again.");
+      setEmailStep("error");
+    }
+  };
+
+  // ── Email update (placeholder → real email) ──
+  const handleSendUpdateEmailCode = async () => {
+    setEmailError("");
+
+    if (!newEmailInput.trim()) {
+      setEmailError("Enter an email address first");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmailInput.trim())) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+
+    setEmailStep("sending");
+
+    try {
+      const res = await fetch("/api/user/send-update-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: newEmailInput.trim() }),
       });
       const data = await res.json();
 
@@ -263,10 +304,15 @@ function AccountSettings() {
     setEmailStep("verifying");
 
     try {
+      // For placeholder users, include newEmail so verify-email knows to do an update
+      const body = isPlaceholder
+        ? { code: emailCode, newEmail: newEmailInput.trim() }
+        : { code: emailCode };
+
       const res = await fetch("/api/user/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: emailCode }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
 
@@ -419,35 +465,137 @@ function AccountSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* ── Placeholder email — needs real email ── */}
+          {/* ── Placeholder email — inline add real email ── */}
           {isPlaceholder && (
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                <Mail className="size-5 text-purple-600 mt-0.5 shrink-0" />
-                <div className="flex-1 space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-purple-800">
-                      Add a real email address
-                    </p>
-                    <p className="text-xs text-purple-600 mt-1">
-                      Your current email is a placeholder. Add your real email to enable password recovery and receive notifications.
-                    </p>
-                  </div>
-                  <div className="text-xs text-purple-700 bg-purple-100 px-3 py-1.5 rounded-lg font-mono">
+            <div className="space-y-3">
+              {/* Info banner */}
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-3">
+                <Mail className="size-4 text-purple-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-purple-800">
+                    Add a real email address
+                  </p>
+                  <p className="text-xs text-purple-600 mt-0.5">
+                    Your current email is a placeholder. Add your real email to enable password recovery and receive notifications.
+                  </p>
+                  <div className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded font-mono mt-2 inline-block">
                     {user.email}
                   </div>
-                  <p className="text-xs text-purple-600">
-                    To add a real email, go to your{" "}
-                    <a
-                      href="/dashboard/profile"
-                      className="underline font-medium hover:text-purple-800"
-                    >
-                      Profile page
-                    </a>{" "}
-                    and update your email — or sign in with Google to link your Gmail account.
-                  </p>
                 </div>
               </div>
+
+              {/* Email input + Send Code */}
+              {(emailStep === "idle" || emailStep === "entering" || emailStep === "sending" || emailStep === "error") && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-email-input">Your Real Email</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="new-email-input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={newEmailInput}
+                      onChange={(e) => {
+                        setNewEmailInput(e.target.value);
+                        setEmailError("");
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleSendUpdateEmailCode}
+                      disabled={emailStep === "sending" || !newEmailInput.trim()}
+                    >
+                      {emailStep === "sending" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <Send className="mr-2 size-4" />
+                      )}
+                      Send Code
+                    </Button>
+                  </div>
+                  {emailError && (
+                    <p className="text-xs text-destructive">{emailError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Enter your real email and click &quot;Send Code&quot; to receive a 6-digit verification code.
+                  </p>
+                </div>
+              )}
+
+              {/* Code sent — show OTP input */}
+              {emailStep === "sent" && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
+                  <p className="text-sm">
+                    A 6-digit code was sent to{" "}
+                    <span className="font-medium">{newEmailInput.trim()}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="000000"
+                      value={emailCode}
+                      onChange={(e) => {
+                        setEmailCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                        setEmailError("");
+                      }}
+                      className="w-36 text-center text-lg tracking-widest font-mono"
+                      maxLength={6}
+                      autoFocus
+                    />
+                    <Button
+                      onClick={handleVerifyEmailCode}
+                      disabled={emailCode.length !== 6 || emailStep === "verifying"}
+                    >
+                      {emailStep === "verifying" ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="mr-2 size-4" />
+                      )}
+                      Verify
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {emailError && (
+                      <p className="text-xs text-destructive">{emailError}</p>
+                    )}
+                    <div className="ml-auto flex items-center gap-3">
+                      <button
+                        onClick={() => { setEmailStep("entering"); setEmailCode(""); }}
+                        className="text-xs text-muted-foreground hover:underline"
+                      >
+                        Change email
+                      </button>
+                      {countdown > 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Resend in {countdown}s
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleSendUpdateEmailCode}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="size-3" />
+                          Resend code
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Verifying */}
+              {emailStep === "verifying" && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Verifying...
+                </div>
+              )}
+
+              {/* Verified */}
+              {emailStep === "verified" && (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+                  <CheckCircle2 className="size-4" />
+                  Email updated and verified successfully!
+                </div>
+              )}
             </div>
           )}
 
