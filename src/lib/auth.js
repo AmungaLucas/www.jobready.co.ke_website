@@ -100,6 +100,7 @@ export const authOptions = {
         token.googleId = user.googleId || null;
         token.emailVerified = user.emailVerified;
         token.phoneVerified = user.phoneVerified;
+        token.hasPassword = user.hasPassword || false;
         token.missingFields = user.missingFields || getMissingProfileFields(user);
         // Store a timestamp for freshness checks
         token.issuedAt = Date.now();
@@ -120,6 +121,7 @@ export const authOptions = {
           token.googleId = freshUser.googleId || null;
           token.emailVerified = freshUser.emailVerified;
           token.phoneVerified = freshUser.phoneVerified;
+          token.hasPassword = !!freshUser.passwordHash;
           token.missingFields = getMissingProfileFields(freshUser);
         }
       }
@@ -141,6 +143,7 @@ export const authOptions = {
         session.user.googleId = token.googleId || null;
         session.user.emailVerified = token.emailVerified;
         session.user.phoneVerified = token.phoneVerified;
+        session.user.hasPassword = token.hasPassword || false;
         session.user.missingFields = token.missingFields;
       }
       return session;
