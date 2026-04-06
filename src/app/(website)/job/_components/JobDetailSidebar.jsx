@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/format";
-import { formatCurrency } from "@/lib/format";
-import { formatRelativeDate } from "@/lib/format";
+import { formatDate, formatCurrency, formatRelativeDate, formatJobType, formatExperienceLevel } from "@/lib/format";
 import { siteConfig } from "@/config/site-config";
 import { useAuth } from "@/lib/useSession";
 import { FiUsers, FiMapPin } from "react-icons/fi";
@@ -50,7 +48,7 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
         <div className="mb-4">
           <p className="text-[0.82rem] opacity-90 flex items-center gap-1.5 mb-1.5">
             <FiUsers className="w-4 h-4" />
-            <strong>{job.applicantCount}</strong> people have applied
+            <strong>{job.applicationCount}</strong> people have applied
           </p>
         </div>
 
@@ -67,14 +65,14 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
         )}
 
         {/* Salary display */}
-        {job.showSalary && (job.salaryMin || job.salaryMax) && (
+        {job.showSalary && (job.salaryMin || job.salaryMax) && !job.isSalaryNegotiable && (
           <div className="text-center py-3 mb-4">
             <div className="text-[1.5rem] font-extrabold text-white">
               {job.salaryMin && job.salaryMax
                 ? `${formatCurrency(job.salaryMin)} – ${formatCurrency(job.salaryMax)}`
                 : formatCurrency(job.salaryMin || job.salaryMax)}
             </div>
-            <div className="text-[0.82rem] text-gray-300">/ month</div>
+            <div className="text-[0.82rem] text-gray-300">/ {job.salaryPeriod ? job.salaryPeriod.toLowerCase() : "month"}</div>
             <div className="h-1.5 bg-white/20 rounded-full mt-3 mb-1.5 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#059669] to-[#34d399] rounded-full"
@@ -85,6 +83,20 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
               <span>{formatCurrency(job.salaryMin)}</span>
               <span>{formatCurrency(job.salaryMax)}</span>
             </div>
+          </div>
+        )}
+
+        {/* Negotiable salary indicator */}
+        {job.showSalary && job.isSalaryNegotiable && (
+          <div className="text-center py-3 mb-4">
+            <div className="text-[1.1rem] font-bold text-white">
+              Salary Negotiable
+            </div>
+            {job.salaryMin && (
+              <div className="text-[0.82rem] text-gray-300 mt-1">
+                From {formatCurrency(job.salaryMin)} / {job.salaryPeriod ? job.salaryPeriod.toLowerCase() : "month"}
+              </div>
+            )}
           </div>
         )}
 
@@ -99,19 +111,25 @@ export default function JobDetailSidebar({ job, similarJobs = [], companyJobs = 
           {job.jobType && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Job Type</span>
-              <span className="text-white font-semibold text-right">{job.jobType}</span>
+              <span className="text-white font-semibold text-right">{formatJobType(job.jobType)}</span>
             </li>
           )}
           {job.experienceLevel && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Experience</span>
-              <span className="text-white font-semibold text-right">{job.experienceLevel}</span>
+              <span className="text-white font-semibold text-right">{formatExperienceLevel(job.experienceLevel)}</span>
             </li>
           )}
           {job.category && (
             <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
               <span className="text-gray-300 font-medium shrink-0">Category</span>
-              <span className="text-white font-semibold text-right">{job.category}</span>
+              <span className="text-white font-semibold text-right">{job.category.replace(/_/g, ' ')}</span>
+            </li>
+          )}
+          {job.positions && job.positions > 1 && (
+            <li className="flex justify-between items-start py-2.5 border-b border-white/10 text-[0.87rem] gap-3">
+              <span className="text-gray-300 font-medium shrink-0">Openings</span>
+              <span className="text-white font-semibold text-right">{job.positions} Position{job.positions > 1 ? 's' : ''}</span>
             </li>
           )}
         </ul>

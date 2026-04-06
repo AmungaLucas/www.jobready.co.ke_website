@@ -17,8 +17,7 @@ function getInitials(name) {
 
 export default function CompanyCard({ company }) {
   const initials = company.initials || getInitials(company.name);
-  const location = company.city || company.location || "";
-  const size = company.employeeSize || company.size || "";
+  const location = company.town || company.city || company.country || "";
   const openJobs = company.jobCount ?? company.openJobs ?? 0;
 
   return (
@@ -56,21 +55,13 @@ export default function CompanyCard({ company }) {
           {/* Meta */}
           <p className="text-xs text-gray-500 mb-1">{company.tagline || company.industry}</p>
 
-          {/* Location + size */}
-          {(location || size) && (
+          {/* Location */}
+          {location && (
             <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
-              {location && (
-                <span className="flex items-center gap-1">
-                  <FiMapPin size={12} />
-                  {location}
-                </span>
-              )}
-              {size && (
-                <span className="flex items-center gap-1">
-                  <FiBriefcase size={12} />
-                  {size}
-                </span>
-              )}
+              <span className="flex items-center gap-1">
+                <FiMapPin size={12} />
+                {location}
+              </span>
             </div>
           )}
 

@@ -14,9 +14,20 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Find opportunity
+    // Find opportunity with company relation
     const opportunity = await db.opportunity.findUnique({
       where: { slug },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            logoColor: true,
+            industry: true,
+          },
+        },
+      },
     });
 
     if (!opportunity) {
@@ -56,12 +67,20 @@ export async function GET(request, { params }) {
         excerpt: true,
         opportunityType: true,
         category: true,
-        location: true,
+        country: true,
+        city: true,
+        town: true,
         isRemote: true,
+        isOnline: true,
         deadline: true,
-        organizationName: true,
-        organizationLogo: true,
-        organizationType: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            logoColor: true,
+          },
+        },
         isFeatured: true,
         viewsCount: true,
         publishedAt: true,

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { siteConfig } from "@/config/site-config";
-import { formatRelativeDate, formatDate } from "@/lib/format";
+import { formatRelativeDate, formatDate, formatJobType, formatExperienceLevel } from "@/lib/format";
 import { useAuth } from "@/lib/useSession";
 import {
   FiMapPin,
@@ -13,6 +13,7 @@ import {
   FiHeart,
   FiShare2,
   FiBookmark,
+  FiUsers,
 } from "react-icons/fi";
 import { HiShieldCheck } from "react-icons/hi2";
 import {
@@ -126,7 +127,6 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
               </div>
               <p className="text-[0.82rem] text-gray-500 mt-0.5">
                 {company.industry || ""}
-                {company.size ? ` · ${company.size} employees` : ""}
               </p>
             </div>
           </div>
@@ -147,13 +147,13 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
             {job.jobType && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiBriefcase className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                {job.jobType}
+                {formatJobType(job.jobType)}
               </span>
             )}
             {job.experienceLevel && (
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiClock className="w-[17px] h-[17px] text-gray-400 shrink-0" />
-                {job.experienceLevel}
+                {formatExperienceLevel(job.experienceLevel)}
               </span>
             )}
             {job.publishedAt && (
@@ -166,6 +166,12 @@ export default function JobDetailHeader({ job, isSaved: initialSaved = false, ha
               <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
                 <FiClock className="w-[17px] h-[17px] text-gray-400 shrink-0" />
                 Deadline: {formatDate(job.deadline)}
+              </span>
+            )}
+            {job.positions && job.positions > 1 && (
+              <span className="inline-flex items-center gap-1.5 text-[0.87rem] text-gray-600">
+                <FiUsers className="w-[17px] h-[17px] text-gray-400 shrink-0" />
+                {job.positions} Positions
               </span>
             )}
             {job.isRemote && (

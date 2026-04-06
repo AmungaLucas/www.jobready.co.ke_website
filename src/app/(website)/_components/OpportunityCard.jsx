@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock } from "lucide-react";
+import { Clock, Globe } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
 const typeColors = {
@@ -25,10 +25,11 @@ const typeToHubSlug = {
 export default function OpportunityCard({
   title,
   slug,
+  company,
   organizationName,
   opportunityType,
   deadline,
-  value,
+  isOnline,
   href,
   type,
 }) {
@@ -36,6 +37,9 @@ export default function OpportunityCard({
   const typeLower = (type || opportunityType || "").toLowerCase();
   const hubSlug = typeToHubSlug[typeLower] || `${typeLower}s`;
   const link = href || (slug && typeLower) ? `/opportunities/${hubSlug}/${slug}` : "#";
+
+  // Prefer company name over legacy organizationName
+  const orgName = company?.name || organizationName;
 
   return (
     <Link
@@ -55,8 +59,16 @@ export default function OpportunityCard({
         </h3>
 
         {/* Provider */}
-        {organizationName && (
-          <p className="text-xs text-gray-500 mb-1">{organizationName}</p>
+        {orgName && (
+          <p className="text-xs text-gray-500 mb-1">{orgName}</p>
+        )}
+
+        {/* Online indicator */}
+        {isOnline && (
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+            <Globe className="w-3 h-3" />
+            Online
+          </span>
         )}
       </div>
 
@@ -67,13 +79,6 @@ export default function OpportunityCard({
           <span className="text-xs text-red-500 font-semibold inline-flex items-center gap-1">
             <Clock size={13} />
             {formatDate(deadline)}
-          </span>
-        )}
-
-        {/* Value */}
-        {value && (
-          <span className="text-xs font-semibold text-emerald-600">
-            {value}
           </span>
         )}
       </div>

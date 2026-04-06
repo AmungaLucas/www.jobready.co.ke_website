@@ -166,12 +166,16 @@ export default async function HomePage() {
           excerpt: true,
           opportunityType: true,
           category: true,
-          location: true,
           isRemote: true,
           deadline: true,
-          organizationName: true,
-          organizationLogo: true,
-          organizationType: true,
+          company: {
+            select: {
+              name: true,
+              logo: true,
+              logoColor: true,
+              industry: true,
+            },
+          },
           isFeatured: true,
           viewsCount: true,
           publishedAt: true,
@@ -479,11 +483,11 @@ export default async function HomePage() {
                       key={opp.slug}
                       title={opp.title}
                       slug={opp.slug}
-                      organizationName={opp.organizationName}
+                      company={opp.company}
                       opportunityType={opp.opportunityType}
                       type={opp.type}
                       deadline={opp.deadline}
-                      value={opp.value}
+                      isOnline={opp.isOnline}
                     />
                   ))}
                 </div>

@@ -102,6 +102,7 @@ export async function GET(request, { params }) {
           tagline: true,
           industry: true,
           city: true,
+          town: true,
           country: true,
           isVerified: true,
           jobCount: true,

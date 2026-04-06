@@ -88,6 +88,15 @@ export function generateJobJsonLd(job) {
   const company = job.company || {};
   const logo = company.logo || `${SITE_URL}/logo.svg`;
 
+  // Extract social URLs from socialLinks JSON array
+  const socialLinks = Array.isArray(company.socialLinks) ? company.socialLinks : [];
+  const socialUrls = socialLinks.map((l) => l.url).filter(Boolean);
+  if (company.website) socialUrls.push(company.website);
+
+  // Build location from structured fields, fallback to display string
+  const addressLocality = job.city || job.town || job.location || "Nairobi";
+  const addressCountry = job.country || "Kenya";
+
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
@@ -97,28 +106,31 @@ export function generateJobJsonLd(job) {
       ? new Date(job.publishedAt).toISOString()
       : new Date(job.createdAt).toISOString(),
     url: `${SITE_URL}/job/${job.slug}`,
-    employmentType: mapEmploymentType(job.employmentType || job.jobType),
+    employmentType: mapEmploymentType(job.jobType),
     hiringOrganization: {
       "@type": "Organization",
       name: company.name || "JobReady Kenya",
-      sameAs: company.linkedinUrl
-        ? [company.linkedinUrl, company.website].filter(Boolean)
-        : [],
+      sameAs: socialUrls,
       logo,
     },
     jobLocation: {
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
-        addressLocality: job.location || "Kenya",
-        addressCountry: "KE",
+        addressLocality: addressLocality,
+        addressCountry: addressCountry,
       },
     },
     applicantLocationRequirements: {
       "@type": "Country",
-      name: "Kenya",
+      name: addressCountry,
     },
   };
+
+  // Positions / Openings
+  if (job.positions && job.positions > 1) {
+    jsonLd.totalJobOpenings = job.positions;
+  }
 
   // Remote jobs
   if (job.isRemote) {
@@ -127,6 +139,14 @@ export function generateJobJsonLd(job) {
 
   // Salary — always include for Google ranking (even when hidden from users)
   if (job.salaryMin || job.salaryMax) {
+    // Map salary period to Google's expected format
+    const periodMap = {
+      HOURLY: "HOUR",
+      WEEKLY: "WEEK",
+      MONTHLY: "MONTH",
+      ANNUALLY: "YEAR",
+    };
+
     jsonLd.baseSalary = {
       "@type": "MonetaryAmount",
       currency: job.salaryCurrency || "KES",
@@ -134,7 +154,7 @@ export function generateJobJsonLd(job) {
         "@type": "QuantitativeValue",
         minValue: job.salaryMin || 0,
         maxValue: job.salaryMax || job.salaryMin || 0,
-        unitText: "MONTH",
+        unitText: periodMap[job.salaryPeriod] || "MONTH",
       },
     };
   }
@@ -212,6 +232,10 @@ export function generateArticleJsonLd(article) {
  * @returns {Object} JSON-LD structure
  */
 export function generateOrganizationJsonLd(company) {
+  const socialUrls = Array.isArray(company.socialLinks)
+    ? company.socialLinks.map((link) => link.url).filter(Boolean)
+    : [];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -223,25 +247,12 @@ export function generateOrganizationJsonLd(company) {
       "@type": "PostalAddress",
       addressLocality: company.city || "Nairobi",
       addressCountry: "Kenya",
-      streetAddress: company.address || undefined,
-    },
-    numberOfEmployees: {
-      "@type": "QuantitativeValue",
-      minValue: parseEmployeeSize(company.employeeSize)?.min,
-      maxValue: parseEmployeeSize(company.employeeSize)?.max,
     },
     industry: company.industry || undefined,
-    sameAs: [company.twitterUrl, company.facebookUrl, company.linkedinUrl].filter(
-      Boolean
-    ),
   };
 
-  if (company.foundedYear) {
-    jsonLd.foundingDate = String(company.foundedYear);
-  }
-
-  if (company.tickerSymbol) {
-    jsonLd.tickerSymbol = company.tickerSymbol;
+  if (socialUrls.length > 0) {
+    jsonLd.sameAs = socialUrls;
   }
 
   return jsonLd;

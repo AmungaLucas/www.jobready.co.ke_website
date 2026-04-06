@@ -6,13 +6,15 @@
 //
 // Design Decisions:
 //   - Enums stored as String, validated in app code against data.js
-//   - No Location table (stored as String on jobs/opportunities)
-//   - No JobCategory table (driven by hub-config.js)
-//   - No Applications table (v1: external apply URLs only)
+//   - Location stored as structured fields (country, city, town) plus display string
+//   - No JobCategory table (driven by hub-config.js / org_data.js)
 //   - Json type for array fields (MySQL JSON columns)
 //   - Nullable userId on orders (walk-in WhatsApp orders)
 //   - Nullable userId on reactions (anonymous users via fingerprint)
 //   - Partial payment support via paidAmount/balanceDue on orders
+//   - Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
+//   - Opportunities linked to Company (optional FK)
+//   - socialLinks JSON on Company for dynamic social media profiles
 // ============================================================
 
 generator client {
@@ -131,23 +133,23 @@ model Company {
   tagline         String?
   description     String    @db.MediumText             // About section (rich text)
   industry        String                               // "Telecommunications" (from data.js)
-  foundedYear     Int?
-  employeeSize    String?                              // "5,000+", "50-200", "1-10"
-  tickerSymbol    String?                              // "SCOM" for listed companies
-  companyType     String?                              // "Listed Company", "Private", etc.
 
   // Owner (employer user)
   userId          String?   @unique                     // Owner employer user
   user            User?     @relation(fields: [userId], references: [id])
 
   // Location
-  address         String?
   city            String?                              // "Nairobi"
+  town            String?                              // "Westlands" (manual input for specific area)
   country         String    @default("Kenya")
   website         String?
-  twitterUrl      String?
-  facebookUrl     String?
-  linkedinUrl     String?
+
+  // Social links (dynamic — stored as JSON array)
+  socialLinks     Json?                                // [{platform: "LINKEDIN", url: "https://..."}, ...]
+
+  // Public contact
+  contactEmail    String?                              // Public contact email
+  phoneNumber     String?                              // Public phone number
 
   // Status
   isVerified      Boolean   @default(false)             // Green verified badge
@@ -162,6 +164,7 @@ model Company {
 
   // Denormalized counters (updated via triggers/cron)
   jobCount        Int       @default(0)
+  opportunityCount Int      @default(0)                 // Denormalized counter for opportunities
 
   // Timestamps
   createdAt       DateTime  @default(now())
@@ -169,6 +172,7 @@ model Company {
 
   // Relations
   jobs            Job[]
+  opportunities   Opportunity[]
 
   @@map("companies")
 }
@@ -176,8 +180,8 @@ model Company {
 // ============================================================
 // 4. JOBS — Core Job Listings
 // ============================================================
-// No salary field (agreed). Mobile-first, SEO-optimized.
-// Google Jobs structured data via JSON-LD.
+// Mobile-first, SEO-optimized. Google Jobs structured data via JSON-LD.
+// Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
 
 model Job {
   id              String    @id @default(cuid())
@@ -191,42 +195,49 @@ model Job {
   company         Company   @relation(fields: [companyId], references: [id])
 
   // Location
-  location        String                               // "Westlands, Nairobi"
+  location        String                               // "Westlands, Nairobi" (display string for backward compat)
+  town            String?                              // Specific area (manual input)
+  city            String?                              // Structured: "Nairobi"
+  country         String?   @default("Kenya")          // Structured: "Kenya"
   isRemote        Boolean   @default(false)
 
   // Salary — ONLY shown on job detail page, NEVER on cards/listings
   // Required for Google Jobs JSON-LD (baseSalary) + ranking boost
-  salaryMin       Int?                                 // Minimum salary in KES (e.g. 80000)
-  salaryMax       Int?                                 // Maximum salary in KES (e.g. 120000)
+  salaryMin       Int?                                 // Minimum salary (e.g. 80000)
+  salaryMax       Int?                                 // Maximum salary (e.g. 120000)
   salaryCurrency  String    @default("KES")
-  showSalary      Boolean   @default(false)            // Toggle: display salary on job detail page
+  salaryPeriod    String    @default("MONTHLY")         // "MONTHLY", "ANNUALLY", "HOURLY", "WEEKLY"
+  isSalaryNegotiable Boolean  @default(false)           // Toggle: salary is negotiable
+  showSalary      Boolean   @default(false)             // Toggle: display salary on job detail page
 
   // Classification (validated against data.js)
   jobType         String                               // "FULL_TIME", "PART_TIME", etc.
   experienceLevel String                               // "ENTRY", "MID", "SENIOR", etc.
-  employmentType  String?                              // "PERMANENT", "CONTRACT", "TEMPORARY", etc.
   category        String                               // "TECHNOLOGY", "FINANCE_ACCOUNTING", etc.
-
-  // Structured fields for search/filters
-  requirements    Json?                                // ["CPA-K", "3+ years experience", "Bachelor's degree"]
-  responsibilities Json?                              // ["Prepare reports", "Manage budgets"]
-  skills          Json?                                // ["Financial modelling", "Sage", "IFRS"]
-  highlights      Json?                                // ["Health Insurance", "Car Allowance", "Performance Bonus"]
 
   // Badge states (from prototypes)
   isFeatured      Boolean   @default(false)             // Featured badge (paid)
   isNew           Boolean   @default(true)              // "New" badge (first 48h)
-  isUrgent        Boolean   @default(false)             // "Closing Soon" badge
+
+  // Vacancy
+  positions       Int       @default(1)                  // Number of open positions
 
   // Deadline & Source
   deadline        DateTime?
-  deadlineLabel   String?                              // Override text e.g. "Closing Soon"
   source          String    @default("DIRECT")          // "DIRECT", "SCRAPED", "PARTNER"
   externalApplyUrl String?                             // External application URL
 
+  // Application
+  applicationEmail String?                              // Email to apply to
+  howToApply      String?   @db.Text                   // Rich text for application instructions
+
+  // Tags & Metadata
+  tags            Json?                                // ["tag1", "tag2"]
+  sourceUrl       String?                              // Original source URL
+
   // Status
+  status          String    @default("DRAFT")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
   isActive        Boolean   @default(true)
-  isPaid          Boolean   @default(false)             // Employer paid listing
 
   // SEO
   noIndex         Boolean   @default(false)
@@ -254,6 +265,8 @@ model Job {
   @@index([companyId])
   @@index([isActive, publishedAt])
   @@index([isFeatured])
+  @@index([status])
+  @@index([country])
   @@map("jobs")
 }
 
@@ -262,6 +275,7 @@ model Job {
 // ============================================================
 // Similar to jobs but for non-traditional opportunities.
 // Types from data.js: 23 opportunity types.
+// May be linked to a registered company (optional FK).
 
 model Opportunity {
   id                String    @id @default(cuid())
@@ -270,23 +284,35 @@ model Opportunity {
   description       String    @db.LongText               // Full description
   excerpt           String?                              // 2-line excerpt for cards
 
-  // Organization (no company FK — may not be a registered employer)
-  organizationName  String                               // "Aga Khan Foundation"
-  organizationLogo  String?
-  organizationType  String?                              // "NGO", "UNIVERSITY", etc.
+  // Company (optional — may not be a registered employer)
+  companyId         String?
+  company           Company?  @relation(fields: [companyId], references: [id])
 
   // Classification
   opportunityType   String                               // "SCHOLARSHIP", "GRANT", "FELLOWSHIP", etc.
   category          String?                              // "EDUCATION", "RESEARCH", etc.
-  location          String?                              // "Nairobi" or "Multiple Locations"
+
+  // Location
+  country           String?                              // Structured: "Kenya"
+  city              String?                              // Structured: "Nairobi"
+  town              String?                              // Specific area
   isRemote          Boolean   @default(false)
+  isOnline          Boolean   @default(false)             // For virtual opportunities
 
   // Deadline & Source
   deadline          DateTime?
   source            String    @default("DIRECT")
-  externalApplyUrl  String?
+  externalApplyUrl  String?                              // For backward compat alongside howToApply
+  howToApply        String?   @db.Text                   // Rich text instructions
+
+  // Targeting & Metadata
+  targetAudience    Json?                                // ["STUDENTS", "GRADUATES"]
+  fieldOfInterest   Json?                                // ["ENGINEERING", "MEDICINE"]
+  tags              Json?
+  sourceUrl         String?                              // Original source URL
 
   // Status
+  status            String    @default("DRAFT")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
   isFeatured        Boolean   @default(false)
   isActive          Boolean   @default(true)
 
@@ -298,6 +324,7 @@ model Opportunity {
 
   // Denormalized counters
   viewsCount        Int       @default(0)
+  opportunityCount  Int       @default(0)                 // Placeholder (unused, for consistency)
 
   // Timestamps
   publishedAt       DateTime?
@@ -306,9 +333,11 @@ model Opportunity {
 
   @@index([opportunityType])
   @@index([category])
-  @@index([location])
+  @@index([companyId])
   @@index([isActive, publishedAt])
   @@index([deadline])
+  @@index([status])
+  @@index([country])
   @@map("opportunities")
 }
 
@@ -974,6 +1003,8 @@ model AdPlacement {
                └─── 1:N ──→ NewsletterSubscription
 
   Company ────── 1:N ──→ Job
+  Company ────── 1:N ──→ Opportunity (optional FK)
+  Opportunity ─── N:1 ──→ Company (nullable)
 
   BlogCategory ─ 1:N ──→ BlogArticle
   Author ─────── 1:N ──→ BlogArticle
@@ -988,41 +1019,45 @@ model AdPlacement {
   ───────────────────────
    1. users
    2. auth_accounts
-   3. companies
-   4. jobs
-   5. opportunities
-   6. blog_categories
-   7. blog_tags
-   8. article_tags (junction)
-   9. blog_articles
-  10. authors
-  11. site_pages
-   12. faqs
-   13. saved_jobs
-   14. saved_articles
-   15. job_alerts
-   16. article_reactions
-   17. notifications
-   18. service_tiers
-   19. orders
-   20. order_items
-   21. payments
-   22. order_activity
-   23. order_attachments
-   24. newsletter_subscriptions
-   25. data_requests
-   26. page_views
-   27. whatsapp_clicks
-   28. ad_placements
+   3. otps
+   4. companies
+   5. jobs
+   6. opportunities
+   7. blog_categories
+   8. blog_tags
+   9. article_tags (junction)
+   10. blog_articles
+   11. authors
+   12. site_pages
+   13. faqs
+   14. saved_jobs
+   15. saved_articles
+   16. job_alerts
+   17. article_reactions
+   18. notifications
+   19. service_tiers
+   20. orders
+   21. order_items
+   22. payments
+   23. order_activity
+   24. order_attachments
+   25. newsletter_subscriptions
+   26. data_requests
+   27. page_views
+   28. whatsapp_clicks
+   29. applications
+   30. ad_placements
 
   ──────────────────────────────────────────
   KEY DESIGN DECISIONS (from all prototypes)
   ──────────────────────────────────────────
-  ✅ NO salary/compensation fields on jobs
+  ✅ Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
   ✅ NO enums in DB — validated in app code against data.js
-  ✅ NO Location table — location stored as String
-  ✅ NO JobCategory table — driven by hub-config.js
-  ✅ NO Applications table — v1 uses externalApplyUrl only
+  ✅ Location stored as structured fields (country, city, town) plus display string
+  ✅ NO JobCategory table — driven by hub-config.js / org_data.js
+  ✅ Applications table for in-app job applications
+  ✅ Opportunities linked to Company (optional FK)
+  ✅ socialLinks JSON on Company for dynamic social media profiles
   ✅ MySQL provider (hosted at da27.host-ww.net)
   ✅ Jobs linked to Company with verified/featured badges
   ✅ Nullable userId on orders (walk-in WhatsApp orders)
@@ -1043,4 +1078,5 @@ model AdPlacement {
   ✅ Denormalized counters for performance
   ✅ All slugs are unique for SEO-friendly URLs
   ✅ Indexes on frequently queried fields
+  ✅ Status field on Jobs and Opportunities (DRAFT/PUBLISHED/CLOSED/ARCHIVED)
 */

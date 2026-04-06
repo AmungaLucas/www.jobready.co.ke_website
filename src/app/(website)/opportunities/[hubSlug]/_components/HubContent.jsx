@@ -180,7 +180,7 @@ export default function HubContent({ hub }) {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                   {featuredItems.map((opp) => (
-                    <OpportunityCard key={opp.id} title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} value={opp.value} />
+                    <OpportunityCard key={opp.id} title={opp.title} slug={opp.slug} company={opp.company} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} isOnline={opp.isOnline} />
                   ))}
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function HubContent({ hub }) {
                 ) : opportunities.length > 0 ? (
                   opportunities.map((opp) => (
                     <div key={opp.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
-                      <OpportunityCard title={opp.title} slug={opp.slug} organizationName={opp.organizationName} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} value={opp.value} />
+                      <OpportunityCard title={opp.title} slug={opp.slug} company={opp.company} opportunityType={opp.opportunityType} type={opp.opportunityType?.toLowerCase()} deadline={opp.deadline} isOnline={opp.isOnline} />
                     </div>
                   ))
                 ) : (

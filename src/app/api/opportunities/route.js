@@ -11,8 +11,10 @@ export async function GET(request) {
     const q = searchParams.get("q") || "";
     const opportunityType = searchParams.get("opportunityType") || "";
     const category = searchParams.get("category") || "";
-    const location = searchParams.get("location") || "";
+    const country = searchParams.get("country") || "";
+    const city = searchParams.get("city") || "";
     const isRemote = searchParams.get("isRemote");
+    const isOnline = searchParams.get("isOnline");
     const sort = searchParams.get("sort") || "newest";
 
     let page = parseInt(searchParams.get("page") || "1", 10);
@@ -38,13 +40,13 @@ export async function GET(request) {
       },
     ];
 
-    // Search query (title + description + organizationName)
+    // Search query (title + description + company.name)
     if (q.trim()) {
       conditions.push({
         OR: [
           { title: { contains: q.trim() } },
           { description: { contains: q.trim() } },
-          { organizationName: { contains: q.trim() } },
+          { company: { name: { contains: q.trim() } } },
         ],
       });
     }
@@ -56,11 +58,17 @@ export async function GET(request) {
     if (category) {
       conditions.push({ category });
     }
-    if (location) {
-      conditions.push({ location: { contains: location } });
+    if (country) {
+      conditions.push({ country: { contains: country } });
+    }
+    if (city) {
+      conditions.push({ city: { contains: city } });
     }
     if (isRemote === "true") {
       conditions.push({ isRemote: true });
+    }
+    if (isOnline === "true") {
+      conditions.push({ isOnline: true });
     }
 
     const where = { AND: conditions };
@@ -97,12 +105,22 @@ export async function GET(request) {
         excerpt: true,
         opportunityType: true,
         category: true,
-        location: true,
+        country: true,
+        city: true,
+        town: true,
         isRemote: true,
+        isOnline: true,
         deadline: true,
-        organizationName: true,
-        organizationLogo: true,
-        organizationType: true,
+        status: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            logoColor: true,
+            industry: true,
+          },
+        },
         isFeatured: true,
         viewsCount: true,
         publishedAt: true,

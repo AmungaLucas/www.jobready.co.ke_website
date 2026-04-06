@@ -22,7 +22,6 @@ const filterJobTypes = [
   { label: "Part-time", value: "PART_TIME" },
   { label: "Contract", value: "CONTRACT" },
   { label: "Internship", value: "INTERNSHIP" },
-  { label: "Remote", value: "Remote" },
 ];
 
 const filterExperienceLevels = [

@@ -175,7 +175,6 @@ export default async function CompanyProfilePage({ params }) {
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbs);
 
   // Organization JSON-LD
-  const location = [company.city, company.country].filter(Boolean).join(", ");
   const organizationJsonLd = generateOrganizationJsonLd({
     name: company.name,
     website: company.website,
@@ -183,11 +182,7 @@ export default async function CompanyProfilePage({ params }) {
       ? company.description[0]
       : (company.description || "").slice(0, 200),
     industry: company.industry,
-    city: company.city,
-    address: company.address,
-    employeeSize: company.employeeSize,
-    foundedYear: company.foundedYear,
-    tickerSymbol: company.tickerSymbol,
+    city: company.location,
   });
 
   const totalPages = pagination?.totalPages || 1;

@@ -10,6 +10,7 @@ import {
   GraduationCap,
   BookOpen,
   MessageCircle,
+  Building2,
 } from "lucide-react";
 import { formatDate, formatRelativeDate } from "@/lib/format";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
@@ -41,8 +42,18 @@ export default function OpportunityDetailContent({ data }) {
   const typeColor =
     typeBadgeColors[opp.opportunityType] || "bg-gray-100 text-gray-700";
 
+  // Derived from company relation (with backward compat)
+  const orgName = opp.company?.name || "";
+  const orgLogo = opp.company?.logo || null;
+  const orgIndustry = opp.company?.industry || "";
+
   const isExpired = opp.deadline && new Date(opp.deadline) < new Date();
-  const hasExternalUrl = !!opp.externalApplyUrl;
+  const hasExternalUrl = !!opp.externalApplyUrl || !!opp.howToApply;
+
+  // Build location display from structured fields
+  const locationParts = [opp.city, opp.country].filter(Boolean);
+  const locationDisplay = locationParts.length > 0 ? locationParts.join(", ") : "";
+
   // Maps opportunity types to hub slugs for correct URL routing
   const typeToHubSlug = {
     scholarship: "scholarships",
@@ -163,19 +174,24 @@ export default function OpportunityDetailContent({ data }) {
             {opp.title}
           </h1>
           <p className="text-purple-100 text-sm md:text-base mb-6">
-            {opp.organizationName && (
+            {orgName && (
               <span className="font-semibold text-white">
-                {opp.organizationName}
+                {orgName}
               </span>
             )}
-            {opp.organizationName && opp.location ? " • " : ""}
-            {opp.location && (
+            {orgName && locationDisplay ? " • " : ""}
+            {locationDisplay && (
               <span className="inline-flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5" />
-                {opp.location}
+                {locationDisplay}
               </span>
             )}
-            {opp.isRemote && (
+            {opp.isOnline && (
+              <span className="inline-flex items-center gap-1 ml-2 bg-white/15 px-2 py-0.5 rounded text-xs font-medium">
+                <Globe className="w-3 h-3" /> Online
+              </span>
+            )}
+            {opp.isRemote && !opp.isOnline && (
               <span className="inline-flex items-center gap-1 ml-2 bg-white/15 px-2 py-0.5 rounded text-xs font-medium">
                 <Globe className="w-3 h-3" /> Remote
               </span>
@@ -255,7 +271,7 @@ export default function OpportunityDetailContent({ data }) {
                   <Clock className="w-4 h-4" />
                   Expired
                 </div>
-              ) : hasExternalUrl ? (
+              ) : opp.externalApplyUrl ? (
                 <a
                   href={opp.externalApplyUrl}
                   target="_blank"
@@ -263,7 +279,7 @@ export default function OpportunityDetailContent({ data }) {
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a56db] hover:bg-[#1648b8] text-white font-semibold text-sm rounded-xl transition-colors no-underline"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Apply on {opp.organizationName ? `${opp.organizationName.split(" ")[0]}'s Site` : "Organization Site"}
+                  Apply on {orgName ? `${orgName.split(" ")[0]}'s Site` : "Organization Site"}
                 </a>
               ) : (
                 <a
@@ -294,6 +310,19 @@ export default function OpportunityDetailContent({ data }) {
                 </p>
               )}
             </div>
+
+            {/* How to Apply section */}
+            {opp.howToApply && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-8 mb-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">
+                  How to Apply
+                </h2>
+                <div
+                  className="prose prose-sm max-w-none text-gray-600 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: opp.howToApply }}
+                />
+              </div>
+            )}
 
             {/* Service nudge */}
             <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 md:p-6 mb-6">
@@ -327,9 +356,10 @@ export default function OpportunityDetailContent({ data }) {
                       key={item.id}
                       title={item.title}
                       slug={item.slug}
-                      organizationName={item.organizationName}
+                      company={item.company}
                       opportunityType={item.opportunityType}
                       deadline={item.deadline}
+                      isOnline={item.isOnline}
                     />
                   ))}
                 </div>
@@ -339,19 +369,19 @@ export default function OpportunityDetailContent({ data }) {
 
           {/* RIGHT: Sidebar */}
           <div className="space-y-6">
-            {/* Organization info */}
-            {opp.organizationName && (
-              <SidebarCard title="Organization" icon={null}>
+            {/* Organization / Company info */}
+            {orgName && (
+              <SidebarCard title="Organization" icon={Building2}>
                 <div className="flex items-center gap-3 mb-3">
-                  {opp.organizationLogo ? (
+                  {orgLogo ? (
                     <img
-                      src={opp.organizationLogo}
-                      alt={opp.organizationName}
+                      src={orgLogo}
+                      alt={orgName}
                       className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
-                      {opp.organizationName
+                      {orgName
                         .split(" ")
                         .map((w) => w[0])
                         .join("")
@@ -361,11 +391,11 @@ export default function OpportunityDetailContent({ data }) {
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      {opp.organizationName}
+                      {orgName}
                     </p>
-                    {opp.organizationType && (
+                    {orgIndustry && (
                       <p className="text-xs text-gray-500">
-                        {opp.organizationType}
+                        {orgIndustry}
                       </p>
                     )}
                   </div>

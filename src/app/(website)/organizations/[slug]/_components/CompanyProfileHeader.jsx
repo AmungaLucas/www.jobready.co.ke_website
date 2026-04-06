@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { FiShield, FiMapPin, FiBriefcase, FiGlobe, FiCalendar, FiTag } from "react-icons/fi";
+import { FiShield, FiMapPin, FiBriefcase, FiTag } from "react-icons/fi";
 
 export default function CompanyProfileHeader({ company }) {
   return (
@@ -39,22 +38,18 @@ export default function CompanyProfileHeader({ company }) {
                 <FiBriefcase size={12} />
                 {company.stats.openJobs} Active Jobs
               </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
-                <FiBriefcase size={12} />
-                {company.employeeCount} Employees
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
-                <FiMapPin size={12} />
-                {company.location}
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
-                <FiTag size={12} />
-                {company.industry}
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
-                <FiGlobe size={12} />
-                {company.type}
-              </span>
+              {company.location && (
+                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
+                  <FiMapPin size={12} />
+                  {company.location}
+                </span>
+              )}
+              {company.industry && (
+                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20">
+                  <FiTag size={12} />
+                  {company.industry}
+                </span>
+              )}
             </div>
           </div>
         </div>

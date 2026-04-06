@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 /**
  * GET /api/companies
  * Lists companies with filtering and pagination.
- * Query params: industry, location, size, search, sort, page, limit
+ * Query params: industry, location, search, sort, page, limit
  */
 export async function GET(request) {
   try {
@@ -18,28 +18,35 @@ export async function GET(request) {
     // Filters
     const industry = searchParams.get("industry") || "";
     const location = searchParams.get("location") || "";
-    const size = searchParams.get("size") || "";
     const search = searchParams.get("search") || "";
     const sort = searchParams.get("sort") || "featured"; // featured, newest, name, jobs
 
     // Build where clause
     const conditions = { isActive: true };
+    const andConditions = [];
 
     if (industry && industry !== "All Industries") {
       conditions.industry = { contains: industry };
     }
     if (location && location !== "All Locations") {
-      conditions.city = { contains: location };
-    }
-    if (size && size !== "All Sizes") {
-      conditions.employeeSize = { contains: size };
+      andConditions.push({
+        OR: [
+          { city: { contains: location } },
+          { town: { contains: location } },
+        ],
+      });
     }
     if (search) {
-      conditions.OR = [
-        { name: { contains: search } },
-        { tagline: { contains: search } },
-        { industry: { contains: search } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search } },
+          { tagline: { contains: search } },
+          { industry: { contains: search } },
+        ],
+      });
+    }
+    if (andConditions.length > 0) {
+      conditions.AND = andConditions;
     }
 
     // Build orderBy
@@ -65,8 +72,11 @@ export async function GET(request) {
           tagline: true,
           industry: true,
           city: true,
+          town: true,
           country: true,
-          employeeSize: true,
+          socialLinks: true,
+          contactEmail: true,
+          phoneNumber: true,
           isFeatured: true,
           isVerified: true,
           jobCount: true,

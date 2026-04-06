@@ -9,7 +9,6 @@ import {
   Heart,
   ShieldCheck,
   Star,
-  Zap,
   Sparkles,
   Loader2,
 } from "lucide-react";
@@ -39,7 +38,6 @@ export default function JobCard({ job }) {
     experienceLevel,
     isFeatured,
     isNew,
-    isUrgent,
     publishedAt,
   } = job;
 
@@ -124,12 +122,7 @@ export default function JobCard({ job }) {
               New
             </span>
           )}
-          {isUrgent && (
-            <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-red-100 text-red-600">
-              <Zap size={10} />
-              Urgent
-            </span>
-          )}
+
         </div>
 
         {/* Company row */}

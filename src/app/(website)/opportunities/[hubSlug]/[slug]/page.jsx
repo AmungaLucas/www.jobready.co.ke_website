@@ -13,6 +13,17 @@ async function fetchOpportunity(slug) {
 
     const opportunity = await db.opportunity.findUnique({
       where: { slug },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            logoColor: true,
+            industry: true,
+          },
+        },
+      },
     });
 
     if (!opportunity) return null;
@@ -48,12 +59,20 @@ async function fetchOpportunity(slug) {
           excerpt: true,
           opportunityType: true,
           category: true,
-          location: true,
+          country: true,
+          city: true,
+          town: true,
           isRemote: true,
+          isOnline: true,
           deadline: true,
-          organizationName: true,
-          organizationLogo: true,
-          organizationType: true,
+          company: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              logoColor: true,
+            },
+          },
           isFeatured: true,
           viewsCount: true,
           publishedAt: true,
@@ -77,7 +96,7 @@ export async function generateMetadata({ params }) {
     if (data?.opportunity) {
       const opp = data.opportunity;
       return generateMeta({
-        title: `${opp.title} — ${opp.organizationName || "Opportunity"}`,
+        title: `${opp.title} — ${opp.company?.name || "Opportunity"}`,
         description: opp.description
           ? opp.description.replace(/<[^>]+>/g, "").substring(0, 160)
           : `Apply for ${opp.title} on JobReady Kenya.`,

@@ -181,10 +181,11 @@ export default function SearchResultsList({
                     <OpportunityCard
                       title={opp.title}
                       slug={opp.slug}
-                      organizationName={opp.organizationName}
+                      company={opp.company}
                       opportunityType={opp.opportunityType}
                       type={opp.opportunityType?.toLowerCase()}
                       deadline={opp.deadline}
+                      isOnline={opp.isOnline}
                     />
                   </div>
                 ))}

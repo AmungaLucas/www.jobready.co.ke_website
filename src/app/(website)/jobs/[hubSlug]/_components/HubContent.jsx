@@ -123,7 +123,6 @@ function enrichJob(job) {
     jobType: formatJobType(job.jobType),
     experienceLevel: formatExperienceLevel(job.experienceLevel),
     isNew: published > 0 && (now - published) < 24 * 60 * 60 * 1000,
-    isUrgent: deadline > now && (deadline - now) < 20 * 24 * 60 * 60 * 1000,
   };
 }
 

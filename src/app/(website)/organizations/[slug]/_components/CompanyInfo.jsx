@@ -1,15 +1,14 @@
-import { FiMapPin, FiGlobe, FiCalendar, FiTag, FiBriefcase, FiExternalLink } from "react-icons/fi";
+import { FiMapPin, FiGlobe, FiTag, FiBriefcase, FiExternalLink, FiMail, FiPhone } from "react-icons/fi";
+
+const iconMap = {
+  Industry: FiTag,
+  Location: FiMapPin,
+  Website: FiGlobe,
+  "Contact Email": FiMail,
+  Phone: FiPhone,
+};
 
 export default function CompanyInfo({ company }) {
-  const iconMap = {
-    Industry: FiTag,
-    Founded: FiCalendar,
-    Size: FiBriefcase,
-    Location: FiMapPin,
-    Website: FiGlobe,
-    Type: FiBriefcase,
-  };
-
   return (
     <div className="bg-white rounded-xl shadow-sm p-5">
       <h3 className="text-sm font-bold text-gray-900 mb-4 pb-2.5 border-b-2 border-gray-100 flex items-center gap-2">
@@ -43,6 +42,28 @@ export default function CompanyInfo({ company }) {
           );
         })}
       </div>
+
+      {/* Social Links */}
+      {company.socialLinks && company.socialLinks.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Social Links</p>
+          <div className="space-y-2.5">
+            {company.socialLinks.map((link, idx) => (
+              <a
+                key={idx}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors no-underline"
+              >
+                <FiGlobe size={14} className="text-gray-400 shrink-0" />
+                <span className="truncate">{link.platform || link.url}</span>
+                <FiExternalLink size={11} className="text-gray-300 shrink-0" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -55,7 +55,16 @@ import {
   Clock,
   MapPin,
   Sparkles,
+  Tag,
+  Globe,
+  X,
 } from "lucide-react";
+import {
+  jobCategory,
+  experienceLevel,
+  organizationLocation,
+  currencies,
+} from "@/data/org_data";
 
 // ── RichTextEditor wrapper ──────────────────────────────
 function RichTextEditor({ value, onChange, placeholder, error }) {
@@ -84,38 +93,18 @@ function RichTextEditor({ value, onChange, placeholder, error }) {
   );
 }
 
-// ── Options ──────────────────────────────────────────
-const CATEGORIES = [
-  "Technology",
-  "Finance & Accounting",
-  "Engineering",
-  "Healthcare",
-  "Education",
-  "Marketing",
-  "Government",
-  "NGO",
-  "HR",
-  "Creative Design",
-  "Legal",
-  "Logistics",
-  "Customer Service",
-  "Consulting",
+// ── Local constants ────────────────────────────────────
+const WORK_MODE = [
+  { value: "ON_SITE", label: "On-site" },
+  { value: "REMOTE", label: "Remote" },
+  { value: "HYBRID", label: "Hybrid" },
 ];
 
-const JOB_TYPES = [
-  "Full-time",
-  "Part-time",
-  "Contract",
-  "Internship",
-  "Temporary",
-];
-
-const EXPERIENCE_LEVELS = [
-  "Entry Level",
-  "Mid Level",
-  "Senior Level",
-  "Manager / Director",
-  "Executive",
+const SOURCE_OPTIONS = [
+  { value: "DIRECT", label: "Direct Post" },
+  { value: "SCRAPED", label: "Scraped" },
+  { value: "PARTNER", label: "Partner" },
+  { value: "EMPLOYER_SUBMITTED", label: "Employer Submitted" },
 ];
 
 const APPLICATION_METHODS = [
@@ -127,13 +116,19 @@ const APPLICATION_METHODS = [
 const INITIAL_FORM = {
   title: "",
   category: "",
+  subcategory: "",
   type: "",
   experienceLevel: "",
+  country: "",
+  region: "",
   location: "",
-  isRemote: false,
+  workMode: "",
+  salaryCurrency: "KES",
   salaryMin: "",
   salaryMax: "",
   showSalary: true,
+  source: "DIRECT",
+  tags: [],
   description: "",
   requirements: "",
   responsibilities: "",
@@ -150,6 +145,7 @@ export default function PostJobForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [errors, setErrors] = useState({});
+  const [tagInput, setTagInput] = useState("");
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -162,17 +158,97 @@ export default function PostJobForm() {
     }
   };
 
+  // Derived data for cascading selects
+  const selectedCategory = useMemo(
+    () => jobCategory.find((c) => c.value === form.category),
+    [form.category]
+  );
+
+  const subcategories = useMemo(
+    () => selectedCategory?.subcategories ?? [],
+    [selectedCategory]
+  );
+
+  const selectedCountry = useMemo(
+    () => organizationLocation.find((c) => c.code === form.country),
+    [form.country]
+  );
+
+  const regions = useMemo(
+    () => selectedCountry?.regions ?? [],
+    [selectedCountry]
+  );
+
+  // Computed currency label for salary section
+  const selectedCurrency = useMemo(
+    () => currencies.find((c) => c.value === form.salaryCurrency),
+    [form.salaryCurrency]
+  );
+
+  const currencyLabel = selectedCurrency
+    ? selectedCurrency.label.split(" - ")[0]
+    : "KES";
+
+  // Handlers for cascading resets
+  const handleCategoryChange = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      category: value,
+      subcategory: "",
+    }));
+    if (errors.category) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.category;
+        return next;
+      });
+    }
+  };
+
+  const handleCountryChange = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      country: value,
+      region: "",
+    }));
+  };
+
+  // Tag handlers
+  const handleAddTag = (e) => {
+    if (e.key === "Enter" && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim();
+      if (!form.tags.includes(newTag)) {
+        setForm((prev) => ({
+          ...prev,
+          tags: [...prev.tags, newTag],
+        }));
+      }
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setForm((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((t) => t !== tagToRemove),
+    }));
+  };
+
   const validate = () => {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = "Job title is required";
     if (!form.category) newErrors.category = "Category is required";
     if (!form.type) newErrors.type = "Employment type is required";
-    if (!form.experienceLevel) newErrors.experienceLevel = "Experience level is required";
+    if (!form.experienceLevel)
+      newErrors.experienceLevel = "Experience level is required";
     if (!form.location.trim()) newErrors.location = "Location is required";
-    if (!form.description.trim()) newErrors.description = "Job description is required";
+    if (!form.description.trim())
+      newErrors.description = "Job description is required";
     if (!form.deadline) newErrors.deadline = "Application deadline is required";
     if (form.applicationMethod === "email" && !form.contactEmail.trim()) {
-      newErrors.contactEmail = "Contact email is required for email applications";
+      newErrors.contactEmail =
+        "Contact email is required for email applications";
     }
     if (form.applicationMethod === "external" && !form.contactEmail.trim()) {
       newErrors.contactEmail = "External URL is required";
@@ -205,10 +281,12 @@ export default function PostJobForm() {
               <div className="rounded-full bg-emerald-100 p-4 mb-4">
                 <CheckCircle2 className="size-10 text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight">Job Published!</h2>
+              <h2 className="text-2xl font-bold tracking-tight">
+                Job Published!
+              </h2>
               <p className="text-muted-foreground mt-2 max-w-sm">
-                Your job posting &quot;{form.title}&quot; is now live and visible to
-                thousands of job seekers across Kenya.
+                Your job posting &quot;{form.title}&quot; is now live and
+                visible to thousands of job seekers across Kenya.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Button asChild>
@@ -217,7 +295,10 @@ export default function PostJobForm() {
                     View My Jobs
                   </Link>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button
+                  variant="outline"
+                  asChild
+                >
                   <Link
                     href="/dashboard/jobs/new"
                     onClick={() => {
@@ -248,7 +329,9 @@ export default function PostJobForm() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Post New Job</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Post New Job
+            </h1>
             <p className="text-muted-foreground">
               Create a new job listing to attract qualified candidates
             </p>
@@ -286,58 +369,63 @@ export default function PostJobForm() {
               )}
             </div>
 
-            {/* Category + Type */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Category */}
+            <div className="grid gap-4 sm:grid-cols-1">
               <div className="space-y-2">
                 <Label htmlFor="category">
                   Category <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={form.category}
-                  onValueChange={(v) => updateField("category", v)}
+                  onValueChange={handleCategoryChange}
                 >
-                  <SelectTrigger id="category" className={errors.category ? "border-destructive" : ""}>
+                  <SelectTrigger
+                    id="category"
+                    className={
+                      errors.category ? "border-destructive" : ""
+                    }
+                  >
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {jobCategory.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {errors.category && (
-                  <p className="text-xs text-destructive">{errors.category}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">
-                  Employment Type <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(v) => updateField("type", v)}
-                >
-                  <SelectTrigger id="type" className={errors.type ? "border-destructive" : ""}>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {JOB_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.type && (
-                  <p className="text-xs text-destructive">{errors.type}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.category}
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Experience Level + Location */}
+            {/* Subcategory (only shown when category is selected) */}
+            {subcategories.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategory">Subcategory</Label>
+                <Select
+                  value={form.subcategory}
+                  onValueChange={(v) => updateField("subcategory", v)}
+                >
+                  <SelectTrigger id="subcategory">
+                    <SelectValue placeholder="Select subcategory (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcategories.map((sub) => (
+                      <SelectItem key={sub.value} value={sub.value}>
+                        {sub.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Experience Level + Work Mode */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="experienceLevel">
@@ -347,59 +435,126 @@ export default function PostJobForm() {
                   value={form.experienceLevel}
                   onValueChange={(v) => updateField("experienceLevel", v)}
                 >
-                  <SelectTrigger id="experienceLevel" className={errors.experienceLevel ? "border-destructive" : ""}>
+                  <SelectTrigger
+                    id="experienceLevel"
+                    className={
+                      errors.experienceLevel ? "border-destructive" : ""
+                    }
+                  >
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
-                    {EXPERIENCE_LEVELS.map((l) => (
-                      <SelectItem key={l} value={l}>
-                        {l}
+                    {experienceLevel.map((l) => (
+                      <SelectItem key={l.value} value={l.value}>
+                        {l.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {errors.experienceLevel && (
-                  <p className="text-xs text-destructive">{errors.experienceLevel}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.experienceLevel}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="workMode">Work Mode</Label>
+                <Select
+                  value={form.workMode}
+                  onValueChange={(v) => updateField("workMode", v)}
+                >
+                  <SelectTrigger id="workMode">
+                    <SelectValue placeholder="Select work mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WORK_MODE.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Country + Region */}
+            <div className="space-y-2">
+              <Label className="font-medium flex items-center gap-2">
+                <Globe className="size-4 text-muted-foreground" />
+                Location
+              </Label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="text-sm text-muted-foreground">
+                    Country
+                  </Label>
+                  <Select
+                    value={form.country}
+                    onValueChange={handleCountryChange}
+                  >
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizationLocation.map((loc) => (
+                        <SelectItem key={loc.code} value={loc.code}>
+                          {loc.flag} {loc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="region" className="text-sm text-muted-foreground">
+                    Region / County
+                  </Label>
+                  <Select
+                    value={form.region}
+                    onValueChange={(v) => updateField("region", v)}
+                    disabled={!form.country}
+                  >
+                    <SelectTrigger id="region">
+                      <SelectValue
+                        placeholder={
+                          form.country
+                            ? "Select region"
+                            : "Select country first"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regions.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Free-text location */}
+              <div className="space-y-2">
                 <Label htmlFor="location">
-                  Location <span className="text-destructive">*</span>
+                  Specific Location <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="location"
-                  placeholder="e.g., Nairobi, Kenya"
+                  placeholder="e.g., Westlands, Nairobi"
                   value={form.location}
                   onChange={(e) => updateField("location", e.target.value)}
                   className={errors.location ? "border-destructive" : ""}
                 />
                 {errors.location && (
-                  <p className="text-xs text-destructive">{errors.location}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.location}
+                  </p>
                 )}
               </div>
-            </div>
-
-            {/* Remote toggle */}
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <MapPin className="size-4 text-primary" />
-                </div>
-                <div>
-                  <Label htmlFor="isRemote" className="font-medium">
-                    Remote Work
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Allow candidates to work remotely
-                  </p>
-                </div>
-              </div>
-              <Switch
-                id="isRemote"
-                checked={form.isRemote}
-                onCheckedChange={(v) => updateField("isRemote", v)}
-              />
             </div>
 
             <Separator />
@@ -409,10 +564,13 @@ export default function PostJobForm() {
               <div className="flex items-center justify-between">
                 <Label className="font-medium flex items-center gap-2">
                   <DollarSign className="size-4 text-muted-foreground" />
-                  Salary Range (KSh)
+                  Salary Range ({currencyLabel})
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="showSalary" className="text-sm text-muted-foreground">
+                  <Label
+                    htmlFor="showSalary"
+                    className="text-sm text-muted-foreground"
+                  >
                     Show salary
                   </Label>
                   <Switch
@@ -422,22 +580,121 @@ export default function PostJobForm() {
                   />
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  placeholder="Minimum salary"
-                  type="number"
-                  value={form.salaryMin}
-                  onChange={(e) => updateField("salaryMin", e.target.value)}
-                />
-                <Input
-                  placeholder="Maximum salary"
-                  type="number"
-                  value={form.salaryMax}
-                  onChange={(e) => updateField("salaryMax", e.target.value)}
-                />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="salaryCurrency"
+                    className="text-sm text-muted-foreground"
+                  >
+                    Currency
+                  </Label>
+                  <Select
+                    value={form.salaryCurrency}
+                    onValueChange={(v) => updateField("salaryCurrency", v)}
+                  >
+                    <SelectTrigger id="salaryCurrency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">
+                    Minimum
+                  </Label>
+                  <Input
+                    placeholder="Min salary"
+                    type="number"
+                    value={form.salaryMin}
+                    onChange={(e) => updateField("salaryMin", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">
+                    Maximum
+                  </Label>
+                  <Input
+                    placeholder="Max salary"
+                    type="number"
+                    value={form.salaryMax}
+                    onChange={(e) => updateField("salaryMax", e.target.value)}
+                  />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Leave empty if salary is negotiable. Enter monthly amounts in KSh (e.g., 150000).
+                Leave empty if salary is negotiable. Enter monthly amounts.
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Source */}
+            <div className="space-y-2">
+              <Label htmlFor="source" className="font-medium">
+                Source
+              </Label>
+              <Select
+                value={form.source}
+                onValueChange={(v) => updateField("source", v)}
+              >
+                <SelectTrigger id="source">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOURCE_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
+            {/* Tags Input */}
+            <div className="space-y-2">
+              <Label className="font-medium flex items-center gap-2">
+                <Tag className="size-4 text-muted-foreground" />
+                Tags
+              </Label>
+              <Input
+                id="tagInput"
+                placeholder="Type a tag and press Enter to add"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+              />
+              {form.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {form.tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-2.5 py-1"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Press Enter to add a tag. Tags help job seekers find your
+                listing more easily.
               </p>
             </div>
           </CardContent>
@@ -448,7 +705,7 @@ export default function PostJobForm() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="size-5 text-primary" />
-              Description & Requirements
+              Description &amp; Requirements
             </CardTitle>
             <CardDescription>
               Provide detailed information about the role
@@ -466,7 +723,9 @@ export default function PostJobForm() {
                 error={errors.description}
               />
               {errors.description && (
-                <p className="text-xs text-destructive">{errors.description}</p>
+                <p className="text-xs text-destructive">
+                  {errors.description}
+                </p>
               )}
             </div>
 
@@ -495,7 +754,7 @@ export default function PostJobForm() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="size-5 text-primary" />
-              Deadline & Settings
+              Deadline &amp; Settings
             </CardTitle>
             <CardDescription>
               Configure application settings and publishing options
@@ -505,7 +764,8 @@ export default function PostJobForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="deadline">
-                  Application Deadline <span className="text-destructive">*</span>
+                  Application Deadline{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="deadline"
@@ -515,12 +775,16 @@ export default function PostJobForm() {
                   className={errors.deadline ? "border-destructive" : ""}
                 />
                 {errors.deadline && (
-                  <p className="text-xs text-destructive">{errors.deadline}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.deadline}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="maxApplicants">Max Applicants (Optional)</Label>
+                <Label htmlFor="maxApplicants">
+                  Max Applicants (Optional)
+                </Label>
                 <Input
                   id="maxApplicants"
                   placeholder="e.g., 50"
@@ -547,7 +811,8 @@ export default function PostJobForm() {
                     Featured Listing
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Promote your job for KSh 2,000 — appears at the top of search results and gets 3x more views
+                    Promote your job for KSh 2,000 — appears at the top of
+                    search results and gets 3x more views
                   </p>
                 </div>
               </div>
@@ -565,7 +830,10 @@ export default function PostJobForm() {
               <Label className="font-medium">How to Apply</Label>
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="applicationMethod" className="text-sm text-muted-foreground">
+                  <Label
+                    htmlFor="applicationMethod"
+                    className="text-sm text-muted-foreground"
+                  >
                     Application Method
                   </Label>
                   <Select
@@ -587,8 +855,14 @@ export default function PostJobForm() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="contactEmail" className="text-sm text-muted-foreground">
-                      Contact Email {form.applicationMethod === "email" && <span className="text-destructive">*</span>}
+                    <Label
+                      htmlFor="contactEmail"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Contact Email{" "}
+                      {form.applicationMethod === "email" && (
+                        <span className="text-destructive">*</span>
+                      )}
                     </Label>
                     <Input
                       id="contactEmail"
@@ -599,23 +873,34 @@ export default function PostJobForm() {
                           : "careers@company.com"
                       }
                       value={form.contactEmail}
-                      onChange={(e) => updateField("contactEmail", e.target.value)}
-                      className={errors.contactEmail ? "border-destructive" : ""}
+                      onChange={(e) =>
+                        updateField("contactEmail", e.target.value)
+                      }
+                      className={
+                        errors.contactEmail ? "border-destructive" : ""
+                      }
                     />
                     {errors.contactEmail && (
-                      <p className="text-xs text-destructive">{errors.contactEmail}</p>
+                      <p className="text-xs text-destructive">
+                        {errors.contactEmail}
+                      </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="contactPhone" className="text-sm text-muted-foreground">
+                    <Label
+                      htmlFor="contactPhone"
+                      className="text-sm text-muted-foreground"
+                    >
                       Contact Phone (Optional)
                     </Label>
                     <Input
                       id="contactPhone"
                       placeholder="+254 700 000 000"
                       value={form.contactPhone}
-                      onChange={(e) => updateField("contactPhone", e.target.value)}
+                      onChange={(e) =>
+                        updateField("contactPhone", e.target.value)
+                      }
                     />
                   </div>
                 </div>

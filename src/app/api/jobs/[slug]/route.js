@@ -34,8 +34,8 @@ export async function GET(request, { params }) {
             country: true,
             website: true,
             isVerified: true,
-            employeeSize: true,
-            foundedYear: true,
+            contactEmail: true,
+            phoneNumber: true,
           },
         },
       },
@@ -156,8 +156,6 @@ export async function PUT(request, { params }) {
     const {
       title,
       description,
-      requirements,
-      responsibilities,
       category,
       jobType,
       experienceLevel,
@@ -165,10 +163,21 @@ export async function PUT(request, { params }) {
       isRemote,
       salaryMin,
       salaryMax,
+      salaryPeriod,
+      isSalaryNegotiable,
       showSalary,
       deadline,
+      howToApply,
+      tags,
+      applicationEmail,
+      sourceUrl,
+      country,
+      city,
+      town,
+      status,
       isFeatured,
       isActive,
+      positions,
     } = body;
 
     // Build update data — only include provided fields
@@ -202,14 +211,6 @@ export async function PUT(request, { params }) {
         );
       }
       updateData.description = description.trim();
-    }
-
-    if (requirements !== undefined) {
-      updateData.requirements = requirements || null;
-    }
-
-    if (responsibilities !== undefined) {
-      updateData.responsibilities = responsibilities || null;
     }
 
     if (category !== undefined) {
@@ -264,6 +265,14 @@ export async function PUT(request, { params }) {
       updateData.salaryMax = salaryMax !== null ? parseInt(salaryMax, 10) : null;
     }
 
+    if (salaryPeriod !== undefined) {
+      updateData.salaryPeriod = salaryPeriod || null;
+    }
+
+    if (isSalaryNegotiable !== undefined) {
+      updateData.isSalaryNegotiable = Boolean(isSalaryNegotiable);
+    }
+
     if (showSalary !== undefined) {
       updateData.showSalary = Boolean(showSalary);
     }
@@ -283,8 +292,44 @@ export async function PUT(request, { params }) {
       }
     }
 
+    if (status !== undefined) {
+      updateData.status = status || null;
+    }
+
+    if (howToApply !== undefined) {
+      updateData.howToApply = howToApply || null;
+    }
+
+    if (tags !== undefined) {
+      updateData.tags = tags && Array.isArray(tags) ? tags : null;
+    }
+
+    if (applicationEmail !== undefined) {
+      updateData.applicationEmail = applicationEmail || null;
+    }
+
+    if (sourceUrl !== undefined) {
+      updateData.sourceUrl = sourceUrl || null;
+    }
+
+    if (country !== undefined) {
+      updateData.country = country || null;
+    }
+
+    if (city !== undefined) {
+      updateData.city = city || null;
+    }
+
+    if (town !== undefined) {
+      updateData.town = town || null;
+    }
+
     if (isFeatured !== undefined) {
       updateData.isFeatured = Boolean(isFeatured);
+    }
+
+    if (positions !== undefined) {
+      updateData.positions = positions ? parseInt(positions, 10) : 1;
     }
 
     if (isActive !== undefined) {

@@ -34,7 +34,6 @@ const PER_PAGE = 9;
 export default function OrganizationsContent({ companies }) {
   const [filters, setFilters] = useState({
     industry: "All Industries",
-    size: "All Sizes",
     location: "All Locations",
   });
   const [currentPage, setCurrentPage] = useState(1);

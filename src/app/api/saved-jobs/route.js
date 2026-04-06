@@ -41,7 +41,6 @@ export async function GET(request) {
               isRemote: true,
               isFeatured: true,
               isNew: true,
-              isUrgent: true,
               isActive: true,
               company: {
                 select: {

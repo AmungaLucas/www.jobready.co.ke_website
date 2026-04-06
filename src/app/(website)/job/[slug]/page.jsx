@@ -36,17 +36,21 @@ async function fetchJob(slug, userId) {
         showSalary: true,
         jobType: true,
         experienceLevel: true,
-        employmentType: true,
         category: true,
-        requirements: true,
-        responsibilities: true,
-        skills: true,
-        highlights: true,
         isFeatured: true,
         isNew: true,
-        isUrgent: true,
+        positions: true,
         deadline: true,
-        deadlineLabel: true,
+        salaryPeriod: true,
+        isSalaryNegotiable: true,
+        howToApply: true,
+        status: true,
+        tags: true,
+        applicationEmail: true,
+        sourceUrl: true,
+        country: true,
+        city: true,
+        town: true,
         source: true,
         externalApplyUrl: true,
         viewsCount: true,
@@ -67,8 +71,8 @@ async function fetchJob(slug, userId) {
             country: true,
             website: true,
             isVerified: true,
-            employeeSize: true,
-            foundedYear: true,
+            contactEmail: true,
+            phoneNumber: true,
           },
         },
         _count: {
@@ -175,14 +179,13 @@ export default async function JobDetailPage({ params }) {
   const { job, similarJobs = [], isSaved = false, hasApplied = false } = data;
   const company = job.company || {};
 
-  // Normalize API data for component compatibility:
-  // API returns company.employeeSize but components expect company.size
+  // Normalize data for component compatibility
   const normalizedJob = {
     ...job,
-    applicationCount: job._count?.applications || 0,
+    applicationCount: job.applicationCount || job._count?.applications || 0,
+    tags: job.tags || [],
     company: {
       ...company,
-      size: company.employeeSize,
     },
   };
 
@@ -191,7 +194,6 @@ export default async function JobDetailPage({ params }) {
 
   const jobJsonLd = generateJobJsonLd({
     ...normalizedJob,
-    employmentType: normalizedJob.jobType,
     publishedAt: normalizedJob.publishedAt,
     company: {
       ...normalizedJob.company,

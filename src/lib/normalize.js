@@ -52,6 +52,16 @@ export function formatTimeLeft(deadline) {
   return `${diffMins}m`;
 }
 
+/**
+ * Build a display location string from country, city, town fields.
+ * @param {object} entity — record with country, city, town
+ * @returns {string}
+ */
+export function buildLocation(entity) {
+  const parts = [entity.town, entity.city, entity.country].filter(Boolean);
+  return parts.join(", ");
+}
+
 // ─── Job normalization ────────────────────────────────────────
 
 /**
@@ -88,7 +98,7 @@ export function normalizeJobs(jobs) {
  * @returns {object} enriched company
  */
 export function normalizeCompany(company, pagination) {
-  const location = [company.city, company.country].filter(Boolean).join(", ");
+  const location = buildLocation(company);
 
   // Split description into paragraphs
   const description = company.description
@@ -97,22 +107,23 @@ export function normalizeCompany(company, pagination) {
 
   const openJobs = pagination?.total ?? company.jobCount ?? 0;
 
-  // Build key details grid
+  // Build key details grid (simplified — removed foundedYear, employeeSize, companyType, tickerSymbol)
   const keyDetails = [];
   if (company.industry) keyDetails.push({ label: "Industry", value: company.industry });
-  if (company.foundedYear) keyDetails.push({ label: "Founded", value: String(company.foundedYear) });
-  if (company.employeeSize) keyDetails.push({ label: "Size", value: `${company.employeeSize} employees` });
   if (location) keyDetails.push({ label: "Location", value: location });
   if (company.website) {
     const displayUrl = company.website.replace(/^https?:\/\//, "").replace(/\/$/, "");
     keyDetails.push({ label: "Website", value: displayUrl, href: company.website });
   }
-  if (company.companyType) {
-    const label = company.tickerSymbol
-      ? `NSE Listed (${company.tickerSymbol})`
-      : company.companyType;
-    keyDetails.push({ label: "Type", value: label });
+  if (company.contactEmail) {
+    keyDetails.push({ label: "Contact Email", value: company.contactEmail, href: `mailto:${company.contactEmail}` });
   }
+  if (company.phoneNumber) {
+    keyDetails.push({ label: "Phone", value: company.phoneNumber });
+  }
+
+  // Parse social links from JSON
+  const socialLinks = Array.isArray(company.socialLinks) ? company.socialLinks : [];
 
   return {
     ...company,
@@ -120,13 +131,10 @@ export function normalizeCompany(company, pagination) {
     location,
     description,
     keyDetails,
+    socialLinks,
     stats: {
       openJobs,
-      totalHires: "—",
-      employees: company.employeeSize || "—",
     },
-    employeeCount: company.employeeSize || "—",
-    type: company.companyType || "",
   };
 }
 
@@ -151,7 +159,7 @@ export function normalizeSimilarCompanies(companies) {
 
 /**
  * Normalize an opportunity from the API for the OpportunityCard.
- * Adds lowercase `type` for color mapping.
+ * Uses company relation if available, falls back to null.
  * @param {object} opp — raw API opportunity record
  * @returns {object}
  */
@@ -159,11 +167,17 @@ export function normalizeOpportunity(opp) {
   return {
     title: opp.title,
     slug: opp.slug,
-    organizationName: opp.organizationName,
+    organizationName: opp.company?.name || null,
+    organizationLogo: opp.company?.logo || null,
     opportunityType: opp.opportunityType || "",
     type: opp.opportunityType ? opp.opportunityType.toLowerCase() : "",
     deadline: opp.deadline,
-    value: null, // API doesn't return this field
+    isOnline: opp.isOnline || false,
+    isRemote: opp.isRemote || false,
+    country: opp.country || null,
+    city: opp.city || null,
+    town: opp.town || null,
+    company: opp.company || null,
   };
 }
 

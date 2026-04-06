@@ -63,12 +63,21 @@ async function fetchOpportunities(params = {}) {
         excerpt: true,
         opportunityType: true,
         category: true,
-        location: true,
+        country: true,
+        city: true,
+        town: true,
         isRemote: true,
+        isOnline: true,
         deadline: true,
-        organizationName: true,
-        organizationLogo: true,
-        organizationType: true,
+        status: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            logoColor: true,
+          },
+        },
         isFeatured: true,
         viewsCount: true,
         publishedAt: true,
@@ -157,11 +166,11 @@ export default async function OpportunitiesPage() {
                       <OpportunityCard
                         title={opp.title}
                         slug={opp.slug}
-                        organizationName={opp.organizationName}
+                        company={opp.company}
                         opportunityType={opp.opportunityType}
                         type={opp.opportunityType?.toLowerCase()}
                         deadline={opp.deadline}
-                        value={opp.value}
+                        isOnline={opp.isOnline}
                       />
                     </div>
                   ))}
@@ -187,11 +196,11 @@ export default async function OpportunitiesPage() {
                       <OpportunityCard
                         title={opp.title}
                         slug={opp.slug}
-                        organizationName={opp.organizationName}
+                        company={opp.company}
                         opportunityType={opp.opportunityType}
                         type={opp.opportunityType?.toLowerCase()}
                         deadline={opp.deadline}
-                        value={opp.value}
+                        isOnline={opp.isOnline}
                       />
                     </div>
                   ))
