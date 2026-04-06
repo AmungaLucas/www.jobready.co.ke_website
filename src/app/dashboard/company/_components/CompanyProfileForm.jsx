@@ -34,12 +34,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  Calendar,
-  Users,
   Instagram,
   Search,
-  Target,
-  Heart,
   Tags,
 } from "lucide-react";
 import {
@@ -47,41 +43,23 @@ import {
   organizationLocation,
 } from "@/data/org_data";
 
-const COMPANY_SIZES = [
-  { value: "STARTUP", label: "Startup (1-10)" },
-  { value: "SMALL", label: "Small (11-50)" },
-  { value: "MEDIUM", label: "Medium (51-200)" },
-  { value: "LARGE", label: "Large (201-1000)" },
-  { value: "ENTERPRISE", label: "Enterprise (1000+)" },
-];
-
 const INITIAL_COMPANY = {
   name: "Safaricom PLC",
   tagline: "Transforming lives through technology",
   industry: "TELECOMMUNICATIONS",
-  email: "info@safaricom.co.ke",
-  phone: "+254 720 000 000",
-  website: "https://www.safaricom.co.ke",
-  companySize: "ENTERPRISE",
-  country: "KE",
-  region: "Nairobi",
-  city: "Westlands",
-  location: "Nairobi, Kenya",
   description:
     "Safaricom is East Africa's leading telecommunications company, providing mobile voice, data, messaging, and financial services to over 40 million subscribers in Kenya. We are the home of M-PESA, the world's most successful mobile money service.\n\nAt Safaricom, we believe in transforming lives through technology. Our vision is to become a purpose-led technology company that connects people to the people, places, and opportunities that matter most. We are committed to driving innovation, empowering communities, and contributing to Kenya's digital transformation.\n\nOur culture is built on innovation, customer-centricity, and a deep commitment to making a positive impact on society. We continuously invest in our people, technology, and infrastructure to deliver exceptional experiences for our customers and stakeholders.",
-  missionStatement:
-    "To transform lives by connecting people to the people, places, and opportunities that matter most.",
-  values:
-    "Innovation, Customer-Centricity, Integrity, Excellence, Collaboration, and Social Impact.",
+  country: "Kenya",
+  city: "Nairobi",
+  town: "Westlands",
+  website: "https://www.safaricom.co.ke",
+  contactEmail: "info@safaricom.co.ke",
+  phoneNumber: "+254 720 000 000",
   linkedin: "https://linkedin.com/company/safaricom",
   twitter: "https://twitter.com/safaricom_care",
   facebook: "https://facebook.com/SafaricomKenya",
   instagram: "https://instagram.com/safaricom",
   tiktok: "https://tiktok.com/@safaricom",
-  contactName: "Mary Wanjiru",
-  contactTitle: "HR Manager",
-  contactEmail: "careers@safaricom.co.ke",
-  contactPhone: "+254 720 000 000",
   logo: "",
   metaTitle: "Safaricom PLC - Careers | JobReady.co.ke",
   metaDescription:
@@ -95,7 +73,7 @@ export default function CompanyProfileForm() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Derive regions from selected country
+  // Derive towns from selected country
   const selectedCountry = useMemo(() => {
     return organizationLocation.find((loc) => loc.code === form.country) || null;
   }, [form.country]);
@@ -108,11 +86,12 @@ export default function CompanyProfileForm() {
   };
 
   const handleCountryChange = (countryCode) => {
-    // Reset region when country changes
+    const countryData = organizationLocation.find((loc) => loc.code === countryCode);
     setForm((prev) => ({
       ...prev,
-      country: countryCode,
-      region: "",
+      country: countryData?.name || countryCode,
+      city: "",
+      town: "",
     }));
     setIsSaved(false);
   };
@@ -304,8 +283,7 @@ export default function CompanyProfileForm() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+          <div className="space-y-2">
               <Label htmlFor="industry">Industry</Label>
               <Select
                 value={form.industry}
@@ -323,26 +301,6 @@ export default function CompanyProfileForm() {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="companySize">Company Size</Label>
-              <Select
-                value={form.companySize}
-                onValueChange={(v) => updateField("companySize", v)}
-              >
-                <SelectTrigger id="companySize">
-                  <SelectValue placeholder="Select company size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COMPANY_SIZES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="tagline" className="flex items-center gap-2">
@@ -362,29 +320,29 @@ export default function CompanyProfileForm() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="companyEmail" className="flex items-center gap-2">
+              <Label htmlFor="contactEmail" className="flex items-center gap-2">
                 <Mail className="size-4 text-muted-foreground" />
-                Company Email
+                Public Contact Email
               </Label>
               <Input
-                id="companyEmail"
+                id="contactEmail"
                 type="email"
                 placeholder="info@company.com"
-                value={form.email}
-                onChange={(e) => updateField("email", e.target.value)}
+                value={form.contactEmail}
+                onChange={(e) => updateField("contactEmail", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="companyPhone" className="flex items-center gap-2">
+              <Label htmlFor="phoneNumber" className="flex items-center gap-2">
                 <Phone className="size-4 text-muted-foreground" />
-                Company Phone
+                Phone Number
               </Label>
               <Input
-                id="companyPhone"
+                id="phoneNumber"
                 placeholder="+254 700 000 000"
-                value={form.phone}
-                onChange={(e) => updateField("phone", e.target.value)}
+                value={form.phoneNumber}
+                onChange={(e) => updateField("phoneNumber", e.target.value)}
               />
             </div>
           </div>
@@ -429,17 +387,17 @@ export default function CompanyProfileForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="region">Region / County</Label>
+                <Label htmlFor="city">City</Label>
                 <Select
-                  value={form.region}
-                  onValueChange={(v) => updateField("region", v)}
+                  value={form.city}
+                  onValueChange={(v) => updateField("city", v)}
                   disabled={!form.country}
                 >
-                  <SelectTrigger id="region">
+                  <SelectTrigger id="city">
                     <SelectValue
                       placeholder={
                         form.country
-                          ? "Select region"
+                          ? "Select city"
                           : "Select a country first"
                       }
                     />
@@ -457,12 +415,12 @@ export default function CompanyProfileForm() {
 
             <div className="grid gap-4 sm:grid-cols-1">
               <div className="space-y-2">
-                <Label htmlFor="city">City / Town</Label>
+                <Label htmlFor="town">Town / Area</Label>
                 <Input
-                  id="city"
+                  id="town"
                   placeholder="e.g., Westlands"
-                  value={form.city}
-                  onChange={(e) => updateField("city", e.target.value)}
+                  value={form.town}
+                  onChange={(e) => updateField("town", e.target.value)}
                 />
               </div>
             </div>
@@ -479,54 +437,6 @@ export default function CompanyProfileForm() {
             />
             <p className="text-xs text-muted-foreground">
               A compelling description helps attract top talent. Minimum 100 characters recommended.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Mission & Values */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="size-5 text-primary" />
-            Mission &amp; Values
-          </CardTitle>
-          <CardDescription>
-            Define what drives your organization and the principles you stand for
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="missionStatement" className="flex items-center gap-2">
-              <Target className="size-4 text-muted-foreground" />
-              Mission Statement
-            </Label>
-            <Textarea
-              id="missionStatement"
-              placeholder="What is your company's mission? Why does your organization exist?"
-              rows={4}
-              value={form.missionStatement}
-              onChange={(e) => updateField("missionStatement", e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              A clear mission statement helps candidates understand your company&apos;s purpose.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="values" className="flex items-center gap-2">
-              <Heart className="size-4 text-muted-foreground" />
-              Core Values
-            </Label>
-            <Textarea
-              id="values"
-              placeholder="List your company's core values, e.g., Innovation, Integrity, Excellence..."
-              rows={3}
-              value={form.values}
-              onChange={(e) => updateField("values", e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Separate values with commas or list them on new lines.
             </p>
           </div>
         </CardContent>
@@ -617,71 +527,6 @@ export default function CompanyProfileForm() {
                 placeholder="https://tiktok.com/@yourcompany"
                 value={form.tiktok}
                 onChange={(e) => updateField("tiktok", e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Contact Person */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Users className="size-5 text-primary" />
-            Contact Person
-          </CardTitle>
-          <CardDescription>
-            Primary contact for job applicants and inquiries
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Contact Name</Label>
-              <Input
-                id="contactName"
-                placeholder="Full name"
-                value={form.contactName}
-                onChange={(e) => updateField("contactName", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contactTitle">Job Title</Label>
-              <Input
-                id="contactTitle"
-                placeholder="e.g., HR Manager"
-                value={form.contactTitle}
-                onChange={(e) => updateField("contactTitle", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail" className="flex items-center gap-2">
-                <Mail className="size-4 text-muted-foreground" />
-                Contact Email
-              </Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                placeholder="careers@company.com"
-                value={form.contactEmail}
-                onChange={(e) => updateField("contactEmail", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone" className="flex items-center gap-2">
-                <Phone className="size-4 text-muted-foreground" />
-                Contact Phone
-              </Label>
-              <Input
-                id="contactPhone"
-                placeholder="+254 700 000 000"
-                value={form.contactPhone}
-                onChange={(e) => updateField("contactPhone", e.target.value)}
               />
             </div>
           </div>

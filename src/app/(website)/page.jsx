@@ -23,7 +23,7 @@ import OpportunityCard from "./_components/OpportunityCard";
 import DeadlineCard from "./_components/DeadlineCard";
 import AdSlot from "./_components/AdSlot";
 import { generateWebSiteJsonLd } from "@/lib/seo";
-import { normalizeJobs, normalizeOpportunities, formatTimeLeft } from "@/lib/normalize";
+import { normalizeJobs, formatTimeLeft } from "@/lib/normalize";
 import { db } from "@/lib/db";
 
 
@@ -167,6 +167,7 @@ export default async function HomePage() {
           opportunityType: true,
           category: true,
           isRemote: true,
+          isOnline: true,
           deadline: true,
           company: {
             select: {
@@ -214,8 +215,8 @@ export default async function HomePage() {
       }))
     : [];
 
-  // Opportunities
-  const _opportunities = normalizeOpportunities(oppRaw);
+  // Opportunities (passed directly — no normalization needed)
+  const _opportunities = oppRaw;
 
   // ─── Sidebar data ───────────────────────────────────────
 
@@ -485,7 +486,6 @@ export default async function HomePage() {
                       slug={opp.slug}
                       company={opp.company}
                       opportunityType={opp.opportunityType}
-                      type={opp.type}
                       deadline={opp.deadline}
                       isOnline={opp.isOnline}
                     />

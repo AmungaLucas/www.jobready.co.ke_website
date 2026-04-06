@@ -1,8 +1,6 @@
 import "./globals.css";
-import Script from "next/script";
 import { AuthProvider } from "@/components/AuthProvider";
 import Analytics from "@/components/Analytics";
-import { siteConfig } from "@/config/site-config";
 
 export const metadata = {
   title: {
@@ -69,13 +67,6 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <meta name="google-adsense-account" content="ca-pub-8031704055036556" />
-        {/* AdSense verification — script + meta + noscript for full crawler coverage */}
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adsense.clientId}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </head>
       <body className="font-sans text-gray-800 bg-gray-50 antialiased">
         <Analytics />

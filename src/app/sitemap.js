@@ -72,10 +72,36 @@ export default async function sitemap() {
       take: 200,
     });
 
+    // Fetch published opportunities (limit to most recent 500)
+    const opportunities = await db.opportunity.findMany({
+      where: { isPublished: true, publishedAt: { not: null } },
+      select: { slug: true, opportunityType: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 500,
+    });
+
+    // Map opportunity type to hub slug
+    const typeToHubSlug = {
+      SCHOLARSHIP: "scholarships",
+      GRANT: "grants",
+      FELLOWSHIP: "fellowships",
+      BURSARY: "bursaries",
+      COMPETITION: "competitions",
+      CONFERENCE: "conferences",
+      VOLUNTEER: "volunteer",
+      APPRENTICESHIP: "apprenticeships",
+    };
+
     dynamicEntries = [
       ...jobs.map((job) => ({
         url: `${SITE_URL}/job/${job.slug}`,
         lastModified: new Date(job.updatedAt),
+        changeFrequency: "daily",
+        priority: 0.7,
+      })),
+      ...opportunities.map((opp) => ({
+        url: `${SITE_URL}/opportunities/${typeToHubSlug[opp.opportunityType] || "scholarships"}/${opp.slug}`,
+        lastModified: new Date(opp.updatedAt),
         changeFrequency: "daily",
         priority: 0.7,
       })),

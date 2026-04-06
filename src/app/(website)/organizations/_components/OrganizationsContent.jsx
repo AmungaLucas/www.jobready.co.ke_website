@@ -45,7 +45,7 @@ export default function OrganizationsContent({ companies }) {
   });
 
   const featuredCompanies = companies
-    .filter((c) => (c.jobCount ?? c.openJobs ?? 0) >= 8)
+    .filter((c) => (c.jobCount ?? 0) >= 8)
     .slice(0, 5);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
@@ -147,7 +147,7 @@ export default function OrganizationsContent({ companies }) {
                       </Link>
                     </div>
                     <span className="text-[0.65rem] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                      {company.jobCount ?? company.openJobs ?? 0} jobs
+                      {company.jobCount ?? 0} jobs
                     </span>
                   </li>
                 ))}

@@ -26,7 +26,6 @@ export default function OpportunityCard({
   title,
   slug,
   company,
-  organizationName,
   opportunityType,
   deadline,
   isOnline,
@@ -38,8 +37,7 @@ export default function OpportunityCard({
   const hubSlug = typeToHubSlug[typeLower] || `${typeLower}s`;
   const link = href || (slug && typeLower) ? `/opportunities/${hubSlug}/${slug}` : "#";
 
-  // Prefer company name over legacy organizationName
-  const orgName = company?.name || organizationName;
+  const orgName = company?.name;
 
   return (
     <Link

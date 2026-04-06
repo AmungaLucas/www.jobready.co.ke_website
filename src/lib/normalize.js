@@ -156,37 +156,4 @@ export function normalizeSimilarCompanies(companies) {
 }
 
 // ─── Opportunity normalization ────────────────────────────────
-
-/**
- * Normalize an opportunity from the API for the OpportunityCard.
- * Uses company relation if available, falls back to null.
- * @param {object} opp — raw API opportunity record
- * @returns {object}
- */
-export function normalizeOpportunity(opp) {
-  return {
-    title: opp.title,
-    slug: opp.slug,
-    organizationName: opp.company?.name || null,
-    organizationLogo: opp.company?.logo || null,
-    opportunityType: opp.opportunityType || "",
-    type: opp.opportunityType ? opp.opportunityType.toLowerCase() : "",
-    deadline: opp.deadline,
-    isOnline: opp.isOnline || false,
-    isRemote: opp.isRemote || false,
-    country: opp.country || null,
-    city: opp.city || null,
-    town: opp.town || null,
-    company: opp.company || null,
-  };
-}
-
-/**
- * Normalize an array of opportunities from the API.
- * @param {object[]} opportunities
- * @returns {object[]}
- */
-export function normalizeOpportunities(opportunities) {
-  if (!Array.isArray(opportunities)) return [];
-  return opportunities.map(normalizeOpportunity);
-}
+// (Opportunity data is passed directly from API — no separate normalization needed)

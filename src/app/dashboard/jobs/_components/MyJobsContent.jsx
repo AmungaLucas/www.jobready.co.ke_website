@@ -60,85 +60,86 @@ const MOCK_JOBS = [
     id: 1,
     title: "Senior Software Engineer",
     location: "Nairobi, Kenya",
-    type: "Full-time",
-    status: "ACTIVE",
-    applicants: 34,
-    postedDate: "2026-03-15",
+    jobType: "FULL_TIME",
+    status: "PUBLISHED",
+    applicationCount: 34,
+    publishedAt: "2026-03-15",
     category: "Technology",
   },
   {
     id: 2,
     title: "Financial Analyst",
     location: "Nairobi, Kenya",
-    type: "Full-time",
-    status: "ACTIVE",
-    applicants: 28,
-    postedDate: "2026-03-12",
+    jobType: "FULL_TIME",
+    status: "PUBLISHED",
+    applicationCount: 28,
+    publishedAt: "2026-03-12",
     category: "Finance & Accounting",
   },
   {
     id: 3,
     title: "Marketing Manager",
     location: "Nairobi, Kenya",
-    type: "Full-time",
+    jobType: "FULL_TIME",
     status: "PAUSED",
-    applicants: 19,
-    postedDate: "2026-03-08",
+    applicationCount: 19,
+    publishedAt: "2026-03-08",
     category: "Marketing",
   },
   {
     id: 4,
     title: "Network Engineer",
     location: "Mombasa, Kenya",
-    type: "Full-time",
-    status: "ACTIVE",
-    applicants: 12,
-    postedDate: "2026-03-05",
+    jobType: "FULL_TIME",
+    status: "PUBLISHED",
+    applicationCount: 12,
+    publishedAt: "2026-03-05",
     category: "Technology",
   },
   {
     id: 5,
     title: "Human Resources Intern",
     location: "Nairobi, Kenya",
-    type: "Internship",
+    jobType: "INTERNSHIP",
     status: "CLOSED",
-    applicants: 45,
-    postedDate: "2026-02-20",
+    applicationCount: 45,
+    publishedAt: "2026-02-20",
     category: "HR",
   },
   {
     id: 6,
     title: "Product Manager — M-PESA",
     location: "Nairobi, Kenya",
-    type: "Full-time",
-    status: "ACTIVE",
-    applicants: 22,
-    postedDate: "2026-03-01",
+    jobType: "FULL_TIME",
+    status: "PUBLISHED",
+    applicationCount: 22,
+    publishedAt: "2026-03-01",
     category: "Technology",
   },
   {
     id: 7,
     title: "Data Analyst",
     location: "Nakuru, Kenya",
-    type: "Contract",
+    jobType: "CONTRACT",
     status: "DRAFT",
-    applicants: 0,
-    postedDate: "2026-03-28",
+    applicationCount: 0,
+    publishedAt: "2026-03-28",
     category: "Finance & Accounting",
   },
   {
     id: 8,
     title: "Customer Service Representative",
     location: "Kisumu, Kenya",
-    type: "Full-time",
+    jobType: "FULL_TIME",
     status: "DRAFT",
-    applicants: 0,
-    postedDate: "2026-03-28",
+    applicationCount: 0,
+    publishedAt: "2026-03-28",
     category: "Customer Service",
   },
 ];
 
 const STATUS_CONFIG = {
+  PUBLISHED: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   ACTIVE: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   PAUSED: { label: "Paused", className: "bg-amber-50 text-amber-700 border-amber-200" },
   DRAFT: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
@@ -157,7 +158,7 @@ export default function MyJobsContent() {
 
   // Filter jobs
   const filteredJobs = MOCK_JOBS.filter((job) => {
-    const matchesFilter = activeFilter === "all" || job.status === activeFilter;
+    const matchesFilter = activeFilter === "all" || job.status === activeFilter || (activeFilter === "PUBLISHED" && job.status === "ACTIVE");
     const matchesSearch =
       searchQuery === "" ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -211,7 +212,7 @@ export default function MyJobsContent() {
         <div className="flex flex-wrap gap-1">
           {[
             { key: "all", label: "All", count: MOCK_JOBS.length },
-            { key: "ACTIVE", label: "Active", count: statusCounts["ACTIVE"] || 0 },
+            { key: "PUBLISHED", label: "Active", count: (statusCounts["PUBLISHED"] || 0) + (statusCounts["ACTIVE"] || 0) },
             { key: "PAUSED", label: "Paused", count: statusCounts["PAUSED"] || 0 },
             { key: "DRAFT", label: "Draft", count: statusCounts["DRAFT"] || 0 },
             { key: "CLOSED", label: "Closed", count: statusCounts["CLOSED"] || 0 },
@@ -313,7 +314,7 @@ export default function MyJobsContent() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm">{job.type}</span>
+                            <span className="text-sm">{job.jobType}</span>
                           </TableCell>
                           <TableCell>
                             <span
@@ -323,11 +324,11 @@ export default function MyJobsContent() {
                             </span>
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-sm font-medium">{job.applicants}</span>
+                            <span className="text-sm font-medium">{job.applicationCount}</span>
                           </TableCell>
                           <TableCell>
                             <span className="text-sm text-muted-foreground">
-                              {formatDate(job.postedDate)}
+                              {formatDate(job.publishedAt)}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -351,7 +352,7 @@ export default function MyJobsContent() {
                                     Edit
                                   </Link>
                                 </DropdownMenuItem>
-                                {job.status === "ACTIVE" ? (
+                                {(job.status === "PUBLISHED" || job.status === "ACTIVE") ? (
                                   <DropdownMenuItem>
                                     <Pause className="mr-2 size-4" />
                                     Pause Job

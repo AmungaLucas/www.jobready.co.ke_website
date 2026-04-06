@@ -18,7 +18,7 @@ function getInitials(name) {
 export default function CompanyCard({ company }) {
   const initials = company.initials || getInitials(company.name);
   const location = company.town || company.city || company.country || "";
-  const openJobs = company.jobCount ?? company.openJobs ?? 0;
+  const openJobs = company.jobCount ?? 0;
 
   return (
     <Link

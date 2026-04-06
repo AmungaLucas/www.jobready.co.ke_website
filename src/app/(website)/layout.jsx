@@ -3,6 +3,7 @@ import Header from "./_components/Header";
 import Footer from "./_components/Footer";
 import WhatsAppFloat from "./_components/WhatsAppFloat";
 import CookieConsent from "@/components/CookieConsent";
+import AdSense from "@/components/AdSense";
 
 // NOTE: Global metadata (title template, OG defaults, robots, metadataBase)
 // is defined in the root layout (src/app/layout.jsx).
@@ -15,6 +16,7 @@ export default function WebsiteLayout({ children }) {
     <>
       <TopBar />
       <Header />
+      <AdSense />
       <main className="min-h-screen pb-12">{children}</main>
       <Footer />
       <WhatsAppFloat />
