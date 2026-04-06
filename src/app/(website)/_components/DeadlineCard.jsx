@@ -9,10 +9,10 @@ export default function DeadlineCard({ title, slug, company, deadline }) {
   return (
     <Link
       href={href}
-      className="block bg-white rounded-xl shadow-sm overflow-hidden p-6 border-l-4 border-red-500 hover:shadow-md transition-shadow cursor-pointer no-underline"
+      className="block bg-white rounded-xl shadow-sm overflow-hidden p-4 border-l-4 border-red-500 hover:shadow-md transition-shadow cursor-pointer no-underline"
     >
       {/* Top row */}
-      <div className="flex justify-between items-start mb-2.5">
+      <div className="flex justify-between items-start mb-2">
         <h3 className="text-sm font-bold text-gray-900 leading-tight line-clamp-1 pr-2">
           {title}
         </h3>

@@ -30,27 +30,27 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#1a56db] via-[#1e3a8a] to-[#1e40af] text-white py-16 md:py-20 lg:py-28">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#1a56db] via-[#1e3a8a] to-[#1e40af] text-white py-10 md:py-14 lg:py-16">
       {/* Decorative radial gradients */}
       <div className="absolute -top-[50%] -right-[20%] w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(255,255,255,0.06)_0%,transparent_70%)] pointer-events-none" />
       <div className="absolute -bottom-[30%] -left-[10%] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(255,255,255,0.04)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-4">
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="max-w-[720px] mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold mb-6">
+          <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold mb-4">
             <FiZap className="w-3.5 h-3.5" />
             {siteConfig.stats.totalJobs.toLocaleString()}+ jobs updated daily
           </div>
 
           {/* H1 */}
-          <h1 className="text-[1.6rem] md:text-[2rem] lg:text-[2.4rem] font-extrabold leading-tight mb-5 tracking-tight">
+          <h1 className="text-[1.6rem] md:text-[2rem] lg:text-[2.4rem] font-extrabold leading-tight mb-3 tracking-tight">
             Find Your Next{" "}
             <span className="text-[#93c5fd]">Opportunity in Kenya</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-[0.92rem] md:text-[1.08rem] opacity-85 leading-relaxed mb-8 max-w-[560px] mx-auto">
+          <p className="text-[0.92rem] md:text-[1.08rem] opacity-85 leading-relaxed mb-6 max-w-[560px] mx-auto">
             Browse jobs, internships, scholarships &amp; government positions. Updated daily.
             Get your professional CV done and land your dream job faster.
           </p>
@@ -58,7 +58,7 @@ export default function HeroSection() {
           {/* Search form */}
           <form
             onSubmit={handleSearch}
-            className="flex gap-3 max-w-[680px] mx-auto mb-8 flex-col sm:flex-row"
+            className="flex gap-3 max-w-[680px] mx-auto mb-6 flex-col sm:flex-row"
           >
             <input
               type="text"
@@ -88,7 +88,7 @@ export default function HeroSection() {
           </form>
 
           {/* Stats */}
-          <div className="flex justify-center gap-8 sm:gap-10 mt-10">
+          <div className="flex justify-center gap-8 sm:gap-10 mt-6">
             <div className="text-center">
               <span className="text-xl md:text-[1.5rem] font-extrabold block">
                 {(siteConfig.stats.totalJobs * 5).toLocaleString()}+
@@ -118,7 +118,7 @@ export default function HeroSection() {
           </div>
 
           {/* Quick links — hidden on mobile */}
-          <div className="hidden md:flex justify-center gap-3 mt-8 flex-wrap">
+          <div className="hidden md:flex justify-center gap-3 mt-5 flex-wrap">
             {[
               { label: "Internships", href: "/jobs/internships" },
               { label: "Govt Jobs", href: "/jobs/government" },

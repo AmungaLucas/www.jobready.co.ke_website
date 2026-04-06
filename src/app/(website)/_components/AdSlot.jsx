@@ -15,19 +15,19 @@ const adSlotConfig = {
   leaderboard: {
     format: "horizontal",
     slot: "1234567890",
-    wrapperClass: "w-full py-6",
+    wrapperClass: "w-full py-3",
     style: { display: "block" },
   },
   inline: {
     format: "fluid",
     slot: "1234567891",
-    wrapperClass: "w-full py-6 my-10",
+    wrapperClass: "w-full py-3 my-6",
     style: { display: "block" },
   },
   sidebar: {
     format: "vertical",
     slot: "1234567892",
-    wrapperClass: "w-full py-8 mb-7",
+    wrapperClass: "w-full py-4 mb-4",
     style: { display: "block" },
   },
 };

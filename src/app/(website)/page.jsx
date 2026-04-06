@@ -277,9 +277,9 @@ export default async function HomePage() {
       <HeroSection />
 
       {/* 2. TRUSTED BY BAR */}
-      <section className="bg-white border-b border-gray-100 py-10 md:py-14">
+      <section className="bg-white border-b border-gray-100 py-6 md:py-8">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <p className="text-[0.75rem] text-gray-400 uppercase tracking-widest font-semibold text-center mb-5">
+          <p className="text-[0.75rem] text-gray-400 uppercase tracking-widest font-semibold text-center mb-3">
             Trusted by top employers
           </p>
           <div className="flex items-center justify-center gap-5 md:gap-10 flex-wrap opacity-50">
@@ -296,17 +296,17 @@ export default async function HomePage() {
       </section>
 
       {/* 3. AD LEADERBOARD (hidden on mobile) */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-8 pb-4 hidden lg:block">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-4 pb-2 hidden lg:block">
         <AdSlot position="leaderboard" />
       </div>
 
       {/* 4. MAIN LAYOUT — 2-column grid */}
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 pt-10 md:pt-14 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 pt-6 md:pt-8 pb-8">
           {/* ─── LEFT COLUMN ─── */}
           <div>
             {/* 5. TRENDING NOW */}
-            <div className="mb-10 md:mb-12">
+            <div className="mb-6 md:mb-8">
               <JobCardGrid
                 jobs={trendingJobs}
                 title="Trending Now"
@@ -317,8 +317,8 @@ export default async function HomePage() {
 
             {/* 6. URGENT DEADLINES — Deadline Today */}
             {urgentDeadlines.length > 0 && (
-              <div className="mb-10 md:mb-12">
-                <div className="flex items-center justify-between mb-6">
+              <div className="mb-6 md:mb-8">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <FiClock className="w-5 h-5 text-red-500" />
                     Don&apos;t Miss Out — Deadline Today
@@ -342,7 +342,7 @@ export default async function HomePage() {
                     </svg>
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   {urgentDeadlines.map((item) => (
                     <DeadlineCard
                       key={item.slug}
@@ -357,7 +357,7 @@ export default async function HomePage() {
             )}
 
             {/* 7. LATEST JOBS */}
-            <div className="mb-10 md:mb-12">
+            <div className="mb-6 md:mb-8">
               <JobCardGrid
                 jobs={_latestJobs}
                 title="Latest Jobs"
@@ -371,7 +371,7 @@ export default async function HomePage() {
 
             {/* 9. FEATURED JOBS */}
             {_featuredJobs.length > 0 && (
-              <div className="mb-10 md:mb-12">
+              <div className="mb-6 md:mb-8">
                 <JobCardGrid
                   jobs={_featuredJobs}
                   title="Featured Jobs"
@@ -382,7 +382,7 @@ export default async function HomePage() {
             )}
 
             {/* 10. SERVICE NUDGE — mid-page CTA */}
-            <div className="mb-10 md:mb-12 bg-white border border-gray-200 border-l-4 border-l-[#1a56db] rounded-lg p-6 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+            <div className="mb-6 md:mb-8 bg-white border border-gray-200 border-l-4 border-l-[#1a56db] rounded-lg p-4 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
               <div className="w-10 h-10 bg-[#dbeafe] rounded-full flex items-center justify-center shrink-0">
                 <FiFileText className="w-[18px] h-[18px] text-[#1a56db]" />
               </div>
@@ -400,8 +400,8 @@ export default async function HomePage() {
             </div>
 
             {/* 11. CATEGORY GRID */}
-            <div className="mb-10 md:mb-12">
-              <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 md:mb-8">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                   <FiZap className="w-5 h-5 text-[#1a56db]" />
                   Browse by Category
@@ -425,7 +425,7 @@ export default async function HomePage() {
                   </svg>
                 </Link>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {categories.map((cat) => (
                   <CategoryCard
                     key={cat.href}
@@ -441,7 +441,7 @@ export default async function HomePage() {
 
             {/* 12. INTERNSHIP OPPORTUNITIES */}
             {_internshipJobs.length > 0 && (
-              <div className="mb-10 md:mb-12">
+              <div className="mb-6 md:mb-8">
                 <JobCardGrid
                   jobs={_internshipJobs}
                   title="Internship Opportunities"
@@ -453,7 +453,7 @@ export default async function HomePage() {
 
             {/* 13. SCHOLARSHIPS & OPPORTUNITIES */}
             {_opportunities.length > 0 && (
-              <div className="mb-10 md:mb-12">
+              <div className="mb-6 md:mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <FaGraduationCap className="w-5 h-5 text-[#7c3aed]" />
@@ -495,7 +495,7 @@ export default async function HomePage() {
             )}
 
             {/* 14. DOCUMENT WRITING CTA STRIP */}
-            <div className="mb-10 md:mb-12 bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] rounded-2xl p-8 md:p-10 text-white relative overflow-hidden">
+            <div className="mb-6 md:mb-8 bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] rounded-2xl p-5 md:p-7 text-white relative overflow-hidden">
               <div className="absolute -top-[40%] -right-[10%] w-[300px] h-[300px] bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,transparent_70%)] pointer-events-none" />
               <div className="relative z-10">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -515,7 +515,7 @@ export default async function HomePage() {
                   {/* CV Writing */}
                   <Link
                     href="/cv-services"
-                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-5 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
+                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
                   >
                     <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
                       <FiFileText className="w-[22px] h-[22px] text-white" />
@@ -532,7 +532,7 @@ export default async function HomePage() {
                   {/* Cover Letter */}
                   <Link
                     href="/cv-services"
-                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-5 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
+                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
                   >
                     <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
                       <FiSend className="w-[22px] h-[22px] text-white" />
@@ -549,7 +549,7 @@ export default async function HomePage() {
                   {/* LinkedIn Profile */}
                   <Link
                     href="/cv-services"
-                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-5 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
+                    className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 text-center hover:bg-white/18 hover:-translate-y-0.5 transition-all no-underline text-white block"
                   >
                     <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
                       <FiGlobe className="w-[22px] h-[22px] text-white" />

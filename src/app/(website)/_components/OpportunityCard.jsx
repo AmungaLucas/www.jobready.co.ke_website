@@ -45,7 +45,7 @@ export default function OpportunityCard({
       className="block bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-px border-2 border-transparent hover:border-primary/20 no-underline"
     >
       {/* Top section */}
-      <div className="px-6 pt-6 pb-5">
+      <div className="px-5 pt-5 pb-4">
         {/* Type label */}
         <p className={`text-[0.65rem] font-bold uppercase tracking-wide mb-2 ${colorClass}`}>
           {opportunityType || type || "Opportunity"}
@@ -71,7 +71,7 @@ export default function OpportunityCard({
       </div>
 
       {/* Bottom section */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
         {/* Deadline */}
         {deadline && (
           <span className="text-xs text-red-500 font-semibold inline-flex items-center gap-1">

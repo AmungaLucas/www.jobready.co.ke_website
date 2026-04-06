@@ -13,7 +13,7 @@ export default function JobCardGrid({
   return (
     <section>
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="flex items-center justify-between mb-4 md:mb-5">
         <div className="flex items-center gap-2">
           {Icon && (
             <span className="text-primary">
@@ -35,7 +35,7 @@ export default function JobCardGrid({
 
       {/* Card Container */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 md:px-6 py-7 md:py-8">
+        <div className="px-4 md:px-5 py-4 md:py-5">
           {jobs.map((job) => (
             <JobCard key={job.slug || job.id} job={job} />
           ))}

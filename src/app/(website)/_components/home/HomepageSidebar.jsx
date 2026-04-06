@@ -169,12 +169,12 @@ export default function HomepageSidebar({
       )}
 
       {/* 8. Our Services CTA (blue gradient) */}
-      <div className="bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] text-white rounded-xl p-6 mb-7 shadow-sm">
-        <h3 className="text-[0.95rem] font-bold mb-3.5 pb-2.5 border-b border-white/20 flex items-center gap-2 text-white">
+      <div className="bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] text-white rounded-xl p-5 mb-4 shadow-sm">
+        <h3 className="text-[0.95rem] font-bold mb-2.5 pb-2 border-b border-white/20 flex items-center gap-2 text-white">
           <FiFileText className="w-[18px] h-[18px]" />
           Our Services
         </h3>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {[
             { label: "CV Writing", price: "from KSh 500", icon: FiFileText },
             { label: "Cover Letter", price: "from KSh 500", icon: FiSend },
@@ -200,7 +200,7 @@ export default function HomepageSidebar({
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3.5 w-full inline-flex items-center justify-center px-4 py-2.5 bg-[#059669] hover:bg-[#047857] text-white text-[0.85rem] font-semibold rounded-lg transition-colors no-underline"
+          className="mt-2.5 w-full inline-flex items-center justify-center px-4 py-2.5 bg-[#059669] hover:bg-[#047857] text-white text-[0.85rem] font-semibold rounded-lg transition-colors no-underline"
         >
           Chat on WhatsApp
         </a>

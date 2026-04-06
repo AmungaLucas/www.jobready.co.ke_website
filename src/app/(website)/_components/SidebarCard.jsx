@@ -28,9 +28,9 @@ export default function SidebarCard({
   }
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-6 mb-7 ${className}`}>
+    <div className={`bg-white rounded-xl shadow-sm p-5 mb-4 ${className}`}>
       {title && (
-        <h3 className="text-sm font-bold text-gray-900 mb-4 pb-3.5 border-b-2 border-gray-100 flex items-center gap-2">
+        <h3 className="text-sm font-bold text-gray-900 mb-3 pb-2.5 border-b-2 border-gray-100 flex items-center gap-2">
           {IconElement}
           {title}
         </h3>

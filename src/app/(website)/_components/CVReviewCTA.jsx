@@ -3,15 +3,15 @@ import { FileText } from "lucide-react";
 
 export default function CVReviewCTA() {
   return (
-    <div className="bg-gradient-to-br from-amber-100 to-amber-200 border-2 border-amber-400 rounded-xl p-6 mb-7 text-center">
+    <div className="bg-gradient-to-br from-amber-100 to-amber-200 border-2 border-amber-400 rounded-xl p-5 mb-4 text-center">
       {/* Title */}
-      <h3 className="text-base font-bold text-amber-900 mb-2.5 flex items-center justify-center gap-2">
+      <h3 className="text-base font-bold text-amber-900 mb-2 flex items-center justify-center gap-2">
         <FileText size={20} className="text-amber-700" />
         Need a Professional CV?
       </h3>
 
       {/* Description */}
-      <p className="text-sm text-amber-900/80 mb-5 leading-relaxed">
+      <p className="text-sm text-amber-900/80 mb-3 leading-relaxed">
         Stand out from hundreds of applicants. Our expert writers craft CVs
         that get you shortlisted.
       </p>
