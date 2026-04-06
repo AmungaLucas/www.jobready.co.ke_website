@@ -53,10 +53,11 @@ export async function POST(request) {
 
     // Determine purpose: if newEmail is provided, this is an email update (placeholder → real)
     const purpose = newEmail ? "email_update" : "email_verify";
-    const targetEmail = newEmail.toLowerCase().trim();
 
     // ── email_update: replacing placeholder (with optional merge) ──
     if (purpose === "email_update") {
+      const targetEmail = newEmail.toLowerCase().trim();
+
       if (!isPlaceholderEmail(user.email)) {
         return NextResponse.json(
           { error: "Your email is already set. Use the regular verification flow." },
