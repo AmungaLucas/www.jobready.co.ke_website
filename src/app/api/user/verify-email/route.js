@@ -277,11 +277,12 @@ export async function POST(request) {
     }
 
     // Include error details for debugging
+    const errMsg = error.message || error.code || JSON.stringify(error) || "unknown";
     const devMsg = process.env.NODE_ENV === "development"
-      ? ` (${error.message || error.code || "unknown"})`
+      ? ` (${errMsg})`
       : "";
     return NextResponse.json(
-      { error: `Failed to verify email. Please try again.${devMsg}` },
+      { error: `Failed to verify email. Please try again.${devMsg}`, debug: errMsg },
       { status: 500 }
     );
   }

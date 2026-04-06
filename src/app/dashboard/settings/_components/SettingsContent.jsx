@@ -324,6 +324,7 @@ function AccountSettings() {
 
       if (!res.ok) {
         setEmailError(data.error || "Verification failed");
+        if (data.debug) console.error("[VerifyEmail] Debug:", data.debug);
         setEmailStep("error");
         return;
       }
