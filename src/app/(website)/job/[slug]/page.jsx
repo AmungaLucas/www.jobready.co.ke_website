@@ -264,10 +264,7 @@ export default async function JobDetailPage({ params }) {
             {/* Job Header */}
             <JobDetailHeader {...headerProps} />
 
-            {/* Job description - Read first! */}
-            <JobDetailBody job={normalizedJob} />
-
-            {/* Pain trigger - After they know the job */}
+            {/* Pain trigger */}
             <div className="bg-gray-900 text-white rounded-lg p-5 md:p-6 mt-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
               <div className="text-[1.6rem] font-extrabold text-[#f59e0b] leading-none whitespace-nowrap">
                 {normalizedJob.applicationCount || 0}
@@ -292,14 +289,17 @@ export default async function JobDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Service Nudge - When considering next steps */}
+            {/* Job description */}
+            <JobDetailBody job={normalizedJob} />
+
+            {/* In-content ad */}
+            <AdSlot position="inline" />
+
+            {/* Service Nudge */}
             <ServiceNudge />
 
-            {/* Job Tools Bar - Share, save, etc. */}
+            {/* Job Tools Bar */}
             <JobToolsBar job={normalizedJob} />
-
-            {/* In-content ad - Bottom placement */}
-            <AdSlot position="inline" />
           </div>
 
           {/* RIGHT: Sidebar */}
