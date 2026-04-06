@@ -78,22 +78,19 @@ export async function POST(request) {
       );
     }
 
-    // Check if phone belongs to ANOTHER real user (not a ghost)
+    // Check if phone belongs to ANOTHER user
+    let willMerge = false;
+    let existingAccountName = null;
     if (user.phone !== normalizedPhone) {
       const phoneOwner = await findUserByPhone(normalizedPhone);
       if (phoneOwner && phoneOwner.id !== session.user.id) {
-        // Check if it's a ghost (placeholder email, no password, no google)
-        const isGhost =
-          phoneOwner.email.startsWith("phone_") &&
-          !phoneOwner.googleId &&
-          !phoneOwner.passwordHash;
-
-        if (!isGhost) {
-          return NextResponse.json(
-            { error: "This phone number is already linked to another account" },
-            { status: 409 }
-          );
-        }
+        // Don't block — send OTP anyway. Ownership is proven by receiving the code.
+        // The verify step will handle merging the other account into this one.
+        willMerge = true;
+        existingAccountName = phoneOwner.name || "another account";
+        console.log(
+          `[Send Verify Phone] Phone ${normalizedPhone} belongs to user ${phoneOwner.id} — sending OTP, will merge on verify`
+        );
       }
     }
 
@@ -150,6 +147,7 @@ export async function POST(request) {
       message: "OTP sent successfully",
       phone: normalizedPhone,
       expiresIn: 600,
+      ...(willMerge && { willMerge: true, existingAccountName }),
     });
   } catch (error) {
     console.error("[Send Verify Phone API] Error:", error);

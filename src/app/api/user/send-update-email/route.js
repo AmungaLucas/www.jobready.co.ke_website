@@ -77,10 +77,14 @@ export async function POST(request) {
     }
 
     // Check if the new email is already taken by another user
+    let willMerge = false;
+    let existingAccountName = null;
     const existingUser = await findUserByEmail(normalized);
     if (existingUser && existingUser.id !== session.user.id) {
       // Don't block — send OTP anyway. Ownership is proven by receiving the code.
       // The verify step will handle merging the other account into this one.
+      willMerge = true;
+      existingAccountName = existingUser.name || "another account";
       console.log(
         `[Send Update Email] Email ${normalized} belongs to user ${existingUser.id} — sending OTP, will merge on verify`
       );
@@ -145,6 +149,7 @@ export async function POST(request) {
     return NextResponse.json({
       message: "Verification code sent to your new email",
       newEmail: normalized,
+      ...(willMerge && { willMerge: true, existingAccountName }),
     });
   } catch (error) {
     console.error("[Send Update Email API] Error:", error);

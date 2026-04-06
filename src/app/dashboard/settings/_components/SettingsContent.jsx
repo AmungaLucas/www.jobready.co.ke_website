@@ -135,6 +135,8 @@ function AccountSettings() {
   const [emailError, setEmailError] = useState("");
   const [emailSentTime, setEmailSentTime] = useState(null);
   const [newEmailInput, setNewEmailInput] = useState(""); // for placeholder email users
+  const [emailWillMerge, setEmailWillMerge] = useState(false);
+  const [emailMergeName, setEmailMergeName] = useState("");
 
   // Phone add/verify state
   const [phoneStep, setPhoneStep] = useState("idle"); // idle | entering | sending | sent | verifying | verified | error
@@ -142,6 +144,8 @@ function AccountSettings() {
   const [phoneCode, setPhoneCode] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [phoneSentTime, setPhoneSentTime] = useState(null);
+  const [phoneWillMerge, setPhoneWillMerge] = useState(false);
+  const [phoneMergeName, setPhoneMergeName] = useState("");
 
   // Populate form from session user
   useEffect(() => {
@@ -288,6 +292,8 @@ function AccountSettings() {
       setEmailStep("sent");
       setEmailSentTime(Date.now());
       setEmailCode("");
+      setEmailWillMerge(!!data.willMerge);
+      setEmailMergeName(data.existingAccountName || "");
     } catch {
       setEmailError("Something went wrong. Please try again.");
       setEmailStep("error");
@@ -362,6 +368,8 @@ function AccountSettings() {
       setPhoneStep("sent");
       setPhoneSentTime(Date.now());
       setPhoneCode("");
+      setPhoneWillMerge(!!data.willMerge);
+      setPhoneMergeName(data.existingAccountName || "");
     } catch {
       setPhoneError("Something went wrong. Please try again.");
       setPhoneStep("error");
@@ -528,6 +536,17 @@ function AccountSettings() {
                     A 6-digit code was sent to{" "}
                     <span className="font-medium">{newEmailInput.trim()}</span>
                   </p>
+
+                  {/* Merge warning */}
+                  {emailWillMerge && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                      <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-amber-800">
+                        This email is linked to <span className="font-semibold">{emailMergeName}</span>&apos;s account.
+                        Verifying will merge that account into yours — all data will be combined.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Input
                       placeholder="000000"
@@ -794,13 +813,24 @@ function AccountSettings() {
                 </div>
               ) : null}
 
-              {/* Step: OTP sent — show code input */}
+              {/* Step: OTP sent — show code input (no phone → adding) */}
               {phoneStep === "sent" && (
                 <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
                   <p className="text-sm">
                     A 6-digit OTP was sent to{" "}
                     <span className="font-medium">{phoneInput.trim()}</span>
                   </p>
+
+                  {/* Merge warning */}
+                  {phoneWillMerge && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                      <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-amber-800">
+                        This phone is linked to <span className="font-semibold">{phoneMergeName}</span>&apos;s account.
+                        Verifying will merge that account into yours — all data will be combined.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Input
                       placeholder="000000"
@@ -922,13 +952,24 @@ function AccountSettings() {
                 </Button>
               )}
 
-              {/* Step: OTP sent */}
+              {/* Step: OTP sent (has unverified phone → re-verifying) */}
               {(phoneStep === "sent" || phoneStep === "error") && (
                 <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
                   <p className="text-sm">
                     A 6-digit OTP was sent to{" "}
                     <span className="font-medium">{user.phone}</span>
                   </p>
+
+                  {/* Merge warning */}
+                  {phoneWillMerge && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                      <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-amber-800">
+                        This phone is linked to <span className="font-semibold">{phoneMergeName}</span>&apos;s account.
+                        Verifying will merge that account into yours — all data will be combined.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Input
                       placeholder="000000"

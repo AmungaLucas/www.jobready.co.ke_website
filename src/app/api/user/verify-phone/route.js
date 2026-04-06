@@ -96,22 +96,9 @@ export async function POST(request) {
     const phoneOwner = await findUserByPhone(normalizedPhone);
 
     if (phoneOwner && phoneOwner.id !== userId) {
-      // Check if it's a mergeable ghost
-      const isGhost =
-        isPlaceholderEmail(phoneOwner.email) &&
-        !phoneOwner.googleId &&
-        !phoneOwner.passwordHash;
-
-      if (!isGhost) {
-        return NextResponse.json(
-          { error: "This phone number is already linked to another account" },
-          { status: 409 }
-        );
-      }
-
-      // ── Merge ghost into current user, then set phone ──
+      // ── Merge other account into current user, then set phone ──
       console.log(
-        `[Verify Phone] Merging ghost ${phoneOwner.id} → ${userId} (phone: ${normalizedPhone})`
+        `[Verify Phone] Merging user ${phoneOwner.id} → ${userId} (phone: ${normalizedPhone})`
       );
 
       // Transfer orders
@@ -165,15 +152,64 @@ export async function POST(request) {
         data: { userId },
       });
 
-      // Delete the ghost (cascade handles remaining relations)
+      // Transfer article reactions (skip duplicates)
+      const ownerReactions = await db.articleReaction.findMany({
+        where: { userId: phoneOwner.id },
+        select: { articleId: true },
+      });
+      for (const r of ownerReactions) {
+        try {
+          await db.articleReaction.create({ data: { userId, articleId: r.articleId } });
+        } catch (e) {
+          if (e.code !== "P2002") throw e;
+        }
+      }
+
+      // Transfer notifications
+      await db.notification.updateMany({
+        where: { userId: phoneOwner.id },
+        data: { userId },
+      });
+
+      // Inherit googleId if the other user had one and we don't
+      const inheritGoogleId = phoneOwner.googleId && !user.googleId ? phoneOwner.googleId : undefined;
+      // Inherit passwordHash if the other user had one and we don't
+      const inheritPassword = phoneOwner.passwordHash && !user.passwordHash ? phoneOwner.passwordHash : undefined;
+      // Inherit email if the other user has a real one and we have a placeholder
+      const inheritEmail = phoneOwner.email && isPlaceholderEmail(user.email) && !isPlaceholderEmail(phoneOwner.email)
+        ? phoneOwner.email : undefined;
+      const inheritEmailVerified = inheritEmail ? phoneOwner.emailVerified : undefined;
+
+      // Update current user with phone + inherited fields
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          phone: normalizedPhone,
+          phoneVerified: true,
+          ...(inheritGoogleId && { googleId: inheritGoogleId }),
+          ...(inheritPassword && { passwordHash: inheritPassword }),
+          ...(inheritEmail && { email: inheritEmail, emailVerified: inheritEmailVerified }),
+        },
+      });
+
+      // Delete the other account (cascade handles remaining relations)
       await db.user.delete({ where: { id: phoneOwner.id } });
 
       console.log(
-        `[Verify Phone] Ghost merge complete: ${phoneOwner.id} → ${userId}, orders: ${transferredOrders.count}`
+        `[Verify Phone] Merge complete: ${phoneOwner.id} → ${userId}, ` +
+        `orders: ${transferredOrders.count}` +
+        (inheritGoogleId ? `, inherited googleId` : "") +
+        (inheritPassword ? `, inherited password` : "") +
+        (inheritEmail ? `, inherited email: ${inheritEmail}` : "")
       );
+
+      return NextResponse.json({
+        message: "Phone number verified and accounts merged successfully",
+        phone: normalizedPhone,
+      });
     }
 
-    // Set phone + phoneVerified on the current user
+    // Set phone + phoneVerified on the current user (no merge)
     const updatedUser = await db.user.update({
       where: { id: userId },
       data: {
