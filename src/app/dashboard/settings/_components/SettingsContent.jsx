@@ -122,6 +122,7 @@ function AccountSettings() {
   const router = useRouter();
   const emailSectionRef = useRef(null);
   const phoneSectionRef = useRef(null);
+  const hashProcessed = useRef(false);
 
   const [name, setName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -146,14 +147,17 @@ function AccountSettings() {
     if (user?.name) setName(user.name);
   }, [user]);
 
-  // Handle hash navigation after mount
+  // Handle hash navigation — only run once (not on every session poll)
   useEffect(() => {
+    if (!user || hashProcessed.current) return;
     const hash = window.location.hash.replace("#", "");
     if (hash === "phone" && phoneSectionRef.current) {
+      hashProcessed.current = true;
       setTimeout(() => phoneSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       setPhoneStep("entering");
     }
     if (hash === "email" && emailSectionRef.current) {
+      hashProcessed.current = true;
       setTimeout(() => emailSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
     }
   }, [user]);
