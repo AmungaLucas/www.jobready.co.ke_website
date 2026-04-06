@@ -144,7 +144,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("[GET /api/jobs] Error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", detail: error?.message, code: error?.code, stack: error?.stack?.split('\n').slice(0, 5) },
       { status: 500 }
     );
   }
