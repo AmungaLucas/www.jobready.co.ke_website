@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { siteConfig } from "@/config/site-config";
 import { formatRelativeDate, formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/useSession";
 import {
   FiMapPin,
   FiBriefcase,
@@ -17,6 +19,7 @@ import {
   HiOutlineChatBubbleLeftRight,
   HiOutlineDocumentText,
 } from "react-icons/hi2";
+import { Loader2 } from "lucide-react";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -27,13 +30,54 @@ function getInitials(name) {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function JobDetailHeader({ job }) {
-  const [saved, setSaved] = useState(false);
+export default function JobDetailHeader({ job, isSaved: initialSaved = false }) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [saved, setSaved] = useState(initialSaved);
+  const [saving, setSaving] = useState(false);
 
   const company = job.company || {};
   const initials = getInitials(company.name);
 
-  const handleSave = () => setSaved((prev) => !prev);
+  const handleSave = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If not logged in, redirect to login with return URL
+    if (!isAuthenticated) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
+      return;
+    }
+
+    if (!job.id) return;
+
+    const nextSaved = !saved;
+    setSaved(nextSaved);
+    setSaving(true);
+
+    try {
+      if (nextSaved) {
+        const res = await fetch("/api/saved-jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: job.id }),
+        });
+        if (!res.ok && res.status !== 409) throw new Error("Save failed");
+      } else {
+        const res = await fetch("/api/saved-jobs", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: job.id }),
+        });
+        if (!res.ok && res.status !== 404) throw new Error("Unsave failed");
+      }
+    } catch (err) {
+      setSaved(!nextSaved);
+      console.error("Save/unsave failed:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const whatsappMessage = encodeURIComponent(
     `Hi JobReady, I'm interested in the "${job.title}" position at ${company.name}. Please help me apply.`
@@ -168,16 +212,22 @@ export default function JobDetailHeader({ job }) {
           Get CV Tailored
         </a>
 
-        {/* Bookmark */}
+        {/* Bookmark — connected to API */}
         <button
           onClick={handleSave}
+          disabled={saving}
+          title={saved ? "Remove from saved jobs" : isAuthenticated ? "Save this job" : "Sign in to save"}
           className={`w-12 h-12 rounded-lg border flex items-center justify-center cursor-pointer transition-all shrink-0 ${
             saved
               ? "border-amber-400 bg-amber-50 text-amber-500"
               : "border-gray-200 bg-white text-gray-400 hover:border-amber-400 hover:text-amber-400"
-          }`}
+          } ${saving ? "opacity-60 cursor-wait" : ""}`}
         >
-          <FiHeart size={18} fill={saved ? "currentColor" : "none"} />
+          {saving ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <FiHeart size={18} fill={saved ? "currentColor" : "none"} />
+          )}
         </button>
 
         {/* Share */}

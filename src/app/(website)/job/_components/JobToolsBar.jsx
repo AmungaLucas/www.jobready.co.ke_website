@@ -2,15 +2,9 @@
 
 import { useState } from "react";
 import { FiCopy, FiCheck } from "react-icons/fi";
-import { siteConfig } from "@/config/site-config";
-import {
-  HiOutlineChatBubbleLeftRight,
-  HiOutlineBookmark,
-} from "react-icons/hi2";
 
 export default function JobToolsBar({ job }) {
   const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -27,6 +21,10 @@ export default function JobToolsBar({ job }) {
 
   return (
     <div className="flex items-center gap-3 py-4 px-5 bg-white rounded-xl shadow-sm flex-wrap mt-6">
+      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">
+        Share this job
+      </span>
+
       {/* Share group */}
       <div className="flex gap-1.5 flex-wrap items-center">
         {/* Copy Link */}
@@ -74,22 +72,6 @@ export default function JobToolsBar({ job }) {
           Share
         </a>
       </div>
-
-      {/* Separator */}
-      <div className="w-px h-6 bg-gray-200 hidden sm:block" />
-
-      {/* Save */}
-      <button
-        onClick={() => setSaved(!saved)}
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-[0.8rem] font-semibold cursor-pointer transition-all font-sans ${
-          saved
-            ? "border-amber-400 text-amber-600 bg-amber-50"
-            : "border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:bg-gray-50"
-        }`}
-      >
-        <HiOutlineBookmark className="w-3.5 h-3.5" />
-        {saved ? "Saved" : "Save"}
-      </button>
     </div>
   );
 }

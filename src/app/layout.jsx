@@ -66,6 +66,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-8031704055036556" />
+      </head>
       <body className="font-sans text-gray-800 bg-gray-50 antialiased">
         <Analytics />
         <AdSense />

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Script from "next/script";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import JobDetailHeader from "../_components/JobDetailHeader";
 import JobDetailBody from "../_components/JobDetailBody";
@@ -16,7 +18,7 @@ import {
 } from "@/lib/seo";
 
 // ─── Data Fetching (direct Prisma — no API route indirection) ─
-async function fetchJob(slug) {
+async function fetchJob(slug, userId) {
   try {
     const job = await db.job.findUnique({
       where: { slug },
@@ -45,6 +47,20 @@ async function fetchJob(slug) {
     });
 
     if (!job) return null;
+
+    // Check if user has saved this job
+    let isSaved = false;
+    if (userId) {
+      const saved = await db.savedJob.findUnique({
+        where: {
+          userId_jobId: {
+            userId,
+            jobId: job.id,
+          },
+        },
+      });
+      isSaved = !!saved;
+    }
 
     // Increment view count (fire and forget)
     db.job
@@ -81,7 +97,7 @@ async function fetchJob(slug) {
       },
     });
 
-    return { job, similarJobs };
+    return { job, similarJobs, isSaved };
   } catch (error) {
     console.error("[fetchJob] Error:", error);
     return null;
@@ -113,13 +129,15 @@ export async function generateMetadata({ params }) {
 // ─── PAGE ──────────────────────────────────────────────────
 export default async function JobDetailPage({ params }) {
   const { slug } = await params;
-  const data = await fetchJob(slug);
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id || null;
+  const data = await fetchJob(slug, userId);
 
   if (!data) {
     notFound();
   }
 
-  const { job, similarJobs = [] } = data;
+  const { job, similarJobs = [], isSaved = false } = data;
   const company = job.company || {};
 
   // Normalize API data for component compatibility:
@@ -132,6 +150,9 @@ export default async function JobDetailPage({ params }) {
       size: company.employeeSize,
     },
   };
+
+  // Pass isSaved to header so the save button starts in the correct state
+  const headerProps = { job: normalizedJob, isSaved };
 
   const jobJsonLd = generateJobJsonLd({
     ...normalizedJob,
@@ -204,7 +225,7 @@ export default async function JobDetailPage({ params }) {
           {/* LEFT: Main content */}
           <div>
             {/* Job Header */}
-            <JobDetailHeader job={normalizedJob} />
+            <JobDetailHeader {...headerProps} />
 
             {/* Pain trigger */}
             <div className="bg-gray-900 text-white rounded-lg p-5 md:p-6 mt-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
