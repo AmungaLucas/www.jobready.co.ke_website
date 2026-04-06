@@ -110,17 +110,12 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function OpportunityDetailPage({ params }) {
-  try {
-    const { slug } = await params;
-    const data = await fetchOpportunity(slug);
+  const { slug } = await params;
+  const data = await fetchOpportunity(slug);
 
-    if (data?.opportunity) {
-      return <OpportunityDetailContent data={data} />;
-    }
-
-    notFound();
-  } catch (error) {
-    console.error("[OpportunityDetailPage] Error:", error);
-    notFound();
+  if (data?.opportunity) {
+    return <OpportunityDetailContent data={data} />;
   }
+
+  notFound();
 }
