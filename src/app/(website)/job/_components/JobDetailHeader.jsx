@@ -3,13 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatRelativeDate } from "@/lib/format";
+import { useAuth } from "@/lib/useSession";
 import { siteConfig } from "@/config/site-config";
+import {
+  FiMapPin,
+  FiBriefcase,
+  FiClock,
+  FiUsers,
+  FiHeart,
+  FiShare2,
+} from "react-icons/fi";
 import {
   HiOutlineChatBubbleLeftRight,
   HiShieldCheck,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineCheckCircle,
+  HiOutlineDocumentText,
 } from "react-icons/hi2";
 import { Loader2 } from "lucide-react";
 import ApplyModal from "./ApplyModal";
