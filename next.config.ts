@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "jobready.co.ke",
+        hostname: "jobnet.co.ke",
       },
       {
         protocol: "https",
@@ -94,37 +94,6 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ["image/avif", "image/webp"],
-  },
-
-  // Redirects
-  async redirects() {
-    return [
-      {
-        source: "/home",
-        destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/blog",
-        destination: "/career-advice",
-        permanent: true,
-      },
-      {
-        source: "/blog/:slug",
-        destination: "/career-advice/:slug",
-        permanent: true,
-      },
-      {
-        source: "/companies",
-        destination: "/organizations",
-        permanent: true,
-      },
-      {
-        source: "/companies/:slug",
-        destination: "/organizations/:slug",
-        permanent: true,
-      },
-    ];
   },
 
   // Powered-by header removal
