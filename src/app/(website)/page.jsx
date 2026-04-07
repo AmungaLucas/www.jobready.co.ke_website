@@ -10,9 +10,22 @@ import {
   FiTool,
   FiHeart,
   FiFlag,
+  FiTrendingUp,
+  FiBookOpen,
+  FiHome,
+  FiTarget,
 } from "react-icons/fi";
-import { FaGraduationCap, FaChartLine, FaAward } from "react-icons/fa6";
+import {
+  FaGraduationCap,
+  FaChartLine,
+  FaAward,
+  FaUniversity,
+  FaHandHoldingUsd,
+  FaBuilding,
+  FaLandmark,
+} from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi2";
+import { MdSchool, MdWorkOutline } from "react-icons/md";
 import Script from "next/script";
 
 import HeroSection from "./_components/home/HeroSection";
@@ -21,12 +34,11 @@ import JobCardGrid from "./_components/JobCardGrid";
 import CategoryCard from "./_components/CategoryCard";
 import OpportunityCard from "./_components/OpportunityCard";
 import DeadlineCard from "./_components/DeadlineCard";
+import ArticleCard from "./_components/ArticleCard";
 import AdSlot from "./_components/AdSlot";
 import { generateWebSiteJsonLd } from "@/lib/seo";
 import { normalizeJobs, formatTimeLeft } from "@/lib/normalize";
 import { db } from "@/lib/db";
-
-
 
 // ─── Icon mapping for categories ──────────────────────────────
 const categoryIcons = {
@@ -99,20 +111,47 @@ const jobInclude = {
   },
 };
 
+// ─── Section header component (reusable) ─────────────────────
+function SectionHeader({ icon: Icon, title, iconColor = "text-primary", href }) {
+  return (
+    <div className="flex items-center justify-between mb-4 md:mb-5">
+      <div className="flex items-center gap-2">
+        {Icon && (
+          <span className={iconColor}>
+            <Icon size={20} />
+          </span>
+        )}
+        <h2 className="text-base font-bold text-gray-900">{title}</h2>
+      </div>
+      {href && (
+        <Link
+          href={href}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors hover:no-underline"
+        >
+          View All
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+      )}
+    </div>
+  );
+}
+
 // ─── SEO ──────────────────────────────────────────────────────
 export async function generateMetadata() {
   return {
-    title: "JobReady Kenya — Jobs, Internships & Scholarships in Kenya",
+    title: "JobNet Kenya — Jobs, Internships, Scholarships & Government Opportunities",
     description:
-      "Find jobs, internships, scholarships & government opportunities in Kenya. Updated daily. Get your professional CV done from KSh 500 — JobReady.co.ke",
+      "Find jobs, internships, scholarships, government jobs & bursaries in Kenya. Updated daily. Get your professional CV done from KSh 500 — JobNet.co.ke",
     alternates: {
-      canonical: "https://jobready.co.ke",
+      canonical: "https://jobnet.co.ke",
     },
     openGraph: {
-      title: "JobReady Kenya — Jobs, Internships & Scholarships",
+      title: "JobNet Kenya — Jobs, Internships, Scholarships & Govt Opportunities",
       description:
-        "Kenya's #1 job board. Find jobs, internships, scholarships & career services. Updated daily.",
-      url: "https://jobready.co.ke",
+        "Kenya's #1 job board. Find jobs, internships, scholarships, government vacancies & career services. Updated daily.",
+      url: "https://jobnet.co.ke",
       type: "website",
     },
   };
@@ -120,85 +159,137 @@ export async function generateMetadata() {
 
 // ─── PAGE ─────────────────────────────────────────────────────
 export default async function HomePage() {
-  // Fetch all data directly from Prisma (no API route indirection)
-  const [featuredJobs, latestJobs, internshipJobs, deadlineJobs, opportunities] =
-    await Promise.allSettled([
-      // Featured jobs
-      db.job.findMany({
-        where: activeJobsWhere(),
-        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-        take: 5,
-        include: jobInclude,
-      }),
-      // Latest jobs
-      db.job.findMany({
-        where: activeJobsWhere(),
-        orderBy: { createdAt: "desc" },
-        take: 10,
-        include: jobInclude,
-      }),
-      // Internship jobs
-      db.job.findMany({
-        where: activeJobsWhere([{ employmentType: "Internship" }]),
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: jobInclude,
-      }),
-      // Deadline jobs (for urgent deadlines + sidebar)
-      db.job.findMany({
-        where: activeJobsWhere(),
-        orderBy: [{ applicationDeadline: "asc" }, { createdAt: "desc" }],
-        take: 10,
-        include: jobInclude,
-      }),
-      // Opportunities
-      db.opportunity.findMany({
-        where: {
-          isActive: true,
-          publishedAt: { not: null, lte: new Date() },
-        },
-        orderBy: { publishedAt: "desc" },
-        take: 5,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          opportunityType: true,
-          category: true,
-          isRemote: true,
-          isOnline: true,
-          deadline: true,
-          company: {
-            select: {
-              name: true,
-              logo: true,
-              logoColor: true,
-              industry: true,
-            },
+  // ── Fetch all data from Prisma in parallel ──
+  const [
+    featuredJobs,
+    latestJobs,
+    internshipJobs,
+    deadlineJobs,
+    entryLevelJobs,
+    governmentJobs,
+    allOpportunities,
+    articles,
+  ] = await Promise.allSettled([
+    // 1. Featured jobs
+    db.job.findMany({
+      where: activeJobsWhere(),
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 5,
+      include: jobInclude,
+    }),
+    // 2. Latest jobs (used for Trending + Latest)
+    db.job.findMany({
+      where: activeJobsWhere(),
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: jobInclude,
+    }),
+    // 3. Internship jobs
+    db.job.findMany({
+      where: activeJobsWhere([{ employmentType: "Internship" }]),
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: jobInclude,
+    }),
+    // 4. Deadline jobs (for urgent deadlines + sidebar)
+    db.job.findMany({
+      where: activeJobsWhere(),
+      orderBy: [{ applicationDeadline: "asc" }, { createdAt: "desc" }],
+      take: 10,
+      include: jobInclude,
+    }),
+    // 5. Entry level jobs
+    db.job.findMany({
+      where: activeJobsWhere([{ experienceLevel: "Entry" }]),
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: jobInclude,
+    }),
+    // 6. Government jobs (national + county)
+    db.job.findMany({
+      where: activeJobsWhere([{ categories: { string_contains: '"GOVERNMENT_PUBLIC_SECTOR"' } }]),
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: jobInclude,
+    }),
+    // 7. All opportunities (filter by type in code)
+    db.opportunity.findMany({
+      where: {
+        isActive: true,
+        publishedAt: { not: null, lte: new Date() },
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        opportunityType: true,
+        category: true,
+        country: true,
+        city: true,
+        isRemote: true,
+        isOnline: true,
+        deadline: true,
+        company: {
+          select: {
+            name: true,
+            logo: true,
+            logoColor: true,
+            industry: true,
           },
-          isFeatured: true,
-          viewsCount: true,
-          publishedAt: true,
         },
-      }),
-    ]);
+        isFeatured: true,
+        viewsCount: true,
+        publishedAt: true,
+      },
+    }),
+    // 8. Latest blog articles
+    db.blogArticle.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        featuredImage: true,
+        readingTime: true,
+        viewsCount: true,
+        createdAt: true,
+        category: {
+          select: { name: true },
+        },
+        author: {
+          select: { name: true },
+        },
+      },
+    }),
+  ]);
 
-  const featuredRaw = featuredJobs.status === "fulfilled" ? featuredJobs.value : [];
-  const latestRaw = latestJobs.status === "fulfilled" ? latestJobs.value : [];
-  const internshipRaw = internshipJobs.status === "fulfilled" ? internshipJobs.value : [];
-  const deadlineRaw = deadlineJobs.status === "fulfilled" ? deadlineJobs.value : [];
-  const oppRaw = opportunities.status === "fulfilled" ? opportunities.value : [];
+  // ── Unwrap settled results ──
+  const unwrap = (result) => (result.status === "fulfilled" ? result.value : []);
+  const featuredRaw = unwrap(featuredJobs);
+  const latestRaw = unwrap(latestJobs);
+  const internshipRaw = unwrap(internshipJobs);
+  const deadlineRaw = unwrap(deadlineJobs);
+  const entryLevelRaw = unwrap(entryLevelJobs);
+  const governmentRaw = unwrap(governmentJobs);
+  const oppRaw = unwrap(allOpportunities);
+  const articlesRaw = unwrap(articles);
 
-  // Normalize jobs
+  // ── Normalize job datasets ──
   const _featuredJobs = normalizeJobs(featuredRaw);
   const _latestJobs = normalizeJobs(latestRaw);
   const _internshipJobs = normalizeJobs(internshipRaw);
+  const _entryLevelJobs = normalizeJobs(entryLevelRaw);
 
   // Trending = first 5 from latest
   const trendingJobs = normalizeJobs(latestRaw).slice(0, 5);
 
-  // Urgent deadlines: filter jobs with deadline within 7 days
+  // ── Urgent deadlines: jobs closing within 7 days ──
   const now = new Date();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
   const urgentJobs = deadlineRaw.filter((j) => {
@@ -215,15 +306,49 @@ export default async function HomePage() {
       }))
     : [];
 
-  // Opportunities (passed directly — no normalization needed)
-  const _opportunities = oppRaw;
+  // ── Government jobs — split into national vs county ──
+  const _nationalGovJobs = normalizeJobs(
+    governmentRaw.filter((j) => {
+      const t = (j.title || "").toLowerCase();
+      const d = (j.description || "").toLowerCase();
+      return t.includes("national") || t.includes("government") || t.includes("public service") || t.includes("state department") || t.includes("ministry") || t.includes("commission") || d.includes("national government");
+    })
+  ).slice(0, 5);
+
+  const _countyGovJobs = normalizeJobs(
+    governmentRaw.filter((j) => {
+      const t = (j.title || "").toLowerCase();
+      const d = (j.description || "").toLowerCase();
+      return t.includes("county") || d.includes("county government");
+    })
+  ).slice(0, 5);
+
+  // If national/county split yields nothing, show all gov jobs under "Government Jobs"
+  const _allGovJobs = normalizeJobs(governmentRaw).slice(0, 5);
+
+  // ── Opportunities — filter by type ──
+  const _scholarships = oppRaw.filter((o) => o.opportunityType === "SCHOLARSHIP").slice(0, 6);
+  const _bursaries = oppRaw.filter((o) => o.opportunityType === "BURSARY").slice(0, 6);
+  const _grants = oppRaw.filter((o) => o.opportunityType === "GRANT").slice(0, 6);
+  const _fellowships = oppRaw.filter((o) => o.opportunityType === "FELLOWSHIP").slice(0, 6);
+  const _universityOpps = oppRaw.filter((o) => {
+    const t = (o.title || "").toLowerCase();
+    const cat = (o.category || "").toLowerCase();
+    return t.includes("university") || t.includes("admission") || t.includes("degree") || cat === "education";
+  }).slice(0, 6);
+
+  // ── Blog articles ──
+  const _articles = articlesRaw.map((a) => ({
+    ...a,
+    category: a.category?.name || "Career Advice",
+    publishedAt: a.createdAt,
+  }));
 
   // ─── Sidebar data ───────────────────────────────────────
 
   // Top employers: from latest jobs' companies, deduplicated
   const companyMap = new Map();
-  const allJobsForSidebar = latestRaw;
-  for (const job of allJobsForSidebar) {
+  for (const job of latestRaw) {
     const c = job.company;
     if (c && c.name && !companyMap.has(c.slug)) {
       companyMap.set(c.slug, {
@@ -236,14 +361,11 @@ export default async function HomePage() {
       companyMap.get(c.slug).jobCount += 1;
     }
   }
-  const topEmployers =
-    companyMap.size > 0
-      ? Array.from(companyMap.values())
-          .sort((a, b) => b.jobCount - a.jobCount)
-          .slice(0, 6)
-      : [];
+  const topEmployers = companyMap.size > 0
+    ? Array.from(companyMap.values()).sort((a, b) => b.jobCount - a.jobCount).slice(0, 6)
+    : [];
 
-  // Sidebar featured jobs: take first 4 from featured jobs
+  // Sidebar featured jobs
   const sidebarFeaturedJobs = _featuredJobs.length > 0
     ? _featuredJobs.slice(0, 4).map((j) => ({
         title: j.title,
@@ -254,7 +376,7 @@ export default async function HomePage() {
       }))
     : [];
 
-  // Sidebar deadlines: compute from deadline jobs
+  // Sidebar deadlines
   const sidebarDeadlines = deadlineRaw.length > 0
     ? deadlineRaw.slice(0, 5).map((j) => ({
         name: j.title,
@@ -295,8 +417,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 3. AD LEADERBOARD (hidden on mobile) */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-4 pb-2 hidden lg:block">
+      {/* 3. GOOGLE AD PLACEHOLDER — Leaderboard */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-4 pb-2">
         <AdSlot position="leaderboard" />
       </div>
 
@@ -315,33 +437,15 @@ export default async function HomePage() {
               />
             </div>
 
-            {/* 6. URGENT DEADLINES — Deadline Today */}
+            {/* 6. DON'T MISS OUT — Job Applications Deadline Today */}
             {urgentDeadlines.length > 0 && (
               <div className="mb-6 md:mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <FiClock className="w-5 h-5 text-red-500" />
-                    Don&apos;t Miss Out — Deadline Today
-                  </h2>
-                  <Link
-                    href="/search?deadline=today"
-                    className="text-[0.84rem] font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 no-underline"
-                  >
-                    View all
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </Link>
-                </div>
+                <SectionHeader
+                  icon={FiClock}
+                  title="Don't Miss Out — Application Deadlines"
+                  iconColor="text-red-500"
+                  href="/search?deadline=today"
+                />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   {urgentDeadlines.map((item) => (
                     <DeadlineCard
@@ -361,13 +465,15 @@ export default async function HomePage() {
               <JobCardGrid
                 jobs={_latestJobs}
                 title="Latest Jobs"
-                icon={FiClock}
+                icon={FiTrendingUp}
                 viewAllHref="/jobs"
               />
             </div>
 
-            {/* 8. INLINE AD */}
-            <AdSlot position="inline" />
+            {/* 8. GOOGLE AD PLACEHOLDER — Inline */}
+            <div className="mb-6 md:mb-8">
+              <AdSlot position="inline" />
+            </div>
 
             {/* 9. FEATURED JOBS */}
             {_featuredJobs.length > 0 && (
@@ -381,7 +487,196 @@ export default async function HomePage() {
               </div>
             )}
 
-            {/* 10. SERVICE NUDGE — mid-page CTA */}
+            {/* 10. ENTRY LEVEL JOBS */}
+            {_entryLevelJobs.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <JobCardGrid
+                  jobs={_entryLevelJobs}
+                  title="Entry Level Jobs"
+                  icon={MdWorkOutline}
+                  viewAllHref="/jobs/entry-level"
+                />
+              </div>
+            )}
+
+            {/* 11. INTERNSHIP OPPORTUNITIES */}
+            {_internshipJobs.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <JobCardGrid
+                  jobs={_internshipJobs}
+                  title="Internship Opportunities"
+                  icon={FaGraduationCap}
+                  viewAllHref="/jobs/internships"
+                />
+              </div>
+            )}
+
+            {/* 12. NATIONAL GOVERNMENT JOBS */}
+            {(_nationalGovJobs.length > 0 || _allGovJobs.length > 0) && (
+              <div className="mb-6 md:mb-8">
+                <JobCardGrid
+                  jobs={_nationalGovJobs.length > 0 ? _nationalGovJobs : _allGovJobs}
+                  title="National Government Jobs"
+                  icon={FaLandmark}
+                  viewAllHref="/jobs/government"
+                />
+              </div>
+            )}
+
+            {/* 13. COUNTY GOVERNMENT JOBS */}
+            {_countyGovJobs.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <JobCardGrid
+                  jobs={_countyGovJobs}
+                  title="County Government Jobs"
+                  icon={FaBuilding}
+                  viewAllHref="/jobs/government"
+                />
+              </div>
+            )}
+
+            {/* 14. PAID ADS PLACEHOLDER */}
+            <div className="mb-6 md:mb-8">
+              <AdSlot position="inline" />
+            </div>
+
+            {/* 15. SCHOLARSHIPS & BURSARIES (combined) */}
+            {(_scholarships.length > 0 || _bursaries.length > 0) && (
+              <div className="mb-6 md:mb-8">
+                <SectionHeader
+                  icon={FaGraduationCap}
+                  title="Scholarships & Bursaries"
+                  iconColor="text-[#7c3aed]"
+                  href="/opportunities"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {_scholarships.map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                  {_bursaries.map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 16. SCHOLARSHIPS (dedicated section) */}
+            {_scholarships.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <SectionHeader
+                  icon={FaGraduationCap}
+                  title="Scholarships"
+                  iconColor="text-[#7c3aed]"
+                  href="/opportunities/scholarships"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {_scholarships.slice(0, 3).map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 17. UNIVERSITY APPLICATIONS */}
+            {_universityOpps.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <SectionHeader
+                  icon={FaUniversity}
+                  title="University Applications"
+                  iconColor="text-[#1e40af]"
+                  href="/opportunities"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {_universityOpps.slice(0, 3).map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 18. SPONSORSHIPS & GRANTS */}
+            {_grants.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <SectionHeader
+                  icon={FaHandHoldingUsd}
+                  title="Sponsorships & Grants"
+                  iconColor="text-[#059669]"
+                  href="/opportunities/grants"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {_grants.slice(0, 3).map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 19. FELLOWSHIPS & MORE OPPORTUNITIES */}
+            {_fellowships.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <SectionHeader
+                  icon={FiTarget}
+                  title="Fellowships & Opportunities"
+                  iconColor="text-[#f59e0b]"
+                  href="/opportunities/fellowships"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {_fellowships.slice(0, 3).map((opp) => (
+                    <OpportunityCard
+                      key={opp.slug}
+                      title={opp.title}
+                      slug={opp.slug}
+                      company={opp.company}
+                      opportunityType={opp.opportunityType}
+                      deadline={opp.deadline}
+                      isOnline={opp.isOnline}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 20. SERVICE NUDGE — mid-page CTA */}
             <div className="mb-6 md:mb-8 bg-white border border-gray-200 border-l-4 border-l-[#1a56db] rounded-lg p-4 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
               <div className="w-10 h-10 bg-[#dbeafe] rounded-full flex items-center justify-center shrink-0">
                 <FiFileText className="w-[18px] h-[18px] text-[#1a56db]" />
@@ -399,32 +694,14 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* 11. CATEGORY GRID */}
+            {/* 21. CATEGORY GRID */}
             <div className="mb-6 md:mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                  <FiZap className="w-5 h-5 text-[#1a56db]" />
-                  Browse by Category
-                </h2>
-                <Link
-                  href="/jobs"
-                  className="text-[0.84rem] font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 no-underline"
-                >
-                  View all
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </Link>
-              </div>
+              <SectionHeader
+                icon={FiZap}
+                title="Browse by Category"
+                iconColor="text-[#1a56db]"
+                href="/jobs"
+              />
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {categories.map((cat) => (
                   <CategoryCard
@@ -439,67 +716,39 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* 12. INTERNSHIP OPPORTUNITIES */}
-            {_internshipJobs.length > 0 && (
+            {/* 22. BLOGS / CAREER ADVICE */}
+            {_articles.length > 0 && (
               <div className="mb-6 md:mb-8">
-                <JobCardGrid
-                  jobs={_internshipJobs}
-                  title="Internship Opportunities"
-                  icon={FaGraduationCap}
-                  viewAllHref="/jobs/internships"
+                <SectionHeader
+                  icon={FiBookOpen}
+                  title="Career Advice & Blogs"
+                  iconColor="text-[#059669]"
+                  href="/career-advice"
                 />
-              </div>
-            )}
-
-            {/* 13. SCHOLARSHIPS & OPPORTUNITIES */}
-            {_opportunities.length > 0 && (
-              <div className="mb-6 md:mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <FaGraduationCap className="w-5 h-5 text-[#7c3aed]" />
-                    Scholarships &amp; Opportunities
-                  </h2>
-                  <Link
-                    href="/opportunities"
-                    className="text-[0.84rem] font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 no-underline"
-                  >
-                    View all
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                  {_opportunities.map((opp) => (
-                    <OpportunityCard
-                      key={opp.slug}
-                      title={opp.title}
-                      slug={opp.slug}
-                      company={opp.company}
-                      opportunityType={opp.opportunityType}
-                      deadline={opp.deadline}
-                      isOnline={opp.isOnline}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 md:gap-6">
+                  {_articles.slice(0, 4).map((article) => (
+                    <ArticleCard
+                      key={article.slug}
+                      title={article.title}
+                      slug={article.slug}
+                      excerpt={article.excerpt}
+                      featuredImage={article.featuredImage}
+                      author={article.author}
+                      category={article.category}
+                      readingTime={article.readingTime ? `${article.readingTime} min read` : null}
+                      viewsCount={article.viewsCount}
+                      publishedAt={article.publishedAt}
                     />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* 14. DOCUMENT WRITING CTA STRIP */}
+            {/* 23. DOCUMENT WRITING BUSINESS CTAs */}
             <div className="mb-6 md:mb-8 bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] rounded-2xl p-5 md:p-7 text-white relative overflow-hidden">
               <div className="absolute -top-[40%] -right-[10%] w-[300px] h-[300px] bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,transparent_70%)] pointer-events-none" />
               <div className="relative z-10">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  {/* Header spans full width on desktop, first on mobile */}
                   <div className="sm:col-span-3">
                     <h3 className="text-lg font-extrabold mb-1.5 flex items-center gap-2">
                       <FiFileText className="w-5 h-5" />
@@ -566,8 +815,10 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* 15. PAID AD */}
-            <AdSlot position="inline" />
+            {/* 24. PAID ADS PLACEHOLDER — Bottom */}
+            <div className="mb-6 md:mb-8">
+              <AdSlot position="inline" />
+            </div>
           </div>
 
           {/* ─── RIGHT SIDEBAR ─── */}
