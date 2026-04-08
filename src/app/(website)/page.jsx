@@ -3,7 +3,6 @@ import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 import HomeHero from "./_components/HomeHero";
-import TrustedByBar from "./_components/TrustedByBar";
 import DeadlineStrip from "./_components/DeadlineStrip";
 import FeaturedJobs from "./_components/FeaturedJobs";
 import JobList from "./_components/JobList";
@@ -14,7 +13,6 @@ import EntryInternLocation from "./_components/EntryInternLocation";
 import OpportunityGrid from "./_components/OpportunityGrid";
 import UniCvBursaries from "./_components/UniCvBursaries";
 import CareerBlog from "./_components/CareerBlog";
-import HomeSidebar from "./_components/HomeSidebar";
 import WhatsAppFloat from "./_components/WhatsAppFloat";
 
 export const dynamic = "force-dynamic";
@@ -257,17 +255,15 @@ export default async function HomePage() {
       />
 
       <HomeHero />
-      <TrustedByBar companies={data.topCompanies} />
       <DeadlineStrip jobs={data.deadlineJobs} />
       <FeaturedJobs featuredJobs={data.featuredJobs} />
 
-      {/* Latest Jobs + Trending + Sidebar — 3 column */}
+      {/* Latest Jobs + Trending — 2 column */}
       <section className="py-8 md:py-12">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="grid md:grid-cols-[1fr_320px] gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             <JobList jobs={data.latestJobs} />
             <TrendingNow jobs={data.trendingJobs} />
-            <HomeSidebar featuredJobs={data.featuredJobs} topCompanies={data.topCompanies} deadlineJobs={data.deadlineJobs} />
           </div>
         </div>
       </section>
@@ -287,7 +283,7 @@ export default async function HomePage() {
         universityOpps={data.universityOpps}
         bursaryOpps={data.bursaryOpps}
       />
-      <CareerBlog articles={data.blogArticles} />
+      <CareerBlog />
       <WhatsAppFloat />
     </>
   );

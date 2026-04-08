@@ -26,17 +26,7 @@ const placeholderArticles = [
   },
 ];
 
-export default function CareerBlog({ articles }) {
-  const displayArticles = (articles && articles.length > 0 ? articles : placeholderArticles).map((a) => ({
-    title: a.title,
-    excerpt: a.excerpt || "",
-    image: a.featuredImage || a.image || "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=200&fit=crop",
-    href: a.slug ? `/career-advice/${a.slug}` : "/career-advice",
-    readingTime: a.readingTime || null,
-    author: a.author?.name || null,
-    publishedAt: a.publishedAt || null,
-  }));
-
+export default function CareerBlog() {
   return (
     <section className="py-8 md:py-12">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -47,7 +37,7 @@ export default function CareerBlog({ articles }) {
               Career Advice &amp; News
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {displayArticles.map((article) => (
+              {placeholderArticles.map((article) => (
                 <div
                   key={article.title}
                   className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -67,9 +57,6 @@ export default function CareerBlog({ articles }) {
                     <p className="text-gray-500 text-xs mt-1 line-clamp-3">
                       {article.excerpt}
                     </p>
-                    {article.readingTime && (
-                      <p className="text-gray-400 text-xs mt-1">{article.readingTime}</p>
-                    )}
                     <Link
                       href={article.href}
                       className="inline-block mt-3 text-xs font-medium text-teal-600 hover:text-purple-700 transition-colors"

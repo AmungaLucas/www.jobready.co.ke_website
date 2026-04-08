@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { FiClock, FiArrowRight } from "react-icons/fi";
-import AdPlaceholder from "./AdPlaceholder";
 
 function getCountdownText(deadline) {
   if (!deadline) return null;
@@ -97,7 +96,11 @@ export default function DeadlineStrip({ jobs }) {
 
           {/* Right: Ad placeholder */}
           <div>
-            <AdPlaceholder height="200px" label="Advertisement" />
+            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center" style={{ height: 200 }}>
+              <p className="text-gray-400 text-2xl mb-2">📢</p>
+              <p className="text-gray-500 font-medium text-sm">Google Ad Placeholder</p>
+              <p className="text-xs text-gray-400">300x200</p>
+            </div>
           </div>
         </div>
       </div>
