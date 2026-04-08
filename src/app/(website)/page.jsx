@@ -1,18 +1,15 @@
 import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
+import Script from "next/script";
 
-export const dynamic = "force-dynamic";
+export const metadata = generateMeta({
+  title: "Kenya's #1 Job Board — Jobs, Internships & Scholarships",
+  description:
+    "Find 2,500+ jobs, internships, scholarships & career opportunities in Kenya. Updated daily. Free CV writing services from KSh 500.",
+  path: "/",
+});
 
-export async function generateMetadata() {
-  return generateMeta({
-    title: "Kenya's #1 Job Board — Jobs, Internships & Scholarships",
-    description:
-      "Find 2,500+ jobs, internships, scholarships & career opportunities in Kenya. Updated daily. Free CV writing services from KSh 500.",
-    path: "/",
-  });
-}
-
-export default async function HomePage() {
+export default function HomePage() {
   const stats = {
     totalJobs: siteConfig.stats.totalJobs,
     totalCompanies: siteConfig.stats.totalCompanies,
@@ -24,12 +21,13 @@ export default async function HomePage() {
   return (
     <>
       {/* JSON-LD */}
-      <script
+      <Script
+        id="homepage-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Minimal test - no DB queries */}
+      {/* Hero */}
       <section className="bg-purple-800 text-white py-20 text-center">
         <h1 className="text-4xl font-bold">
           Find Your Next Opportunity <span className="text-teal-300">in Kenya</span>
@@ -40,10 +38,9 @@ export default async function HomePage() {
       </section>
 
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Homepage Test</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Test: Static Metadata + No dynamic</h2>
         <p className="text-gray-600">
-          If you can see this, the server components render correctly without DB queries.
-          The error is caused by the database queries or data rendering.
+          Testing if removing dynamic + generateMetadata fixes the error.
         </p>
       </div>
     </>
