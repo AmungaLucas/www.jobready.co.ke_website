@@ -67,11 +67,6 @@ export async function GET(request, { params }) {
         excerpt: true,
         opportunityType: true,
         category: true,
-        country: true,
-        county: true,
-        town: true,
-        isRemote: true,
-        isOnline: true,
         deadline: true,
         company: {
           select: {

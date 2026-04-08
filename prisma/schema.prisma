@@ -338,13 +338,6 @@ model Opportunity {
   // Classification
   opportunityType   String                               // "SCHOLARSHIP", "GRANT", "FELLOWSHIP", etc.
 
-  // Location
-  country           String?                              // Structured: "Kenya"
-  county            String?                              // Structured: "Nairobi" — maps to organizationLocation[].regions[]
-  town              String?                              // Specific area/town within county
-  isRemote          Boolean   @default(false)
-  isOnline          Boolean   @default(false)             // For virtual opportunities
-
   // Deadline & Application
   deadline          DateTime?
   howToApply        String?   @db.Text                   // Rich text instructions
@@ -381,7 +374,6 @@ model Opportunity {
   @@index([isActive, publishedAt])
   @@index([deadline])
   @@index([status])
-  @@index([country])
   @@map("opportunities")
 }
 

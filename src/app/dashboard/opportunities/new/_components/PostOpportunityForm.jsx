@@ -55,9 +55,7 @@ import {
   CheckCircle2,
   DollarSign,
   Clock,
-  MapPin,
   Sparkles,
-  Globe,
   Calendar,
   Building2,
   Link as LinkIcon,
@@ -65,10 +63,10 @@ import {
   Tag,
   Heart,
   Users,
+  Globe,
 } from "lucide-react";
 
 import {
-  organizationLocation,
   jobCategory,
   opportunityType,
   currencies,
@@ -115,9 +113,6 @@ const INITIAL_FORM = {
   slug: "",
   companyId: "",
   opportunityType: "",
-  isOnline: false,
-  country: "",
-  region: "",
   category: "",
   source: "DIRECT",
   deadline: "",
@@ -158,15 +153,6 @@ export default function PostOpportunityForm() {
       if (field === "title") {
         next.slug = generateSlug(value);
       }
-      // Reset region when country changes
-      if (field === "country") {
-        next.region = "";
-      }
-      // Reset country/region when isOnline toggled on
-      if (field === "isOnline" && value) {
-        next.country = "";
-        next.region = "";
-      }
       return next;
     });
     if (errors[field]) {
@@ -177,13 +163,6 @@ export default function PostOpportunityForm() {
       });
     }
   };
-
-  // ── Available regions for selected country ───────────
-  const availableRegions = useMemo(() => {
-    if (!form.country) return [];
-    const loc = organizationLocation.find((l) => l.name === form.country);
-    return loc ? loc.regions : [];
-  }, [form.country]);
 
   // ── Validation ───────────────────────────────────────
   const validate = () => {
@@ -392,95 +371,6 @@ export default function PostOpportunityForm() {
                   </p>
                 )}
               </div>
-            </div>
-
-            <Separator />
-
-            {/* Location */}
-            <div className="space-y-3">
-              <Label className="font-medium flex items-center gap-2">
-                <MapPin className="size-4 text-muted-foreground" />
-                Location
-              </Label>
-
-              {/* Online toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <Globe className="size-4 text-primary" />
-                  </div>
-                  <div>
-                    <Label htmlFor="isOnline" className="font-medium">
-                      Online / Remote Opportunity
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      This opportunity can be completed online
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id="isOnline"
-                  checked={form.isOnline}
-                  onCheckedChange={(v) => updateField("isOnline", v)}
-                />
-              </div>
-
-              {/* Country + Region (hidden when online) */}
-              {!form.isOnline && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Select
-                      value={form.country}
-                      onValueChange={(v) => updateField("country", v)}
-                    >
-                      <SelectTrigger id="country">
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {organizationLocation.map((loc) => (
-                          <SelectItem key={loc.code} value={loc.name}>
-                            {loc.flag} {loc.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="region">Region / City</Label>
-                    <Select
-                      value={form.region}
-                      onValueChange={(v) => updateField("region", v)}
-                      disabled={!form.country}
-                    >
-                      <SelectTrigger id="region">
-                        <SelectValue
-                          placeholder={
-                            form.country
-                              ? "Select region"
-                              : "Select a country first"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRegions.map((r) => (
-                          <SelectItem key={r} value={r}>
-                            {r}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-
-              {form.isOnline && (
-                <p className="text-xs text-muted-foreground bg-emerald-50 border border-emerald-200 rounded-md p-2">
-                  This opportunity will be marked as available online to
-                  applicants worldwide.
-                </p>
-              )}
             </div>
 
             <Separator />

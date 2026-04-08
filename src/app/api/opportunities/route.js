@@ -11,10 +11,6 @@ export async function GET(request) {
     const q = searchParams.get("q") || "";
     const opportunityType = searchParams.get("opportunityType") || "";
     const category = searchParams.get("category") || "";
-    const country = searchParams.get("country") || "";
-    const county = searchParams.get("county") || "";
-    const isRemote = searchParams.get("isRemote");
-    const isOnline = searchParams.get("isOnline");
     const sort = searchParams.get("sort") || "newest";
 
     let page = parseInt(searchParams.get("page") || "1", 10);
@@ -58,18 +54,6 @@ export async function GET(request) {
     if (category) {
       conditions.push({ category });
     }
-    if (country) {
-      conditions.push({ country: { contains: country } });
-    }
-    if (county) {
-      conditions.push({ county: { contains: county } });
-    }
-    if (isRemote === "true") {
-      conditions.push({ isRemote: true });
-    }
-    if (isOnline === "true") {
-      conditions.push({ isOnline: true });
-    }
 
     const where = { AND: conditions };
 
@@ -105,11 +89,6 @@ export async function GET(request) {
         excerpt: true,
         opportunityType: true,
         category: true,
-        country: true,
-        county: true,
-        town: true,
-        isRemote: true,
-        isOnline: true,
         deadline: true,
         status: true,
         company: {
