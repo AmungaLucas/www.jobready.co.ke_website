@@ -357,7 +357,7 @@ model Opportunity {
   tags              Json?
 
   // Status
-  status            String    @default("Draft")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
+  status            String    @default("DRAFT")           // jobStatus enum: "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED", "FILLED", "EXPIRED"
   isFeatured        Boolean   @default(false)
   isActive          Boolean   @default(true)
 
