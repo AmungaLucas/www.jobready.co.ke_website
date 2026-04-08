@@ -144,9 +144,18 @@ model Company {
   logo            String?                              // Logo URL
   logoColor       String?                              // Fallback gradient "#00a254,#00c853"
   description     String    @db.MediumText             // About section (rich text)
-  industry        String                               // "Telecommunications" (from data.js)
-  size            String?                              // NEW: "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"
-                                                // Google Jobs numberOfEmployees — maps to structured data
+  // Classification
+  organizationType String?   @map("organization_type")  // organizationType enum:
+                                                // "PRIVATE", "SMALL_BUSINESS", "STARTUP", "NGO",
+                                                // "INTERNATIONAL_ORG", "NATIONAL_GOV", "COUNTY_GOV",
+                                                // "STATE_CORPORATION", "EDUCATION", "FOUNDATION",
+                                                // "RELIGIOUS_ORG"
+  industry        String                               // organizationIndustry enum:
+                                                // "BANKING", "INFORMATION_TECHNOLOGY", etc. (36 values)
+  size            String?                              // companySize enum:
+                                                // "1-10", "11-50", "51-200", "201-500",
+                                                // "501-1000", "1000+"
+                                                // Google Jobs numberOfEmployees
 
   // Created by (admin user who added this company)
   createdBy       String?
@@ -188,6 +197,9 @@ model Company {
   jobs            Job[]
   opportunities   Opportunity[]
 
+  @@index([organizationType])                    // For gov/NGO/private filtering
+  @@index([industry])                              // Already exists conceptually, now explicit
+  @@index([city])
   @@map("companies")
 }
 

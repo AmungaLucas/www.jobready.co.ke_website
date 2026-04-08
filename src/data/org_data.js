@@ -1,3 +1,26 @@
+export const organizationType = [
+    { value: "PRIVATE", label: "Private Sector Companies" },
+    { value: "SMALL_BUSINESS", label: "Small & Medium Businesses (SMEs)" },
+    { value: "STARTUP", label: "Startups & Emerging Companies" },
+    { value: "NGO", label: "Non-Governmental Organizations (NGOs)" },
+    { value: "INTERNATIONAL_ORG", label: "International Organizations & UN Agencies" },
+    { value: "NATIONAL_GOV", label: "National Government" },
+    { value: "COUNTY_GOV", label: "County Governments" },
+    { value: "STATE_CORPORATION", label: "State Corporations & Parastatals" },
+    { value: "EDUCATION", label: "Universities & Academic Institutions" },
+    { value: "FOUNDATION", label: "Foundations & Philanthropic Organizations" },
+    { value: "RELIGIOUS_ORG", label: "Religious Organizations" }
+];
+
+export const companySize = [
+    { value: "1-10", label: "1-10 employees" },
+    { value: "11-50", label: "11-50 employees" },
+    { value: "51-200", label: "51-200 employees" },
+    { value: "201-500", label: "201-500 employees" },
+    { value: "501-1000", label: "501-1000 employees" },
+    { value: "1000+", label: "1000+ employees" }
+];
+
 export const organizationIndustry = [
     { value: "AGRICULTURE", label: "Agriculture, Forestry & Fishing" },
     { value: "AUTOMOTIVE", label: "Automotive & Vehicle Manufacturing" },
