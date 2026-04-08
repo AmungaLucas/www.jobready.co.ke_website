@@ -40,8 +40,6 @@ export default async function CompanyDetailPage({ params }) {
       include: { company: { select: { name: true, slug: true, logo: true, logoColor: true, isVerified: true } } },
     });
 
-    // Fire-and-forget view count
-    db.company.update({ where: { id: company.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
   } catch { notFound(); }
 
   const location = buildLocation(company);

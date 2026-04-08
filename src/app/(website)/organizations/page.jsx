@@ -40,7 +40,7 @@ export default async function OrganizationsPage({ searchParams }) {
       select: {
         id: true, name: true, slug: true, logo: true, logoColor: true,
         industry: true, county: true, country: true, website: true,
-        isVerified: true, tagline: true, createdAt: true,
+        isVerified: true, createdAt: true,
         _count: { select: { jobs: { where: { status: "PUBLISHED", isActive: true } } } },
       },
       orderBy: { createdAt: "desc" },
@@ -120,7 +120,6 @@ export default async function OrganizationsPage({ searchParams }) {
                         {c.industry && <p className="text-xs text-gray-500">{c.industry}</p>}
                       </div>
                     </div>
-                    {c.tagline && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{c.tagline}</p>}
                     <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>{[c.county, c.country].filter(Boolean).join(", ")}</span>
                       <span className="font-medium text-teal-600">{c._count.jobs} job{c._count.jobs !== 1 ? "s" : ""}</span>
