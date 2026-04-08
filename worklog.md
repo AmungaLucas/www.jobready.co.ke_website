@@ -146,3 +146,108 @@ Work Log:
 Stage Summary:
 - Schema changes applied to database
 - Next: Rewrite auth-identity.js with simple direct lookups
+
+---
+## Task ID: 2-c
+### Work Task
+Create shared `OrganizationFilterView` component and generate ALL organization type filter pages (11 pages).
+
+### Work Summary
+
+**Files created:**
+
+1. **`src/app/(website)/_components/OrganizationFilterView.jsx`**
+   - Shared server component for organization type filter pages
+   - Accepts props: `searchParams`, `pageTitle`, `pagePath`, `organizationType`, `breadcrumbName`, `searchPlaceholder`, `emptyTitle`, `emptyDescription`
+   - Uses `db.company.findMany` with `isActive: true` and `organizationType` filter
+   - Selects: id, name, slug, logo, logoColor, industry, county, country, website, isVerified, createdAt
+   - Includes `_count: { select: { jobs: { where: { status: "PUBLISHED", isActive: true } } } }`
+   - Orders by `createdAt: "desc"`, paginates with PER_PAGE = 20
+   - Uses `generateBreadcrumbJsonLd` from `@/lib/seo` for structured data
+   - Uses `getInitials` from `@/lib/normalize` for avatar fallbacks
+   - Uses `AdPlaceholder` from `./AdPlaceholder` for sidebar ads
+   - Company cards: logo/initials, name + verified badge, industry, county/country, job count
+   - Sidebar: AdPlaceholder, "Are You an Employer?" CTA (WhatsApp), AdPlaceholder
+   - Text search on name, industry, county with Clear link
+   - Pagination with Previous/Next and page number links
+
+2. **`scripts/generate-organization-pages.js`**
+   - Node.js script that generates all 11 page files from a config array
+   - Ran successfully, creating all pages
+
+3. **11 generated page files under `src/app/(website)/organizations/<slug>/page.jsx`:**
+   - `/organizations/private` → PRIVATE → "Private Sector Companies in Kenya"
+   - `/organizations/smes` → SMALL_BUSINESS → "SMEs in Kenya"
+   - `/organizations/startups` → STARTUP → "Startups in Kenya"
+   - `/organizations/ngos` → NGO → "NGOs & Non-Profits in Kenya"
+   - `/organizations/international` → INTERNATIONAL_ORG → "International Organizations in Kenya"
+   - `/organizations/government` → NATIONAL_GOV → "Government Agencies in Kenya"
+   - `/organizations/county-government` → COUNTY_GOV → "County Governments in Kenya"
+   - `/organizations/state-corporations` → STATE_CORPORATION → "State Corporations in Kenya"
+   - `/organizations/universities` → EDUCATION → "Universities & Academic Institutions in Kenya"
+   - `/organizations/foundations` → FOUNDATION → "Foundations in Kenya"
+   - `/organizations/religious` → RELIGIOUS_ORG → "Religious Organizations in Kenya"
+
+4. **`eslint.config.mjs`** — Added `scripts/**` to ignores list (build scripts shouldn't be linted)
+
+**NOT modified:**
+- `src/app/(website)/organizations/page.jsx` (original organizations page untouched)
+
+**Lint:** No new errors introduced. All 14 remaining errors are pre-existing in unrelated files.
+
+---
+## Task ID: 2-b
+### Work Task
+Create shared `OpportunityFilterView` component and generate ALL opportunity filter pages (18 pages).
+
+### Work Summary
+
+**Files created:**
+
+1. **`src/app/(website)/_components/OpportunityFilterView.jsx`**
+   - Shared server component for opportunity type filter pages
+   - Accepts props: `searchParams`, `opportunityType`, `pageTitle`, `pagePath`, `breadcrumbName`, `slug`, `metaDescription`, `searchPlaceholder`, `emptyTitle`, `emptyDescription`, `cardBadge`, `pluralBadge`, `sidebarEmoji`, `sidebarTitle`, `sidebarDescription`
+   - Uses `db.opportunity.findMany` with filters: `status: "PUBLISHED"`, `isActive: true`, `publishedAt: { not: null }`, `deadline >= today or null`, and the passed `opportunityType`
+   - Text search on title, excerpt, description when `q` param provided
+   - Orders by `publishedAt: desc, createdAt: desc`, paginates with PER_PAGE = 20
+   - Includes `company` relation (id, name, slug, logo, logoColor)
+   - Uses `generateBreadcrumbJsonLd` from `@/lib/seo` for structured data
+   - Uses `getInitials` from `@/lib/normalize` for company avatar fallbacks
+   - Uses `formatDate`, `formatRelativeDate` from `@/lib/format`
+   - Uses `AdPlaceholder` from `./AdPlaceholder` for sidebar ads
+   - Uses `siteConfig` from `@/config/site-config` for WhatsApp CTA
+   - Opportunity cards: type badge, featured star, title, company logo+name, excerpt, deadline countdown, posted date
+   - Purple theme consistent with existing bursaries/scholarships pages
+   - Sidebar: AdPlaceholder, "Free CV Review" gradient CTA card, AdPlaceholder
+   - Pagination with Previous/Next and page number links
+
+2. **`scripts/generate-opportunity-pages.js`**
+   - Node.js script that generates all 18 page files from a config array
+   - Skips existing files (including protected bursaries/scholarships/grants/fellowships/internships pages)
+   - Search descriptions use `breadcrumbName.toLowerCase()` for correct pluralization (e.g., "research opportunities" not "researchs")
+
+3. **18 generated page files under `src/app/(website)/opportunities/<slug>/page.jsx`:**
+   - `/opportunities/sponsorships` → SPONSORSHIP → "Sponsorships in Kenya"
+   - `/opportunities/university-admissions` → UNIVERSITY_ADMISSION → "University Admissions in Kenya"
+   - `/opportunities/volunteer` → VOLUNTEER → "Volunteer Opportunities in Kenya"
+   - `/opportunities/training` → TRAINING → "Training Programs in Kenya"
+   - `/opportunities/certifications` → CERTIFICATION → "Certification Programs in Kenya"
+   - `/opportunities/funding` → FUNDING → "Funding Opportunities in Kenya"
+   - `/opportunities/apprenticeships` → APPRENTICESHIP → "Apprenticeships in Kenya"
+   - `/opportunities/workshops` → WORKSHOP → "Workshops in Kenya"
+   - `/opportunities/conferences` → CONFERENCE → "Conferences in Kenya"
+   - `/opportunities/competitions` → COMPETITION → "Competitions in Kenya"
+   - `/opportunities/awards` → AWARD → "Awards in Kenya"
+   - `/opportunities/residencies` → RESIDENCY → "Residencies in Kenya"
+   - `/opportunities/mentorships` → MENTORSHIP → "Mentorship Programs in Kenya"
+   - `/opportunities/accelerators` → ACCELERATOR → "Accelerator Programs in Kenya"
+   - `/opportunities/incubators` → INCUBATOR → "Incubator Programs in Kenya"
+   - `/opportunities/bootcamps` → BOOTCAMP → "Bootcamps in Kenya"
+   - `/opportunities/exchanges` → EXCHANGE → "Exchange Programs in Kenya"
+   - `/opportunities/research` → RESEARCH → "Research Opportunities in Kenya"
+
+**NOT modified:**
+- Existing opportunity pages: bursaries, scholarships, grants, fellowships, internships (all untouched)
+- Total opportunity page files: 24 (5 existing + 18 new + 1 [slug] detail page)
+
+**Lint:** No new errors introduced. All pre-existing lint errors are in unrelated files.
