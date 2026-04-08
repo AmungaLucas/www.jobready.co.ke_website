@@ -2,6 +2,8 @@ import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
   return generateMeta({
     title: "Kenya's #1 Job Board — Jobs, Internships & Scholarships",
@@ -38,9 +40,9 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Test: dynamic generateMetadata only</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Test: force-dynamic + async generateMetadata</h2>
         <p className="text-gray-600">
-          Testing if async generateMetadata causes the error.
+          Testing the ORIGINAL combination that was failing.
         </p>
       </div>
     </>
