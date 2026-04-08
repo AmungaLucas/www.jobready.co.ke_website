@@ -3,6 +3,83 @@ import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { sendEmail, newsletterConfirmationTemplate } from "@/lib/email";
 
+const VALID_TYPES = [
+  "job_alerts",
+  "career_tips",
+  "opportunity_alerts",
+  "employer_updates",
+];
+
+/**
+ * GET /api/newsletter?email=xxx
+ * Check if an email is already subscribed. No auth required.
+ * Rate limited: 30 checks per minute per IP
+ *
+ * Returns: { subscribed: boolean, active: boolean, type: string | null }
+ */
+export async function GET(request) {
+  try {
+    const ip = getClientIp(request);
+    const { success, resetAt } = presets.newsletter(ip);
+    if (!success) {
+      const resp = rateLimitResponse(30, resetAt);
+      return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const rawEmail = searchParams.get("email");
+
+    if (!rawEmail || typeof rawEmail !== "string") {
+      return NextResponse.json(
+        { error: "Email query parameter is required" },
+        { status: 400 }
+      );
+    }
+
+    const trimmedEmail = rawEmail.toLowerCase().trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return NextResponse.json(
+        { error: "A valid email address is required" },
+        { status: 400 }
+      );
+    }
+
+    const existing = await db.newsletterSubscription.findUnique({
+      where: { email: trimmedEmail },
+      select: {
+        email: true,
+        type: true,
+        isActive: true,
+        subscribedAt: true,
+        unsubscribedAt: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({
+        subscribed: false,
+        active: false,
+        type: null,
+      });
+    }
+
+    return NextResponse.json({
+      subscribed: true,
+      active: existing.isActive,
+      type: existing.type,
+      subscribedAt: existing.subscribedAt,
+      unsubscribedAt: existing.unsubscribedAt,
+    });
+  } catch (error) {
+    console.error("[GET /api/newsletter] Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 /**
  * POST /api/newsletter
  * Subscribe to newsletter. Public route — no auth required.
@@ -13,9 +90,10 @@ import { sendEmail, newsletterConfirmationTemplate } from "@/lib/email";
  *
  * Rate limited: 5 subscriptions per minute per IP
  *
- * Note: NewsletterSubscription has a unique email constraint, so only one
- * subscription per email exists. If the email already exists, the type is
- * updated and isActive is set to true (re-subscribes if previously unsubscribed).
+ * Returns:
+ *   201 — New subscription created
+ *   200 — Already subscribed & active (with alreadySubscribed: true)
+ *   200 — Previously unsubscribed, now re-activated (with reactivated: true)
  */
 export async function POST(request) {
   try {
@@ -48,13 +126,6 @@ export async function POST(request) {
     }
 
     // Validate type if provided
-    const VALID_TYPES = [
-      "job_alerts",
-      "career_tips",
-      "opportunity_alerts",
-      "employer_updates",
-    ];
-
     const subscriptionType =
       type && VALID_TYPES.includes(type) ? type : "career_tips";
 
@@ -64,7 +135,21 @@ export async function POST(request) {
     });
 
     if (existing) {
-      // Re-activate or update the subscription
+      if (existing.isActive) {
+        // Already actively subscribed — no change needed
+        return NextResponse.json({
+          message: "This email is already subscribed to our newsletter.",
+          alreadySubscribed: true,
+          subscription: {
+            email: existing.email,
+            type: existing.type,
+            isActive: existing.isActive,
+            subscribedAt: existing.subscribedAt,
+          },
+        });
+      }
+
+      // Previously unsubscribed — re-activate
       const updated = await db.newsletterSubscription.update({
         where: { email: trimmedEmail },
         data: {
@@ -76,7 +161,8 @@ export async function POST(request) {
       });
 
       return NextResponse.json({
-        message: "Newsletter subscription updated successfully",
+        message: "Welcome back! Your subscription has been reactivated.",
+        reactivated: true,
         subscription: updated,
       });
     }
