@@ -42,7 +42,7 @@ const contactInfo = [
     title: "WhatsApp",
     detail: "Chat with us instantly",
     description: "Fastest way to reach us",
-    href: `${siteConfig.whatsapp.link}?text=${encodeURIComponent("Hi JobReady, I need help. Please assist me.")}`,
+    href: siteConfig.whatsapp.links.general,
   },
   {
     icon: FiMapPin,

@@ -12,6 +12,20 @@ export const siteConfig = {
     number: "254786090635",
     display: "+254 786 090 635",
     link: "https://wa.me/254786090635",
+    messages: {
+      general: "Hi JobReady, I'd like to enquire about your services. Please assist me.",
+      cvService: "Hi JobReady, I'd like to order a CV writing service. Please share the details.",
+      payment: "Hi JobReady, I need help with my payment.",
+      freeCvReview: "Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.",
+      employer: "Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.",
+    },
+    links: {
+      general: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to enquire about your services. Please assist me.")}`,
+      cvService: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to order a CV writing service. Please share the details.")}`,
+      payment: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I need help with my payment.")}`,
+      freeCvReview: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.")}`,
+      employer: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.")}`,
+    },
   },
 
   // Social links

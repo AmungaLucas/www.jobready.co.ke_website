@@ -91,5 +91,5 @@ export function getWhatsAppLink(service, tier) {
   const message = encodeURIComponent(
     `Hi JobReady, I'd like to order a ${tier || ""} ${service} service. Please share the details.`
   );
-  return `${siteConfig.whatsapp.link}?text=${message}`;
+  return `https://wa.me/${siteConfig.whatsapp.number}?text=${message}`;
 }

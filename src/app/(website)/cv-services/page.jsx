@@ -122,7 +122,7 @@ export default async function CVServicesPage() {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
               <a
-                href={`${siteConfig.whatsapp.link}?text=${encodeURIComponent("Hi JobReady, I'd like to order a CV writing service. Please share the details.")}`}
+                href={siteConfig.whatsapp.links.cvService}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#25D366] text-white text-sm font-bold hover:bg-[#20bd5a] transition-colors no-underline"

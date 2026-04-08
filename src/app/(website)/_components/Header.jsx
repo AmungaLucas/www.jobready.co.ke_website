@@ -65,7 +65,7 @@ export default function Header() {
         <div className="hidden md:flex items-center space-x-4">
           {/* WhatsApp button */}
           <Link
-            href={siteConfig.whatsapp.link}
+            href={siteConfig.whatsapp.links.general}
             target="_blank"
             rel="noopener noreferrer"
             className="text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2 transition bg-[#10b981] hover:bg-[#059669]"
@@ -184,7 +184,7 @@ export default function Header() {
           {/* WhatsApp button */}
           <div className="border-t border-[#0D9488] pt-2 mt-2">
             <Link
-              href={siteConfig.whatsapp.link}
+              href={siteConfig.whatsapp.links.general}
               target="_blank"
               rel="noopener noreferrer"
               className="text-white px-4 py-1.5 rounded-full text-sm inline-flex items-center gap-2 transition bg-[#10b981] hover:bg-[#059669]"

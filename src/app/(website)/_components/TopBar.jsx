@@ -26,7 +26,7 @@ export default function TopBar() {
         {/* Right side: WhatsApp, Career Advice, Our Services */}
         <div className="flex items-center gap-4 whitespace-nowrap">
           <Link
-            href={siteConfig.whatsapp.link}
+            href={siteConfig.whatsapp.links.general}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 transition hover:text-[#5B21B6] text-[#0D9488]"

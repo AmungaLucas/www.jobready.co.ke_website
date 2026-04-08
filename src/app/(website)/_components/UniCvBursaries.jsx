@@ -70,7 +70,7 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }) {
               </div>
               <div className="mt-4">
                 <a
-                  href={siteConfig.whatsapp.link}
+                  href={siteConfig.whatsapp.links.freeCvReview}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-full transition-colors w-full no-underline"

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/format";
+import { siteConfig } from "@/config/site-config";
 import {
   FiX,
   FiUser,
@@ -766,7 +767,7 @@ export default function OrderModal({ isOpen, onClose, service, selectedTier }) {
               <p className="text-xs text-gray-400">
                 Having trouble?{" "}
                 <a
-                  href="https://wa.me/254700000000?text=Hi%20JobReady%2C%20I%20need%20help%20with%20my%20payment"
+                  href={siteConfig.whatsapp.links.payment}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-green-600 font-medium hover:underline"

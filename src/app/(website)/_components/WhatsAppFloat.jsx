@@ -6,7 +6,7 @@ import { FaWhatsapp } from "react-icons/fa";
 export default function WhatsAppFloat() {
   return (
     <a
-      href={siteConfig.whatsapp.link}
+      href={siteConfig.whatsapp.links.general}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
