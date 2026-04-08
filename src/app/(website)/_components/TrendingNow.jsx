@@ -15,7 +15,12 @@ const categoryIconMap = {
 
 function getIcon(job) {
   if (!job || !job.categories) return categoryIconMap.default;
-  const cats = typeof job.categories === "string" ? JSON.parse(job.categories) : job.categories;
+  let cats;
+  try {
+    cats = typeof job.categories === "string" ? JSON.parse(job.categories) : job.categories;
+  } catch {
+    cats = [];
+  }
   if (!Array.isArray(cats)) return categoryIconMap.default;
   for (const cat of cats) {
     if (categoryIconMap[cat]) return categoryIconMap[cat];

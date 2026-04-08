@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { FiLink, FiCheck } from "react-icons/fi";
 import { FaWhatsapp, FaXTwitter } from "react-icons/fa6";
-import { siteConfig } from "@/config/site-config";
 
 export default function ShareStrip({ title, url }) {
   const [copied, setCopied] = useState(false);

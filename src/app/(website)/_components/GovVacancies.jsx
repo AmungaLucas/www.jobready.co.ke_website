@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { formatDate } from "@/lib/format";
+import AdPlaceholder from "./AdPlaceholder";
 
 export default function GovVacancies({ countyJobs, nationalJobs }) {
   return (
@@ -9,11 +10,7 @@ export default function GovVacancies({ countyJobs, nationalJobs }) {
         <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {/* Left: Ad placeholder */}
           <div className="flex flex-col">
-            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center flex-1" style={{ minHeight: 250 }}>
-              <p className="text-gray-400 text-2xl mb-2">📢</p>
-              <p className="text-gray-500 font-medium text-sm">Sponsored Ad</p>
-              <p className="text-xs text-gray-400">300x250 (stretches)</p>
-            </div>
+            <AdPlaceholder height="250px" label="Sponsored" />
           </div>
 
           {/* Right: Government vacancies */}

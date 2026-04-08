@@ -56,13 +56,13 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }) {
                   <span className="text-2xl">📄</span>
                 </div>
                 <h3 className="font-bold text-xl mt-2" style={{ color: "#1E293B" }}>
-                  ⚠️ Only 50 Free CV Reviews Left Today
+                  📝 Free CV Review — Stand Out
                 </h3>
                 <p className="text-gray-600 text-sm mt-2">
                   Don&apos;t let a poorly written CV cost you your dream job. Our experts will review your CV for FREE – but spots fill up fast.
                 </p>
-                <div className="my-3 text-sm text-red-600 font-semibold">
-                  ⏳ 12 spots remaining – almost missing out!
+                <div className="my-3 text-sm text-gray-600">
+                  Expert feedback on your CV format, content &amp; ATS compatibility.
                 </div>
                 <p className="text-gray-600 text-sm">
                   Get actionable feedback, beat ATS filters, and stand out – before the queue closes.
@@ -78,7 +78,7 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }) {
                   <FaWhatsapp className="text-xl" />
                   Get Free Review
                 </a>
-                <p className="text-xs text-gray-400 mt-3">Limited slots – first come, first served.</p>
+
               </div>
             </div>
           </div>

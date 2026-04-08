@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaTwitter, FaFacebookF, FaLinkedinIn, FaInstagram, FaTiktok } from "react-icons/fa";
 import { siteConfig } from "@/config/site-config";
 
 /* ── Custom SVG: JobReady logo for footer (white variant) ── */
@@ -58,8 +59,33 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-sm text-gray-500">
+        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <span>{siteConfig.footer.copyright}</span>
+
+          {/* Social media icons */}
+          <div className="flex items-center gap-3">
+            {siteConfig.social && (
+              <>
+                <a href={siteConfig.social.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label="Twitter">
+                  <FaTwitter className="w-4 h-4" />
+                </a>
+                <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label="Facebook">
+                  <FaFacebookF className="w-4 h-4" />
+                </a>
+                <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label="LinkedIn">
+                  <FaLinkedinIn className="w-4 h-4" />
+                </a>
+                <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label="Instagram">
+                  <FaInstagram className="w-4 h-4" />
+                </a>
+                <a href={siteConfig.social.tiktok} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label="TikTok">
+                  <FaTiktok className="w-4 h-4" />
+                </a>
+              </>
+            )}
+          </div>
+
+          {/* Legal links */}
           <div className="flex items-center gap-3 text-[0.78rem]">
             {siteConfig.footer.legalLinks.map((link, idx) => (
               <span key={link.href} className="flex items-center gap-3">
