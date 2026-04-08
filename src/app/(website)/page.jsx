@@ -2,6 +2,15 @@ import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 import HomeHero from "./_components/HomeHero";
+import TrustedByBar from "./_components/TrustedByBar";
+import DeadlineStrip from "./_components/DeadlineStrip";
+import JobList from "./_components/JobList";
+import CVServicesCTA from "./_components/CVServicesCTA";
+import CategoryGrid from "./_components/CategoryGrid";
+import OpportunityGrid from "./_components/OpportunityGrid";
+import ServiceNudge from "./_components/ServiceNudge";
+import HomeSidebar from "./_components/HomeSidebar";
+import WhatsAppFloat from "./_components/WhatsAppFloat";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +39,32 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
       <HomeHero stats={stats} />
-      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Testing: Only Hero</h2>
+      <TrustedByBar />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-1 min-w-0 space-y-8">
+            <DeadlineStrip jobs={[]} />
+            <JobList jobs={[]} />
+            <CVServicesCTA />
+            <CategoryGrid />
+            <OpportunityGrid opportunities={[]} />
+            <ServiceNudge />
+          </div>
+
+          <div className="w-full lg:w-80 shrink-0">
+            <HomeSidebar
+              featuredJobs={[]}
+              topCompanies={[]}
+              deadlineJobs={[]}
+            />
+          </div>
+        </div>
       </div>
+
+      <WhatsAppFloat />
     </>
   );
 }
