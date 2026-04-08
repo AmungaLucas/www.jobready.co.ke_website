@@ -10,7 +10,6 @@ export async function GET(request) {
     // Parse query params
     const q = searchParams.get("q") || "";
     const opportunityType = searchParams.get("opportunityType") || "";
-    const category = searchParams.get("category") || "";
     const sort = searchParams.get("sort") || "newest";
 
     let page = parseInt(searchParams.get("page") || "1", 10);
@@ -51,9 +50,6 @@ export async function GET(request) {
     if (opportunityType) {
       conditions.push({ opportunityType });
     }
-    if (category) {
-      conditions.push({ category });
-    }
 
     const where = { AND: conditions };
 
@@ -88,7 +84,6 @@ export async function GET(request) {
         slug: true,
         excerpt: true,
         opportunityType: true,
-        category: true,
         deadline: true,
         status: true,
         company: {

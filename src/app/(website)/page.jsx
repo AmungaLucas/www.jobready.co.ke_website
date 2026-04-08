@@ -127,9 +127,13 @@ async function fetchHomepageData() {
         take: 6,
         include: { company: { select: { name: true } } },
       }),
-      // University opportunities
+      // University opportunities (admissions, scholarships, exchange programs)
       db.opportunity.findMany({
-        where: { status: "PUBLISHED", isActive: true },
+        where: {
+          status: "PUBLISHED",
+          isActive: true,
+          opportunityType: { in: ["UNIVERSITY_ADMISSION", "SCHOLARSHIP", "EXCHANGE"] },
+        },
         orderBy: { createdAt: "desc" },
         take: 4,
       }),
@@ -243,7 +247,7 @@ export default async function HomePage() {
         internJobs={data.internshipJobs}
         locationCounts={data.locationCounts}
       />
-      <OpportunityGrid />
+      <OpportunityGrid opportunities={data.opportunities} />
       <UniCvBursaries
         universityOpps={data.universityOpps}
         bursaryOpps={data.bursaryOpps}

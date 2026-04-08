@@ -66,7 +66,6 @@ export async function GET(request, { params }) {
         slug: true,
         excerpt: true,
         opportunityType: true,
-        category: true,
         deadline: true,
         company: {
           select: {

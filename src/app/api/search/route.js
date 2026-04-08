@@ -137,7 +137,7 @@ export async function GET(request) {
             { company: { name: searchKeyword } },
           ]},
           { isActive: true },
-          ...(category ? [{ category }] : []),
+          ...(category ? [{ opportunityType: category }] : []),
         ],
       };
 
@@ -149,7 +149,6 @@ export async function GET(request) {
             title: true,
             slug: true,
             opportunityType: true,
-            category: true,
             isFeatured: true,
             deadline: true,
             publishedAt: true,
