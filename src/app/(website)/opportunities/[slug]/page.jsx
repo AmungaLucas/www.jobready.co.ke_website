@@ -174,10 +174,8 @@ export default async function OpportunityDetailPage({ params }) {
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbItems);
 
-  // Parse description into paragraphs
-  const descriptionParagraphs = opp.description
-    ? opp.description.split(/\n{2,}/).filter(Boolean)
-    : [];
+  // Description is stored as HTML — render with dangerouslySetInnerHTML
+  const hasDescription = !!opp.description;
 
   return (
     <main className="py-8 md:py-12 bg-gray-50">
@@ -261,50 +259,19 @@ export default async function OpportunityDetailPage({ params }) {
             {/* ─── Description + How to Apply ─── */}
             <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
               <h2 className="text-xl font-bold mb-3 text-gray-900">Description</h2>
-              <div className="prose prose-sm max-w-none text-gray-700">
-                {opp.excerpt && !opp.description?.length && (
-                  <p className="text-gray-700 mb-4 leading-relaxed">{opp.excerpt}</p>
-                )}
-                {descriptionParagraphs.length > 0 ? (
-                  descriptionParagraphs.map((para, i) => {
-                    const trimmed = para.trim();
-                    const isHeading = trimmed.length < 80 && !trimmed.endsWith(".") && !trimmed.endsWith(",") && (
-                      /^[A-Z][A-Za-z\s&:]+$/.test(trimmed) ||
-                      trimmed.endsWith(":")
-                    );
-
-                    if (isHeading) {
-                      return (
-                        <h3 key={i} className="font-semibold text-gray-800 mt-4 mb-1">
-                          {trimmed.replace(/:$/, "")}
-                        </h3>
-                      );
-                    }
-
-                    if (/^[-•*]\s/.test(trimmed)) {
-                      return (
-                        <li key={i} className="ml-5 list-disc text-gray-700">
-                          {trimmed.replace(/^[-•*]\s*/, "")}
-                        </li>
-                      );
-                    }
-
-                    return (
-                      <p key={i} className="mb-2 leading-relaxed">{trimmed}</p>
-                    );
-                  })
-                ) : (
-                  <p className="text-gray-500">No description provided.</p>
-                )}
-              </div>
+              <div
+                className="prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-h3:text-lg prose-h3:font-bold prose-h3:mt-6 prose-h3:mb-2 prose-ul:my-3 prose-li:my-1"
+                dangerouslySetInnerHTML={{ __html: hasDescription ? opp.description : (opp.excerpt || "<p>No description provided.</p>") }}
+              />
 
               {/* How to Apply */}
               {opp.howToApply && (
                 <div className="mt-6 pt-4 border-t border-gray-200" id="how-to-apply">
                   <h3 className="font-semibold text-gray-800 text-lg mb-2">How to Apply</h3>
-                  <div className="text-gray-700 text-sm whitespace-pre-line">
-                    {opp.howToApply}
-                  </div>
+                  <div
+                    className="prose prose-sm max-w-none text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: opp.howToApply }}
+                  />
                 </div>
               )}
             </div>

@@ -52,7 +52,7 @@ export default async function CompanyDetailPage({ params }) {
   const jsonLd = generateOrganizationJsonLd(company);
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbs);
 
-  const description = company.description ? company.description.split(/\n{2,}/).filter(Boolean) : [];
+  const hasHtmlDescription = !!company.description && /<[a-z][\s\S]*>/i.test(company.description);
 
   const keyDetails = [];
   if (company.industry) keyDetails.push({ label: "Industry", value: company.industry });
@@ -102,13 +102,22 @@ export default async function CompanyDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Description */}
-            {description.length > 0 && (
+            {/* Description */
+            {company.description && (
               <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">About {company.name}</h2>
-                <div className="prose prose-sm max-w-none text-gray-700">
-                  {description.map((para, i) => <p key={i} className="mb-2 leading-relaxed">{para}</p>)}
-                </div>
+                {hasHtmlDescription ? (
+                  <div
+                    className="prose prose-sm max-w-none text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: company.description }}
+                  />
+                ) : (
+                  <div className="prose prose-sm max-w-none text-gray-700">
+                    {company.description.split(/\n{2,}/).filter(Boolean).map((para, i) => (
+                      <p key={i} className="mb-2 leading-relaxed">{para}</p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
