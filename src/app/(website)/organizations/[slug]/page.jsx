@@ -102,7 +102,7 @@ export default async function CompanyDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Description */
+            {/* Description */}
             {company.description && (
               <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">About {company.name}</h2>
