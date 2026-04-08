@@ -179,7 +179,7 @@ async function fetchHomepageData() {
       }),
       // Recent blog articles for CareerBlog
       db.blogArticle.findMany({
-        where: { status: "PUBLISHED", publishedAt: { not: null } },
+        where: { isPublished: true, publishedAt: { not: null } },
         orderBy: { publishedAt: "desc" },
         take: 3,
         include: {
