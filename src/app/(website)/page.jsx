@@ -2,14 +2,14 @@ import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 
-export const dynamic = "force-dynamic";
-
-export const metadata = generateMeta({
-  title: "Kenya's #1 Job Board — Jobs, Internships & Scholarships",
-  description:
-    "Find 2,500+ jobs, internships, scholarships & career opportunities in Kenya. Updated daily. Free CV writing services from KSh 500.",
-  path: "/",
-});
+export async function generateMetadata() {
+  return generateMeta({
+    title: "Kenya's #1 Job Board — Jobs, Internships & Scholarships",
+    description:
+      "Find 2,500+ jobs, internships, scholarships & career opportunities in Kenya. Updated daily. Free CV writing services from KSh 500.",
+    path: "/",
+  });
+}
 
 export default function HomePage() {
   const stats = {
@@ -38,9 +38,9 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Test: force-dynamic + Static Metadata</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Test: dynamic generateMetadata only</h2>
         <p className="text-gray-600">
-          Testing if adding force-dynamic breaks it.
+          Testing if async generateMetadata causes the error.
         </p>
       </div>
     </>
