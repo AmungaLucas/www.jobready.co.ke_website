@@ -7,13 +7,13 @@ import { generateMeta, generateJobJsonLd, generateBreadcrumbJsonLd } from "@/lib
 import { siteConfig } from "@/config/site-config";
 
 // ─── Client Components ──────────────────────────────────
-import BookmarkButton from "../_components/BookmarkButton";
-import ShareStrip from "../_components/ShareStrip";
-import AdPlaceholder from "../_components/AdPlaceholder";
-import CompanyAboutCard from "../_components/CompanyAboutCard";
-import RelatedJobsCard from "../_components/RelatedJobsCard";
-import CVWritingCTA from "../_components/CVWritingCTA";
-import CVServiceStrip from "../_components/CVServiceStrip";
+import BookmarkButton from "../../_components/BookmarkButton";
+import ShareStrip from "../../_components/ShareStrip";
+import AdPlaceholder from "../../_components/AdPlaceholder";
+import CompanyAboutCard from "../../_components/CompanyAboutCard";
+import RelatedJobsCard from "../../_components/RelatedJobsCard";
+import CVWritingCTA from "../../_components/CVWritingCTA";
+import CVServiceStrip from "../../_components/CVServiceStrip";
 
 // ─── Data Fetching ──────────────────────────────────────
 async function getJob(slug) {

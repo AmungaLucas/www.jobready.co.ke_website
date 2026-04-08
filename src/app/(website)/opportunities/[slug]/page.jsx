@@ -5,12 +5,12 @@ import { formatDate } from "@/lib/format";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 // ─── Client Components ──────────────────────────────────
-import ShareStrip from "../_components/ShareStrip";
-import AdPlaceholder from "../_components/AdPlaceholder";
-import CompanyAboutCard from "../_components/CompanyAboutCard";
-import RelatedJobsCard from "../_components/RelatedJobsCard";
-import CVWritingCTA from "../_components/CVWritingCTA";
-import CVServiceStrip from "../_components/CVServiceStrip";
+import ShareStrip from "../../_components/ShareStrip";
+import AdPlaceholder from "../../_components/AdPlaceholder";
+import CompanyAboutCard from "../../_components/CompanyAboutCard";
+import RelatedJobsCard from "../../_components/RelatedJobsCard";
+import CVWritingCTA from "../../_components/CVWritingCTA";
+import CVServiceStrip from "../../_components/CVServiceStrip";
 
 // ─── Opportunity type display mapping ───────────────────
 const OPP_TYPE_DISPLAY = {

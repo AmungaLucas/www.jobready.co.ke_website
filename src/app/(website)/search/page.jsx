@@ -7,7 +7,7 @@ import {
   FiSearch,
   FiBriefcase,
   FiAward,
-  FiBuilding,
+  FiLayers,
   FiBookOpen,
   FiMapPin,
   FiClock,
@@ -25,7 +25,7 @@ const TABS = [
   { key: "all", label: "All", icon: FiSearch },
   { key: "jobs", label: "Jobs", icon: FiBriefcase },
   { key: "opportunities", label: "Opportunities", icon: FiAward },
-  { key: "companies", label: "Companies", icon: FiBuilding },
+  { key: "companies", label: "Companies", icon: FiLayers },
   { key: "articles", label: "Career Advice", icon: FiBookOpen },
 ];
 
@@ -430,7 +430,7 @@ function SearchPageInner() {
                   <section>
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                        <FiBuilding className="text-blue-600" />
+                        <FiLayers className="text-blue-600" />
                         Companies ({results.results.companies.total.toLocaleString()})
                       </h3>
                       <button
