@@ -1,49 +1,47 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { FiClock, FiArrowRight } from "react-icons/fi";
 
-function getCountdown(deadline) {
+function getCountdownText(deadline) {
   if (!deadline) return null;
   const now = new Date().getTime();
   const end = new Date(deadline).getTime();
   const diff = end - now;
 
-  if (diff <= 0) return { text: "Closed", urgent: true };
+  if (diff <= 0) return "Closed";
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-  if (days > 0) return { text: `${days}d ${hours}h left`, urgent: days <= 3 };
-  if (hours > 0) return { text: `${hours}h ${minutes}m left`, urgent: true };
-  return { text: `${minutes}m left`, urgent: true };
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (days === 0 && hours > 0) return `${hours}h left`;
+  if (days === 0) return "Today";
+  if (deadlineDate.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return `${days}d left`;
 }
 
-function CountdownTimer({ deadline }) {
-  const [countdown, setCountdown] = useState(null);
+function CountdownDisplay({ deadline }) {
+  const [text, setText] = useState(getCountdownText(deadline));
 
-  useEffect(() => {
-    setCountdown(getCountdown(deadline));
-    const timer = setInterval(() => {
-      setCountdown(getCountdown(deadline));
-    }, 60000);
-    return () => clearInterval(timer);
+  const tick = useCallback(() => {
+    setText(getCountdownText(deadline));
   }, [deadline]);
 
-  if (!countdown) return null;
+  useEffect(() => {
+    const timer = setInterval(tick, 60000);
+    return () => clearInterval(timer);
+  }, [tick]);
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-        countdown.urgent
-          ? "bg-red-100 text-red-700"
-          : "bg-amber-100 text-amber-700"
-      }`}
-    >
+    <span className="text-red-500 text-xs font-medium inline-flex items-center gap-1">
       <FiClock className="w-3 h-3" />
-      {countdown.text}
+      {text}
     </span>
   );
 }
@@ -52,36 +50,59 @@ export default function DeadlineStrip({ jobs }) {
   if (!jobs || jobs.length === 0) return null;
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <FiClock className="w-5 h-5 text-red-500" />
-          Closing Soon
-        </h2>
-        <Link
-          href="/jobs?sort=deadline"
-          className="text-sm text-purple-700 hover:text-purple-800 font-medium flex items-center gap-1 no-underline"
-        >
-          View all <FiArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
+    <section className="bg-gradient-to-r from-red-50 to-white py-4 md:py-6">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Left: Urgency block */}
+          <div className="md:col-span-2">
+            <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-md mb-3">
+              <div className="flex items-center gap-2 text-red-700 font-bold text-sm md:text-base">
+                <span>🔥</span>
+                Don&apos;t Miss Out – Applications Close soon
+              </div>
+            </div>
+            <div className="space-y-2">
+              {jobs.slice(0, 4).map((job) => (
+                <div
+                  key={job.id}
+                  className="flex flex-wrap justify-between items-center text-sm"
+                >
+                  <div>
+                    <Link
+                      href={`/jobs/${job.slug}`}
+                      className="font-semibold text-gray-800 hover:text-teal-600 transition-colors"
+                    >
+                      {job.title}
+                    </Link>
+                    <span className="text-gray-500">
+                      {" "}
+                      – {job.company?.name || "Company"}
+                      {job.city ? ` – ${job.city}` : job.location ? ` – ${job.location}` : ""}
+                    </span>
+                  </div>
+                  <CountdownDisplay deadline={job.applicationDeadline} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-right">
+              <Link
+                href="/jobs?sort=deadline"
+                className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
+              >
+                View all urgent jobs <FiArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {jobs.map((job) => (
-          <Link
-            key={job.id}
-            href={`/jobs/${job.slug}`}
-            className="group block bg-white border-l-4 border-l-red-500 rounded-lg border border-gray-100 p-4 hover:shadow-md transition-shadow no-underline"
-          >
-            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-700 transition-colors mb-1 line-clamp-1">
-              {job.title}
-            </h3>
-            <p className="text-xs text-gray-500 mb-2">
-              {job.company?.name || "Company"}
-            </p>
-            <CountdownTimer deadline={job.applicationDeadline} />
-          </Link>
-        ))}
+          {/* Right: Ad placeholder */}
+          <div>
+            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center" style={{ height: 200 }}>
+              <p className="text-gray-400 text-2xl mb-2">📢</p>
+              <p className="text-gray-500 font-medium text-sm">Google Ad Placeholder</p>
+              <p className="text-xs text-gray-400">300x200</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

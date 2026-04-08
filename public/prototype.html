@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>JobReady Kenya – Homepage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* Your existing custom styles (from previous builds) */
+    .container-custom {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .container-custom {
+        padding: 0 1rem;
+      }
+    }
+    a, .clickable-text {
+      transition: color 0.2s ease;
+    }
+    a:hover, .clickable-text:hover {
+      color: #0D9488 !important;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 0.5rem;
+      background-color: white;
+      border: 1px solid #0D9488;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      width: 220px;
+      z-index: 50;
+    }
+    .dropdown-menu.show {
+      display: block;
+    }
+    .dropdown-item {
+      display: block;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: #1E293B;
+      text-decoration: none;
+    }
+    .dropdown-item:hover {
+      background-color: #f3f4f6;
+      color: #5B21B6 !important;
+    }
+    .dropdown-divider {
+      border-top: 1px solid #e5e7eb;
+      margin: 0.25rem 0;
+    }
+    .user-info {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .ad-placeholder {
+      background: #f3f4f6;
+      border: 1px dashed #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .job-card-large, .job-card-small {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .job-card-large:hover, .job-card-small:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    .image-overlay {
+      position: relative;
+    }
+    .image-overlay .overlay-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      color: white;
+      padding: 0.75rem;
+    }
+    .large-card-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .large-card-wrapper .job-card-large {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .large-card-wrapper .job-card-large > .image-overlay {
+      flex-shrink: 0;
+    }
+    .large-card-wrapper .job-card-large > div:last-child {
+      flex: 1;
+    }
+    .right-stack {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .right-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .cv-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .job-row {
+      border-left: 3px solid #0D9488;
+      padding: 0.25rem 0 0.25rem 0.75rem;
+      margin-bottom: 0.25rem;
+      background-color: transparent;
+      display: block;
+    }
+    .job-details {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+    .job-deadline {
+      margin-top: 0.125rem;
+      color: #9ca3af;
+      font-size: 0.75rem;
+    }
+    .trending-item {
+      border-bottom: 1px solid #f3f4f6;
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .trending-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    .logo-placeholder {
+      width: 32px;
+      height: 32px;
+      background-color: #e2e8f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .category-card, .opportunity-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .category-card:hover, .opportunity-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    .gov-item {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .logo-placeholder-sm {
+      width: 32px;
+      height: 32px;
+      background-color: #e2e8f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+    .job-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .gov-job-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1E293B;
+    }
+    .gov-job-deadline {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 0.125rem;
+    }
+    .job-row-simple {
+      padding: 0.25rem 0 0.25rem 0.75rem;
+      margin-bottom: 0.5rem;
+      background-color: transparent;
+      display: block;
+    }
+    .border-entry {
+      border-left: 3px solid #5B21B6;
+    }
+    .border-intern {
+      border-left: 3px solid #F97316;
+    }
+    .job-title-line {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1E293B;
+    }
+    .job-deadline-simple {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 0.125rem;
+    }
+    .location-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.875rem;
+    }
+    .location-link:last-child {
+      border-bottom: none;
+    }
+    .job-count {
+      background-color: #e2e8f0;
+      padding: 0.125rem 0.5rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      color: #1E293B;
+    }
+    .opportunity-row {
+      border-left: 3px solid #5B21B6;
+      padding: 0.25rem 0 0.25rem 0.75rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .bursary-row {
+      border-left: 3px solid #F97316;
+      padding: 0.25rem 0 0.25rem 0.75rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .opportunity-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1E293B;
+    }
+    .opportunity-deadline {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 0.125rem;
+    }
+    /* Blog card line-clamp fallback */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .blog-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .blog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    /* Custom footer styles (from user) */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    footer {
+      background-color: #0a1929;
+      color: #94a3b8;
+      padding: 48px 24px 24px;
+    }
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .footer-logo {
+      width: 24px;
+      height: 24px;
+      background-color: #3b82f6;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .footer-brand-text h3 {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .footer-brand-text p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+    .footer-section h4 {
+      color: white;
+      font-size: 16px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .footer-links {
+      list-style: none;
+    }
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    .footer-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: white;
+    }
+    .footer-bottom {
+      padding-top: 24px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .copyright {
+      font-size: 13px;
+      color: #64748b;
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-bottom-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-bottom-links a:hover {
+      color: white;
+    }
+    .whatsapp-button {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      background-color: #25d366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+      transition: transform 0.2s;
+      z-index: 100;
+    }
+    .whatsapp-button:hover {
+      transform: scale(1.1);
+    }
+    .whatsapp-button svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+    @media (max-width: 768px) {
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP BANNER - hidden on mobile -->
+  <div class="hidden md:block text-xs border-b" style="background-color: #F3F4F6; border-color: #5B21B6;">
+    <div class="flex flex-wrap justify-between items-center py-1.5 px-4 md:px-6 lg:px-8">
+      <div class="flex flex-wrap gap-3">
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Internships</a>
+        <span style="color: #1E293B;">|</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Govt Jobs</a>
+        <span style="color: #1E293B;">|</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Remote</a>
+        <span style="color: #1E293B;">|</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Scholarships</a>
+        <span style="color: #1E293B;">|</span>
+        <a href="#" class="transition font-medium" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">CV Writing</a>
+      </div>
+      <div class="flex gap-4">
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</a>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Career Advice</a>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Our Services</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NAVBAR -->
+  <header class="sticky top-0 z-50 shadow-md" style="background-color: #FAFAFA; border-bottom: 2px solid #5B21B6;">
+    <div class="container-custom flex flex-wrap items-center justify-between py-3">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background-color: #5B21B6;">JK</div>
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="#" class="transition" style="color: #1E293B;" onmouseover="this.style.color='#0D9488'" onmouseout="this.style.color='#1E293B'">Jobs</a>
+        <a href="#" class="transition" style="color: #1E293B;" onmouseover="this.style.color='#0D9488'" onmouseout="this.style.color='#1E293B'">Opportunities</a>
+        <a href="#" class="transition" style="color: #1E293B;" onmouseover="this.style.color='#0D9488'" onmouseout="this.style.color='#1E293B'">Companies</a>
+        <a href="#" class="transition" style="color: #1E293B;" onmouseover="this.style.color='#0D9488'" onmouseout="this.style.color='#1E293B'">Career Advice</a>
+        <a href="#" class="transition" style="color: #1E293B;" onmouseover="this.style.color='#0D9488'" onmouseout="this.style.color='#1E293B'">CV Services</a>
+      </nav>
+      <div class="hidden md:flex items-center space-x-4">
+        <a href="#" class="text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2 transition" style="background-color: #10b981;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        <div class="relative">
+          <button id="profileBtn" class="focus:outline-none" style="color: #5B21B6;"><i class="far fa-user-circle text-xl"></i></button>
+          <div id="profileDropdown" class="dropdown-menu">
+            <div class="user-info"><p class="font-semibold" style="color: #1E293B;">John Doe</p><p class="text-xs" style="color: #6B7280;">john.doe@example.com</p></div>
+            <a href="#" class="dropdown-item">My Dashboard</a>
+            <a href="#" class="dropdown-item">My Profile</a>
+            <a href="#" class="dropdown-item">Saved Jobs</a>
+            <a href="#" class="dropdown-item">Job Alerts</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item text-red-600">Sign Out</a>
+          </div>
+        </div>
+      </div>
+      <button class="md:hidden text-gray-600 focus:outline-none" id="mobileMenuBtn"><i class="fas fa-bars text-2xl"></i></button>
+    </div>
+    <div id="mobileMenu" class="hidden md:hidden border-t py-4 px-4 space-y-3" style="background-color: #FAFAFA; border-color: #5B21B6;">
+      <a href="#" class="block" style="color: #1E293B;">Jobs</a>
+      <a href="#" class="block" style="color: #1E293B;">Opportunities</a>
+      <a href="#" class="block" style="color: #1E293B;">Companies</a>
+      <a href="#" class="block" style="color: #1E293B;">Career Advice</a>
+      <a href="#" class="block" style="color: #1E293B;">CV Services</a>
+      <div class="border-t pt-2 mt-2" style="border-color: #0D9488;">
+        <div class="text-sm font-semibold" style="color: #1E293B;">John Doe</div>
+        <div class="text-xs mb-2" style="color: #6B7280;">john.doe@example.com</div>
+        <a href="#" class="block py-1" style="color: #1E293B;">My Dashboard</a>
+        <a href="#" class="block py-1" style="color: #1E293B;">My Profile</a>
+        <a href="#" class="block py-1" style="color: #1E293B;">Saved Jobs</a>
+        <a href="#" class="block py-1" style="color: #1E293B;">Job Alerts</a>
+        <a href="#" class="block py-1 text-red-600">Sign Out</a>
+      </div>
+      <div class="flex items-center justify-between pt-2 border-t mt-2" style="border-color: #0D9488;">
+        <a href="#" class="text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2 transition" style="background-color: #10b981;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="bg-gradient-to-br from-white to-gray-50 py-8 md:py-12">
+    <div class="container-custom text-center">
+      <h1 class="text-2xl md:text-4xl font-bold mb-4" style="color: #1E293B;">Find Your Next <span style="color: #5B21B6;">Opportunity</span> in Kenya</h1>
+      <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-6">Jobs, internships, scholarships, and government vacancies — all in one place.</p>
+      <div class="max-w-2xl mx-auto mb-4">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" placeholder="Job title, keyword, or company..." class="w-full pl-11 pr-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-#0D9488 focus:border-transparent">
+          </div>
+          <button class="px-6 py-3 rounded-full font-semibold transition" style="background-color: #F97316; color: white;" onmouseover="this.style.backgroundColor='#ea580c'" onmouseout="this.style.backgroundColor='#F97316'">Search Jobs</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap justify-center gap-2 text-sm mb-5">
+        <span class="text-gray-500">Popular:</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Internships</a>
+        <span class="text-gray-300">•</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Government Jobs</a>
+        <span class="text-gray-300">•</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Remote</a>
+        <span class="text-gray-300">•</span>
+        <a href="#" class="transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Nairobi</a>
+      </div>
+      <div class="max-w-2xl mx-auto pt-3 border-t border-gray-200">
+        <p class="text-sm text-gray-500 flex items-center justify-center gap-2"><i class="fas fa-users" style="color: #0D9488;"></i> Join 10,000+ job seekers getting hired faster with optimized CVs and real opportunities.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- URGENCY BLOCK -->
+  <section class="bg-gradient-to-r from-red-50 to-white py-4 md:py-6">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+          <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-md mb-3">
+            <div class="flex items-center gap-2 text-red-700 font-bold text-sm md:text-base"><i class="fas fa-fire"></i> Don't Miss Out – Applications Close soon</div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex flex-wrap justify-between items-center text-sm"><div><span class="font-semibold text-gray-800">Senior Software Engineer</span><span class="text-gray-500"> – Safaricom – Nairobi</span></div><span class="text-red-500 text-xs font-medium"><i class="far fa-clock"></i> 3h left</span></div>
+            <div class="flex flex-wrap justify-between items-center text-sm"><div><span class="font-semibold text-gray-800">Marketing Intern</span><span class="text-gray-500"> – KCB Bank – Nairobi</span></div><span class="text-red-500 text-xs font-medium"><i class="far fa-clock"></i> Today</span></div>
+            <div class="flex flex-wrap justify-between items-center text-sm"><div><span class="font-semibold text-gray-800">Accountant</span><span class="text-gray-500"> – County Gov of Kiambu – Kiambu</span></div><span class="text-red-500 text-xs font-medium"><i class="far fa-clock"></i> Tomorrow</span></div>
+            <div class="flex flex-wrap justify-between items-center text-sm"><div><span class="font-semibold text-gray-800">Data Analyst</span><span class="text-gray-500"> – Equity Bank – Nairobi</span></div><span class="text-red-500 text-xs font-medium"><i class="far fa-clock"></i> 2 days left</span></div>
+          </div>
+          <div class="mt-3 text-right"><a href="#" class="text-sm font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all urgent jobs →</a></div>
+        </div>
+        <div><div class="ad-placeholder rounded-lg flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed" style="height: 200px;"><i class="fas fa-ad fa-2x text-gray-400 mb-2"></i><p class="text-gray-500 font-medium text-sm">Google Ad Placeholder</p><p class="text-xs text-gray-400">300x200</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED JOBS -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <h2 class="text-xl md:text-2xl font-bold mb-5" style="color: #1E293B;">Featured Jobs – Sponsored</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="large-card-wrapper">
+              <div class="mb-2"><a href="#" class="text-sm font-medium transition inline-block" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Post your job here →</a></div>
+              <div class="job-card-large bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="image-overlay"><img src="https://picsum.photos/id/20/400/240" alt="Company building" class="w-full h-56 object-cover"><div class="overlay-text"><h3 class="text-xl font-bold">Senior Full Stack Developer</h3><p class="text-sm">Safaricom – Nairobi</p></div></div>
+                <div class="p-4 flex-grow"><div class="flex flex-wrap gap-2"><span class="text-xs bg-gray-100 px-2 py-1 rounded-full">Full Time</span><span class="text-xs bg-gray-100 px-2 py-1 rounded-full">Remote</span></div><p class="text-gray-500 text-sm mt-2 flex items-center gap-1"><i class="far fa-clock"></i> Posted 3 hours ago</p></div>
+              </div>
+            </div>
+            <div class="right-stack space-y-3">
+              <div class="job-card-small bg-white rounded-xl shadow-md overflow-hidden"><div class="image-overlay"><img src="https://picsum.photos/id/26/400/120" alt="Company logo" class="w-full h-28 object-cover"><div class="overlay-text p-2"><h3 class="font-bold text-sm">Data Analyst</h3><p class="text-xs">KCB Bank – Nairobi</p></div></div><div class="p-2"><div class="flex flex-wrap gap-1 mb-1"><span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full">Full Time</span></div><p class="text-gray-500 text-xs flex items-center gap-1"><i class="far fa-clock"></i> Posted 1 day ago</p></div></div>
+              <div class="job-card-small bg-white rounded-xl shadow-md overflow-hidden"><div class="image-overlay"><img src="https://picsum.photos/id/13/400/120" alt="Company logo" class="w-full h-28 object-cover"><div class="overlay-text p-2"><h3 class="font-bold text-sm">Logistics Manager</h3><p class="text-xs">Maersk – Mombasa</p></div></div><div class="p-2"><div class="flex flex-wrap gap-1 mb-1"><span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full">Full Time</span></div><p class="text-gray-500 text-xs flex items-center gap-1"><i class="far fa-clock"></i> Posted 2 days ago</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="right-col"><div class="cv-card bg-gradient-to-r from-purple-50 to-teal-50 p-5 rounded-xl border border-teal-200 text-center shadow-md"><i class="fas fa-file-alt text-3xl" style="color: #5B21B6;"></i><h3 class="font-bold text-lg mt-1" style="color: #1E293B;">📄 Land Your Dream Job Faster</h3><p class="text-sm text-gray-600 my-2">✅ Professional CV Writing (from KES 2,500)<br>✅ Cover Letter & Application Docs<br>✅ Career Coaching</p><button class="bg-purple-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-purple-700 transition w-full">Get Started →</button></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST JOBS & TRENDING NOW -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-2 gap-8">
+        <div><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Latest Jobs in Kenya</h2><div><div class="job-row"><div class="job-details"><span><span class="font-semibold text-gray-800 clickable-text">Senior Software Engineer</span><span class="text-gray-500 text-sm"> – Safaricom – Nairobi</span></span></div><div class="job-deadline">Deadline: 20 Apr</div></div><div class="job-row"><div class="job-details"><span><span class="font-semibold text-gray-800 clickable-text">Marketing Intern</span><span class="text-gray-500 text-sm"> – KCB – Nairobi</span></span></div><div class="job-deadline">Deadline: 15 Apr</div></div><div class="job-row"><div class="job-details"><span><span class="font-semibold text-gray-800 clickable-text">Accountant</span><span class="text-gray-500 text-sm"> – County Gov Kiambu – Kiambu</span></span></div><div class="job-deadline">Deadline: 18 Apr</div></div><div class="job-row"><div class="job-details"><span><span class="font-semibold text-gray-800 clickable-text">HR Officer</span><span class="text-gray-500 text-sm"> – Equity Bank – Nairobi</span></span></div><div class="job-deadline">Deadline: 22 Apr</div></div><div class="job-row"><div class="job-details"><span><span class="font-semibold text-gray-800 clickable-text">Field Technician</span><span class="text-gray-500 text-sm"> – Telkom – Mombasa</span></span></div><div class="job-deadline">Deadline: 19 Apr</div></div></div><div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all jobs →</a></div></div>
+        <div><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Trending Now in Kenya</h2><div class="bg-white rounded-xl shadow-sm overflow-hidden"><div class="divide-y divide-gray-100"><div class="trending-item px-4"><div class="logo-placeholder"><i class="fas fa-building"></i></div><a href="#" class="flex-1 text-gray-700 hover:text-teal-600">IT Support – Equity</a></div><div class="trending-item px-4"><div class="logo-placeholder"><i class="fas fa-truck"></i></div><a href="#" class="flex-1 text-gray-700 hover:text-teal-600">Driver – UNEP</a></div><div class="trending-item px-4"><div class="logo-placeholder"><i class="fas fa-user-md"></i></div><a href="#" class="flex-1 text-gray-700 hover:text-teal-600">Nurse – Mombasa</a></div><div class="trending-item px-4"><div class="logo-placeholder"><i class="fas fa-chalkboard-user"></i></div><a href="#" class="flex-1 text-gray-700 hover:text-teal-600">Teacher – Kiambu</a></div><div class="trending-item px-4"><div class="logo-placeholder"><i class="fas fa-chart-line"></i></div><a href="#" class="flex-1 text-gray-700 hover:text-teal-600">Sales Rep – Nairobi</a></div></div></div><div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all trending →</a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BROWSE BY CATEGORY CAROUSEL -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <h2 class="text-xl md:text-2xl font-bold mb-5" style="color: #1E293B;">Browse by Category</h2>
+      <div class="relative"><button id="scrollLeftBtn" class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition hidden md:block" style="color: #0D9488;"><i class="fas fa-chevron-left"></i></button><div id="categoryCarousel" class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar scroll-smooth"></div><button id="scrollRightBtn" class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition hidden md:block" style="color: #0D9488;"><i class="fas fa-chevron-right"></i></button></div>
+      <div class="mt-5 text-center"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all 32 categories <i class="fas fa-arrow-right text-xs"></i></a></div>
+    </div>
+  </section>
+
+  <!-- GOVERNMENT VACANCIES -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-3 gap-6 items-stretch">
+        <div class="flex flex-col"><div class="ad-placeholder rounded-lg flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed flex-1" style="min-height: 250px;"><i class="fas fa-ad fa-2x text-gray-400 mb-2"></i><p class="text-gray-500 font-medium text-sm">Sponsored Ad</p><p class="text-xs text-gray-400">300x250 (stretches)</p></div></div>
+        <div class="md:col-span-2"><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Government Vacancies</h2><div class="grid md:grid-cols-2 gap-6"><div><h3 class="text-lg font-semibold mb-3" style="color: #5B21B6;">County Government</h3><div class="space-y-3"><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-building"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Nairobi – Finance Officer</a></div><div class="gov-job-deadline">Deadline: 25 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-hospital-user"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Mombasa – Public Health Nurse</a></div><div class="gov-job-deadline">Deadline: 20 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-hard-hat"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Kiambu – Civil Engineer</a></div><div class="gov-job-deadline">Deadline: 18 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-laptop-code"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Kisumu – ICT Officer</a></div><div class="gov-job-deadline">Deadline: 22 Apr</div></div></div></div><div class="mt-3"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all county jobs <i class="fas fa-arrow-right text-xs"></i></a></div></div><div><h3 class="text-lg font-semibold mb-3" style="color: #5B21B6;">National Government</h3><div class="space-y-3"><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-chart-line"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">KRA – Tax Officer (Nairobi)</a></div><div class="gov-job-deadline">Deadline: 30 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-notes-medical"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Ministry of Health – Nurse (Nairobi)</a></div><div class="gov-job-deadline">Deadline: 28 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-file-signature"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Public Service Commission – Admin Officer</a></div><div class="gov-job-deadline">Deadline: 25 Apr</div></div></div><div class="gov-item"><div class="logo-placeholder-sm"><i class="fas fa-bolt"></i></div><div class="job-content"><div class="gov-job-title"><a href="#" class="hover:text-teal-600">Kenya Power – Engineer (Nairobi)</a></div><div class="gov-job-deadline">Deadline: 22 Apr</div></div></div></div><div class="mt-3"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all national jobs <i class="fas fa-arrow-right text-xs"></i></a></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTRY LEVEL + INTERNSHIPS + JOBS BY LOCATION -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Entry Level Jobs</h2><div><div class="job-row-simple border-entry"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Junior Data Analyst – KCB, Nairobi</a></div><div class="job-deadline-simple">Deadline: 30 Apr</div></div><div class="job-row-simple border-entry"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Graduate Trainee – Safaricom, Nairobi</a></div><div class="job-deadline-simple">Deadline: 25 Apr</div></div><div class="job-row-simple border-entry"><div class="job-title-line"><a href="#" class="hover:text-teal-600">HR Assistant – Equity Bank, Nairobi</a></div><div class="job-deadline-simple">Deadline: 28 Apr</div></div><div class="job-row-simple border-entry"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Sales Associate – Unilever, Mombasa</a></div><div class="job-deadline-simple">Deadline: 22 Apr</div></div></div><div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all entry level jobs <i class="fas fa-arrow-right text-xs"></i></a></div></div>
+        <div><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Internship Opportunities</h2><div><div class="job-row-simple border-intern"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Software Dev Intern – Andela, Nairobi</a></div><div class="job-deadline-simple">Deadline: 15 May</div></div><div class="job-row-simple border-intern"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Finance Intern – KPMG, Nairobi</a></div><div class="job-deadline-simple">Deadline: 10 May</div></div><div class="job-row-simple border-intern"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Marketing Intern – Ogilvy, Nairobi</a></div><div class="job-deadline-simple">Deadline: 12 May</div></div><div class="job-row-simple border-intern"><div class="job-title-line"><a href="#" class="hover:text-teal-600">Civil Eng Intern – AECOM, Mombasa</a></div><div class="job-deadline-simple">Deadline: 18 May</div></div></div><div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all internships <i class="fas fa-arrow-right text-xs"></i></a></div></div>
+        <div><h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Jobs by Location</h2><div class="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100"><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Nairobi</a><span class="job-count">1,234 jobs</span></div><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Mombasa</a><span class="job-count">456 jobs</span></div><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Kisumu</a><span class="job-count">289 jobs</span></div><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Nakuru</a><span class="job-count">210 jobs</span></div><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Eldoret</a><span class="job-count">178 jobs</span></div><div class="location-link px-4 py-2 hover:bg-gray-50"><a href="#" class="text-gray-700 hover:text-teal-600">Remote / WFH</a><span class="job-count">567 jobs</span></div></div><div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all locations <i class="fas fa-arrow-right text-xs"></i></a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPPORTUNITIES HUB CAROUSEL -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <h2 class="text-xl md:text-2xl font-bold mb-5" style="color: #1E293B;">Opportunities Hub</h2>
+      <div class="relative">
+        <button id="scrollLeftOpp" class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition hidden md:block" style="color: #0D9488;"><i class="fas fa-chevron-left"></i></button>
+        <div id="opportunitiesCarousel" class="flex overflow-x-auto space-x-5 pb-4 no-scrollbar scroll-smooth"></div>
+        <button id="scrollRightOpp" class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition hidden md:block" style="color: #0D9488;"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="mt-5 text-center"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all opportunities <i class="fas fa-arrow-right text-xs"></i></a></div>
+    </div>
+  </section>
+
+  <!-- UNIVERSITY APPLICATIONS + CV AD + BURSARIES & SCHOLARSHIPS -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">University Applications</h2>
+          <div>
+            <div class="opportunity-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">Strathmore University – Undergraduate</a></div><div class="opportunity-deadline">Deadline: 15 May</div></div>
+            <div class="opportunity-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">University of Nairobi – Postgraduate</a></div><div class="opportunity-deadline">Deadline: 30 Apr</div></div>
+            <div class="opportunity-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">Kenyatta University – Diploma</a></div><div class="opportunity-deadline">Deadline: 10 May</div></div>
+            <div class="opportunity-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">USIU – International Program</a></div><div class="opportunity-deadline">Deadline: 20 May</div></div>
+          </div>
+          <div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all university apps <i class="fas fa-arrow-right text-xs"></i></a></div>
+        </div>
+        <div>
+          <div class="bg-gradient-to-br from-purple-50 to-teal-50 rounded-xl border border-teal-200 p-6 shadow-md text-center h-full flex flex-col justify-between">
+            <div>
+              <i class="fas fa-file-alt text-4xl" style="color: #5B21B6;"></i>
+              <h3 class="font-bold text-xl mt-2" style="color: #1E293B;">⚠️ Only 50 Free CV Reviews Left Today</h3>
+              <p class="text-gray-600 text-sm mt-2">Don't let a poorly written CV cost you your dream job. Our experts will review your CV for FREE – but spots fill up fast.</p>
+              <div class="my-3 text-sm text-red-600 font-semibold">⏳ 12 spots remaining – almost missing out!</div>
+              <p class="text-gray-600 text-sm">Get actionable feedback, beat ATS filters, and stand out – before the queue closes.</p>
+            </div>
+            <div class="mt-4">
+              <a href="#" class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-full transition w-full"><i class="fab fa-whatsapp text-xl"></i> Get Free Review</a>
+              <p class="text-xs text-gray-400 mt-3">Limited slots – first come, first served.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold mb-4" style="color: #1E293B;">Bursaries & Scholarships</h2>
+          <div>
+            <div class="bursary-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">Equity Bank Wings to Fly Scholarship</a></div><div class="opportunity-deadline">Deadline: 30 Apr</div></div>
+            <div class="bursary-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">KCB Foundation Bursary</a></div><div class="opportunity-deadline">Deadline: 15 May</div></div>
+            <div class="bursary-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">Mastercard Foundation Scholars Program</a></div><div class="opportunity-deadline">Deadline: 10 Jun</div></div>
+            <div class="bursary-row"><div class="opportunity-title"><a href="#" class="hover:text-teal-600">Government of Kenya – HELB Bursary</a></div><div class="opportunity-deadline">Deadline: 25 May</div></div>
+          </div>
+          <div class="mt-4 text-right"><a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all bursaries & scholarships <i class="fas fa-arrow-right text-xs"></i></a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOGS & SUBSCRIBE SECTION -->
+  <section class="py-8 md:py-12">
+    <div class="container-custom">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="md:col-span-3">
+          <h2 class="text-xl md:text-2xl font-bold mb-5" style="color: #1E293B;">Career Advice & News</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="blog-card bg-white rounded-xl shadow-md overflow-hidden">
+              <img src="https://picsum.photos/id/1/400/200" alt="Blog thumbnail" class="w-full h-40 object-cover">
+              <div class="p-4">
+                <h3 class="font-bold text-md line-clamp-2" style="color: #1E293B;">How to Write a CV That Gets Interviews – Expert Tips for 2026</h3>
+                <p class="text-gray-500 text-xs mt-1 line-clamp-3">Learn the secrets of ATS-friendly CVs, formatting tricks, and how to stand out from hundreds of applicants with a professional document.</p>
+                <a href="#" class="inline-block mt-3 text-xs font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+              </div>
+            </div>
+            <div class="blog-card bg-white rounded-xl shadow-md overflow-hidden">
+              <img src="https://picsum.photos/id/2/400/200" alt="Blog thumbnail" class="w-full h-40 object-cover">
+              <div class="p-4">
+                <h3 class="font-bold text-md line-clamp-2" style="color: #1E293B;">Top 10 Interview Questions in Kenya 2026</h3>
+                <p class="text-gray-500 text-xs mt-1 line-clamp-3">Prepare with confidence – most asked questions by Kenyan employers and how to answer them effectively to land the job.</p>
+                <a href="#" class="inline-block mt-3 text-xs font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+              </div>
+            </div>
+            <div class="blog-card bg-white rounded-xl shadow-md overflow-hidden">
+              <img src="https://picsum.photos/id/3/400/200" alt="Blog thumbnail" class="w-full h-40 object-cover">
+              <div class="p-4">
+                <h3 class="font-bold text-md line-clamp-2" style="color: #1E293B;">Government Internships – Application Guide</h3>
+                <p class="text-gray-500 text-xs mt-1 line-clamp-3">Step‑by‑step guide to landing internships in national and county governments – deadlines, requirements, and insider tips.</p>
+                <a href="#" class="inline-block mt-3 text-xs font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 text-right">
+            <a href="#" class="text-sm font-medium transition inline-flex items-center gap-1" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">View all articles <i class="fas fa-arrow-right text-xs"></i></a>
+          </div>
+        </div>
+        <div>
+          <div class="bg-white rounded-xl shadow-md p-5 text-center sticky top-24">
+            <i class="fas fa-envelope-open-text text-4xl" style="color: #5B21B6;"></i>
+            <h3 class="font-bold text-lg mt-2" style="color: #1E293B;">Never Miss an Opportunity</h3>
+            <p class="text-gray-500 text-sm mt-1 mb-3">Get the latest jobs, scholarships, and career tips delivered straight to your inbox.</p>
+            <form class="space-y-3">
+              <input type="email" placeholder="Your email address" class="w-full px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm">
+              <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-full transition text-sm">Subscribe Now</button>
+            </form>
+            <p class="text-xs text-gray-400 mt-3">No spam. Unsubscribe anytime.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER (custom, from user) -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="footer-logo">✓</div>
+          <div class="footer-brand-text">
+            <h3>JobReady.co.ke</h3>
+            <p>Kenya's fastest-growing job board. Find your next opportunity or get a professional CV from KSh 500.</p>
+          </div>
+        </div>
+
+        <div class="footer-section">
+          <h4>For Job Seekers</h4>
+          <ul class="footer-links">
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Internships</a></li>
+            <li><a href="#">Government Jobs</a></li>
+            <li><a href="#">Remote Jobs</a></li>
+            <li><a href="#">Career Advice</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Opportunities</h4>
+          <ul class="footer-links">
+            <li><a href="#">Scholarships</a></li>
+            <li><a href="#">Grants</a></li>
+            <li><a href="#">Fellowships</a></li>
+            <li><a href="#">Bursaries</a></li>
+            <li><a href="#">All Opportunities</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Company</h4>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">CV Writing Services</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="copyright">© 2026 JobReady.co.ke. All rights reserved. Data Protection Act 2019 compliant.</p>
+        <ul class="footer-bottom-links">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Cookies</a></li>
+          <li><a href="#">Disclaimer</a></li>
+          <li><a href="#">Refunds</a></li>
+          <li><a href="#">DPA Notice</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp Floating Button -->
+  <div class="whatsapp-button">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+  </div>
+
+  <script>
+    // Category data (32 categories)
+    const jobCategory = [
+      { value: "TECHNOLOGY", label: "Technology", icon: "code" },
+      { value: "FINANCE_ACCOUNTING", label: "Finance", icon: "chart-line" },
+      { value: "SALES_BUSINESS", label: "Sales", icon: "chart-simple" },
+      { value: "MARKETING_COMMUNICATIONS", label: "Marketing", icon: "bullhorn" },
+      { value: "HUMAN_RESOURCES", label: "Human Resources", icon: "users" },
+      { value: "ENGINEERING", label: "Engineering", icon: "gear" },
+      { value: "HEALTHCARE", label: "Healthcare", icon: "heartbeat" },
+      { value: "EDUCATION", label: "Education", icon: "graduation-cap" },
+      { value: "OPERATIONS_ADMIN", label: "Operations", icon: "clipboard-list" },
+      { value: "SUPPLY_CHAIN", label: "Supply Chain", icon: "truck-fast" },
+      { value: "HOSPITALITY", label: "Hospitality", icon: "hotel" },
+      { value: "AGRICULTURE", label: "Agriculture", icon: "seedling" },
+      { value: "LEGAL", label: "Legal", icon: "gavel" },
+      { value: "CREATIVE_DESIGN", label: "Creative", icon: "palette" },
+      { value: "ARCHITECTURE_CONSTRUCTION", label: "Architecture", icon: "draw-polygon" },
+      { value: "SCIENCE_RESEARCH", label: "Science", icon: "flask" },
+      { value: "CUSTOMER_SERVICE", label: "Customer Service", icon: "headset" },
+      { value: "SKILLED_TRADES", label: "Skilled Trades", icon: "wrench" },
+      { value: "MEDIA_PUBLISHING", label: "Media", icon: "newspaper" },
+      { value: "NONPROFIT", label: "Nonprofit", icon: "hand-holding-heart" },
+      { value: "REAL_ESTATE", label: "Real Estate", icon: "building" },
+      { value: "FITNESS_WELLNESS", label: "Fitness", icon: "dumbbell" },
+      { value: "GOVERNMENT_PUBLIC_SECTOR", label: "Government", icon: "landmark" },
+      { value: "CONSULTING", label: "Consulting", icon: "chalkboard-user" },
+      { value: "INSURANCE", label: "Insurance", icon: "shield-alt" },
+      { value: "TRANSPORTATION", label: "Transport", icon: "bus" },
+      { value: "SECURITY_SERVICES", label: "Security", icon: "shield-hooded" },
+      { value: "ENVIRONMENTAL_SUSTAINABILITY", label: "Environment", icon: "leaf" },
+      { value: "INTERNATIONAL_DEVELOPMENT", label: "International", icon: "globe" },
+      { value: "ENTERTAINMENT", label: "Entertainment", icon: "film" },
+      { value: "VETERINARY", label: "Veterinary", icon: "paw" },
+      { value: "DENTAL", label: "Dental", icon: "tooth" },
+      { value: "SPORTS_RECREATION", label: "Sports", icon: "futbol" }
+    ];
+
+    const categoryContainer = document.getElementById('categoryCarousel');
+    if (categoryContainer) {
+      jobCategory.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'category-card flex-shrink-0 w-32 md:w-36 bg-white rounded-xl shadow-sm p-4 text-center cursor-pointer hover:shadow-md transition';
+        card.innerHTML = `<i class="fas fa-${cat.icon} text-3xl" style="color: #5B21B6;"></i><p class="text-sm font-medium mt-2" style="color: #1E293B;">${cat.label}</p>`;
+        categoryContainer.appendChild(card);
+      });
+    }
+
+    // Opportunities carousel data
+    const opportunities = [
+      { icon: "fas fa-graduation-cap", title: "Scholarships", description: "Fully funded & partial scholarships for Kenyan students.", link: "#" },
+      { icon: "fas fa-hand-holding-usd", title: "Sponsorships", description: "Training, conference, and event sponsorships.", link: "#" },
+      { icon: "fas fa-university", title: "University Applications", description: "Guidance on admissions & application deadlines.", link: "#" },
+      { icon: "fas fa-users", title: "Fellowships", description: "Leadership and professional development programs.", link: "#" },
+      { icon: "fas fa-file-invoice-dollar", title: "Grants", description: "Funding for research, startups, and community projects.", link: "#" },
+      { icon: "fas fa-chalkboard-user", title: "Training Programs", description: "Short courses and certification programs.", link: "#" },
+      { icon: "fas fa-trophy", title: "Competitions", description: "Business plan, hackathons, and innovation contests.", link: "#" },
+      { icon: "fas fa-medal", title: "Awards", description: "Recognition for achievements in various fields.", link: "#" },
+      { icon: "fas fa-laptop-code", title: "Bootcamps", description: "Intensive coding and skills bootcamps.", link: "#" },
+      { icon: "fas fa-handshake", title: "Mentorship", description: "Connect with industry experts for career guidance.", link: "#" }
+    ];
+    const oppContainer = document.getElementById('opportunitiesCarousel');
+    if (oppContainer) {
+      opportunities.forEach(opp => {
+        const card = document.createElement('div');
+        card.className = 'opportunity-card flex-shrink-0 w-64 bg-white rounded-xl shadow-md p-5 text-center cursor-pointer hover:shadow-lg transition';
+        card.innerHTML = `<i class="${opp.icon} text-4xl" style="color: #5B21B6;"></i><h3 class="font-bold text-lg mt-3" style="color: #1E293B;">${opp.title}</h3><p class="text-gray-500 text-sm mt-2">${opp.description}</p><a href="${opp.link}" class="inline-block mt-4 text-sm font-medium transition" style="color: #0D9488;" onmouseover="this.style.color='#5B21B6'" onmouseout="this.style.color='#0D9488'">Learn More <i class="fas fa-arrow-right text-xs"></i></a>`;
+        oppContainer.appendChild(card);
+      });
+    }
+
+    // Carousel scroll buttons
+    const scrollCat = document.getElementById('categoryCarousel');
+    const leftCat = document.getElementById('scrollLeftBtn');
+    const rightCat = document.getElementById('scrollRightBtn');
+    if (leftCat && rightCat && scrollCat) {
+      leftCat.addEventListener('click', () => scrollCat.scrollBy({ left: -300, behavior: 'smooth' }));
+      rightCat.addEventListener('click', () => scrollCat.scrollBy({ left: 300, behavior: 'smooth' }));
+    }
+    const scrollOpp = document.getElementById('opportunitiesCarousel');
+    const leftOpp = document.getElementById('scrollLeftOpp');
+    const rightOpp = document.getElementById('scrollRightOpp');
+    if (leftOpp && rightOpp && scrollOpp) {
+      leftOpp.addEventListener('click', () => scrollOpp.scrollBy({ left: -300, behavior: 'smooth' }));
+      rightOpp.addEventListener('click', () => scrollOpp.scrollBy({ left: 300, behavior: 'smooth' }));
+    }
+
+    // Profile dropdown and mobile menu
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    if (profileBtn && profileDropdown) {
+      profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('show'); });
+      document.addEventListener('click', function(e) { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('show'); });
+    }
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() { document.getElementById('mobileMenu').classList.toggle('hidden'); });
+  </script>
+</body>
+</html>

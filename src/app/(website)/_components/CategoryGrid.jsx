@@ -1,80 +1,120 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
+import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi";
 import {
-  FiMonitor,
-  FiDollarSign,
-  FiTool,
-  FiHeart,
-  FiUsers,
-  FiTrendingUp,
-  FiMapPin,
-  FiGlobe,
+  FiCode, FiTrendingUp, FiBarChart2, FiFlag, FiUsers, FiSettings, FiHeart, FiBookOpen,
+  FiClipboard, FiTruck, FiCoffee, FiSun, FiEdit3, FiGrid, FiZap, FiHeadphones,
+  FiTool, FiFileText, FiGlobe, FiHome, FiActivity, FiAward, FiMessageSquare, FiShield,
+  FiNavigation, FiEye, FiFilm, FiLayers, FiMonitor, FiCircle, FiHash,
 } from "react-icons/fi";
-import { HiAcademicCap, HiUserGroup } from "react-icons/hi";
-import { hubConfig } from "@/config/hub-config";
 
-const iconMap = {
-  Monitor: FiMonitor,
-  Calculator: FiDollarSign,
-  Wrench: FiTool,
-  Heart: FiHeart,
-  GraduationCap: HiAcademicCap,
-  TrendingUp: FiTrendingUp,
-  Landmark: FiMapPin,
-  UserPlus: HiUserGroup,
-  Globe: FiGlobe,
-  Users: FiUsers,
-};
-
-// Show only the first 8 job category hubs on homepage
-const homepageHubs = hubConfig.filter((h) => h.type === "job").slice(0, 8);
-
-const categoryColors = [
-  "bg-purple-100 text-purple-700",
-  "bg-teal-100 text-teal-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
-  "bg-sky-100 text-sky-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-orange-100 text-orange-700",
-  "bg-indigo-100 text-indigo-700",
+const categories = [
+  { value: "TECHNOLOGY", label: "Technology", slug: "technology", Icon: FiCode },
+  { value: "FINANCE_ACCOUNTING", label: "Finance", slug: "finance-accounting", Icon: FiTrendingUp },
+  { value: "SALES_BUSINESS", label: "Sales", slug: "sales-marketing", Icon: FiBarChart2 },
+  { value: "MARKETING_COMMUNICATIONS", label: "Marketing", slug: "sales-marketing", Icon: FiFlag },
+  { value: "HUMAN_RESOURCES", label: "Human Resources", slug: "human-resources", Icon: FiUsers },
+  { value: "ENGINEERING", label: "Engineering", slug: "engineering", Icon: FiSettings },
+  { value: "HEALTHCARE", label: "Healthcare", slug: "healthcare", Icon: FiHeart },
+  { value: "EDUCATION", label: "Education", slug: "education", Icon: FiBookOpen },
+  { value: "OPERATIONS_ADMIN", label: "Operations", slug: "entry-level", Icon: FiClipboard },
+  { value: "SUPPLY_CHAIN", label: "Supply Chain", slug: "logistics", Icon: FiTruck },
+  { value: "HOSPITALITY", label: "Hospitality", slug: "entry-level", Icon: FiCoffee },
+  { value: "AGRICULTURE", label: "Agriculture", slug: "entry-level", Icon: FiSun },
+  { value: "LEGAL", label: "Legal", slug: "legal", Icon: FiHash },
+  { value: "CREATIVE_DESIGN", label: "Creative", slug: "creative-design", Icon: FiEdit3 },
+  { value: "ARCHITECTURE_CONSTRUCTION", label: "Architecture", slug: "engineering", Icon: FiGrid },
+  { value: "SCIENCE_RESEARCH", label: "Science", slug: "entry-level", Icon: FiZap },
+  { value: "CUSTOMER_SERVICE", label: "Customer Service", slug: "customer-service", Icon: FiHeadphones },
+  { value: "SKILLED_TRADES", label: "Skilled Trades", slug: "apprenticeships", Icon: FiTool },
+  { value: "MEDIA_PUBLISHING", label: "Media", slug: "entry-level", Icon: FiFileText },
+  { value: "NONPROFIT", label: "Nonprofit", slug: "ngo", Icon: FiGlobe },
+  { value: "REAL_ESTATE", label: "Real Estate", slug: "entry-level", Icon: FiHome },
+  { value: "FITNESS_WELLNESS", label: "Fitness", slug: "entry-level", Icon: FiActivity },
+  { value: "GOVERNMENT_PUBLIC_SECTOR", label: "Government", slug: "government", Icon: FiAward },
+  { value: "CONSULTING", label: "Consulting", slug: "consulting", Icon: FiMessageSquare },
+  { value: "INSURANCE", label: "Insurance", slug: "finance-accounting", Icon: FiShield },
+  { value: "TRANSPORTATION", label: "Transport", slug: "logistics", Icon: FiNavigation },
+  { value: "SECURITY_SERVICES", label: "Security", slug: "entry-level", Icon: FiEye },
+  { value: "ENVIRONMENTAL_SUSTAINABILITY", label: "Environment", slug: "ngo", Icon: FiGlobe },
+  { value: "INTERNATIONAL_DEVELOPMENT", label: "International", slug: "ngo", Icon: FiGlobe },
+  { value: "ENTERTAINMENT", label: "Entertainment", slug: "entry-level", Icon: FiFilm },
+  { value: "VETERINARY", label: "Veterinary", slug: "entry-level", Icon: FiLayers },
+  { value: "DENTAL", label: "Dental", slug: "healthcare", Icon: FiCircle },
+  { value: "SPORTS_RECREATION", label: "Sports", slug: "entry-level", Icon: FiMonitor },
 ];
 
 export default function CategoryGrid() {
+  const scrollRef = useRef(null);
+
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -300 : 300,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900">Browse by Category</h2>
-        <Link
-          href="/jobs"
-          className="text-sm text-purple-700 hover:text-purple-800 font-medium no-underline"
-        >
-          All categories
-        </Link>
-      </div>
+    <section className="py-8 md:py-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
+        <h2 className="text-xl md:text-2xl font-bold mb-5" style={{ color: "#1E293B" }}>
+          Browse by Category
+        </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {homepageHubs.map((hub, idx) => {
-          const Icon = iconMap[hub.icon] || FiMonitor;
-          const colorClass = categoryColors[idx % categoryColors.length];
+        <div className="relative">
+          {/* Left chevron */}
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors text-teal-600 hidden md:block cursor-pointer"
+            aria-label="Scroll left"
+          >
+            <FiChevronLeft className="w-5 h-5" />
+          </button>
 
-          return (
-            <Link
-              key={hub.slug}
-              href={`/${hub.type === "opportunity" ? "opportunities" : "jobs"}/${hub.slug}`}
-              className="group bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md hover:border-purple-100 transition-all no-underline text-center"
-            >
-              <div
-                className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${colorClass} group-hover:scale-105 transition-transform`}
+          {/* Carousel */}
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto space-x-4 pb-4 hide-scrollbar scroll-smooth"
+          >
+            {categories.map((cat) => (
+              <Link
+                key={cat.value}
+                href={`/jobs/${cat.slug}`}
+                className="flex-shrink-0 w-32 md:w-36 bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition-shadow no-underline group"
               >
-                <Icon className="w-6 h-6" />
-              </div>
-              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-700 transition-colors mb-0.5">
-                {hub.name.replace(/ in Kenya.*|Jobs in Kenya.*/g, "").replace(/ in Kenya/g, "")}
-              </h3>
-              <p className="text-xs text-gray-400">{hub.filters?.category?.replace(/_/g, " ") || ""}</p>
-            </Link>
-          );
-        })}
+                <cat.Icon
+                  className="w-8 h-8 mx-auto text-3xl"
+                  style={{ color: "#5B21B6", fontSize: "1.75rem" }}
+                />
+                <p className="text-sm font-medium mt-2" style={{ color: "#1E293B" }}>
+                  {cat.label}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          {/* Right chevron */}
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors text-teal-600 hidden md:block cursor-pointer"
+            aria-label="Scroll right"
+          >
+            <FiChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="mt-5 text-center">
+          <Link
+            href="/jobs"
+            className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
+          >
+            View all 32 categories <FiArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -100,6 +100,24 @@
   border-radius: 99px;
 }
 
+/* ===== Hide Scrollbar ===== */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Clickable Text ===== */
+.clickable-text {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.clickable-text:hover {
+  color: #0D9488;
+}
+
 /* ===== WhatsApp Float Animation ===== */
 @keyframes wa-fade {
   0%,
