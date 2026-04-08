@@ -36,12 +36,9 @@ function getBadge(job) {
 function SaveButton({ jobId }) {
   return (
     <button
+      type="button"
       aria-label="Save job"
       className="p-2 text-gray-400 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
     >
       <FiBookmark className="w-4 h-4" />
     </button>
