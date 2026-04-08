@@ -148,10 +148,10 @@ async function fetchHomepageData() {
         orderBy: { createdAt: "desc" },
         take: 4,
       }),
-      // Location counts (use 'city' field — 'county' doesn't exist on Job model)
+      // Location counts (use 'county' field)
       db.job.groupBy({
-        by: ["city"],
-        where: { status: "PUBLISHED", isActive: true, city: { not: null } },
+        by: ["county"],
+        where: { status: "PUBLISHED", isActive: true, county: { not: null } },
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 6,
@@ -233,12 +233,12 @@ export default async function HomePage() {
   // Split gov jobs: county = those with "County" in city/title, national = rest
   const countyJobs = data.govJobs.filter(
     (j) =>
-      (j.city && j.city.toLowerCase().includes("county")) ||
+      (j.county && j.county.toLowerCase().includes("county")) ||
       (j.title && j.title.toLowerCase().includes("county"))
   );
   const nationalJobs = data.govJobs.filter(
     (j) =>
-      !(j.city && j.city.toLowerCase().includes("county")) &&
+      !(j.county && j.county.toLowerCase().includes("county")) &&
       !(j.title && j.title.toLowerCase().includes("county"))
   );
 

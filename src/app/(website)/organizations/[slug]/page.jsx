@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   try {
-    const company = await db.company.findUnique({ where: { slug }, select: { name: true, industry: true, city: true } });
+    const company = await db.company.findUnique({ where: { slug }, select: { name: true, industry: true, county: true } });
     if (!company) return { title: "Company Not Found | JobReady Kenya" };
     return generateMeta({
       title: `${company.name} — Jobs & Company Profile`,
@@ -124,7 +124,7 @@ export default async function CompanyDetailPage({ params }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 truncate">{job.title}</h3>
-                        <p className="text-xs text-gray-500">{[job.city, job.town].filter(Boolean).join(", ")}</p>
+                        <p className="text-xs text-gray-500">{[job.county, job.town].filter(Boolean).join(", ")}</p>
                       </div>
                       <div className="flex flex-wrap gap-1.5 shrink-0">
                         {job.employmentType && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{job.employmentType}</span>}

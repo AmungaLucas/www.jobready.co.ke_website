@@ -92,9 +92,8 @@ function buildWhereClause({ q, type, location, experienceLevel }) {
   if (location) {
     where.AND.push({
       OR: [
-        { city: { contains: location } },
+        { county: { contains: location } },
         { town: { contains: location } },
-        { location: { contains: location } },
       ],
     });
   }

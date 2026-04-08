@@ -72,8 +72,8 @@ function getDeadlineCountdown(deadline) {
 }
 
 function buildWhereClause(searchParams) {
-  const q = searchParams.get("q")?.trim();
-  const type = searchParams.get("type")?.trim().toUpperCase();
+  const q = (searchParams.q || "").trim();
+  const type = (searchParams.type || "").trim().toUpperCase();
 
   // Don't show expired opportunities (deadline passed)
   const today = new Date();
@@ -118,8 +118,8 @@ function buildOrderBy(sort) {
 // ─── Metadata ───────────────────────────────────────────
 export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
-  const q = sp.get("q")?.trim();
-  const type = sp.get("type")?.trim().toUpperCase();
+  const q = (sp.q || "").trim();
+  const type = (sp.type || "").trim().toUpperCase();
 
   const where = buildWhereClause(sp);
   const total = await db.opportunity.count({ where });
@@ -150,8 +150,8 @@ export async function generateMetadata({ searchParams }) {
 // ─── Data Fetching ──────────────────────────────────────
 async function getOpportunities(searchParams) {
   const sp = searchParams;
-  const page = Math.max(1, parseInt(sp.get("page") || "1", 10));
-  const sort = sp.get("sort") || "newest";
+  const page = Math.max(1, parseInt(sp.page || "1", 10));
+  const sort = sp.sort || "newest";
 
   const where = buildWhereClause(sp);
   const orderBy = buildOrderBy(sort);
@@ -185,9 +185,9 @@ async function getOpportunities(searchParams) {
 // ─── Page Component ─────────────────────────────────────
 export default async function OpportunitiesPage({ searchParams }) {
   const sp = await searchParams;
-  const q = sp.get("q")?.trim() || "";
-  const activeType = sp.get("type")?.trim().toUpperCase() || "";
-  const sort = sp.get("sort") || "newest";
+  const q = (sp.q || "").trim() || "";
+  const activeType = (sp.type || "").trim().toUpperCase() || "";
+  const sort = sp.sort || "newest";
 
   const { opportunities, total, page, totalPages } = await getOpportunities(sp);
 

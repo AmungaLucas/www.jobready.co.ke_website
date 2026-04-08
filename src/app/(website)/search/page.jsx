@@ -661,7 +661,7 @@ function CompanyCard({ company }) {
             {company.isVerified && <span className="text-teal-500 text-xs">✓</span>}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
-            {[company.industry, company.city].filter(Boolean).join(" · ")}
+            {[company.industry, company.county].filter(Boolean).join(" · ")}
           </p>
           {company.jobCount > 0 && (
             <p className="text-xs text-teal-600 mt-0.5">{company.jobCount} open job{company.jobCount !== 1 ? "s" : ""}</p>
