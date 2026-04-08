@@ -94,7 +94,7 @@ export function generateJobJsonLd(job) {
   if (company.website) socialUrls.push(company.website);
 
   // Build location from structured fields, fallback to display string
-  const addressLocality = job.city || job.town || job.location || "Nairobi";
+  const addressLocality = job.county || job.town || "Nairobi";
   const addressCountry = job.country || "Kenya";
 
   const jsonLd = {
@@ -262,7 +262,7 @@ export function generateOrganizationJsonLd(company) {
     description: company.description || company.tagline || "",
     address: {
       "@type": "PostalAddress",
-      addressLocality: company.city || "Nairobi",
+      addressLocality: company.county || "Nairobi",
       addressCountry: "Kenya",
     },
     industry: company.industry || undefined,

@@ -50,7 +50,7 @@ const INITIAL_COMPANY = {
   description:
     "Safaricom is East Africa's leading telecommunications company, providing mobile voice, data, messaging, and financial services to over 40 million subscribers in Kenya. We are the home of M-PESA, the world's most successful mobile money service.\n\nAt Safaricom, we believe in transforming lives through technology. Our vision is to become a purpose-led technology company that connects people to the people, places, and opportunities that matter most. We are committed to driving innovation, empowering communities, and contributing to Kenya's digital transformation.\n\nOur culture is built on innovation, customer-centricity, and a deep commitment to making a positive impact on society. We continuously invest in our people, technology, and infrastructure to deliver exceptional experiences for our customers and stakeholders.",
   country: "Kenya",
-  city: "Nairobi",
+  county: "Nairobi",
   town: "Westlands",
   website: "https://www.safaricom.co.ke",
   contactEmail: "info@safaricom.co.ke",
@@ -90,7 +90,7 @@ export default function CompanyProfileForm() {
     setForm((prev) => ({
       ...prev,
       country: countryData?.name || countryCode,
-      city: "",
+      county: "",
       town: "",
     }));
     setIsSaved(false);
@@ -387,17 +387,17 @@ export default function CompanyProfileForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="county">County / Region</Label>
                 <Select
-                  value={form.city}
-                  onValueChange={(v) => updateField("city", v)}
+                  value={form.county}
+                  onValueChange={(v) => updateField("county", v)}
                   disabled={!form.country}
                 >
-                  <SelectTrigger id="city">
+                  <SelectTrigger id="county">
                     <SelectValue
                       placeholder={
                         form.country
-                          ? "Select city"
+                          ? "Select county / region"
                           : "Select a country first"
                       }
                     />

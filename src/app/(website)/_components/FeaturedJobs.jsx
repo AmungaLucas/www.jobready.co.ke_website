@@ -42,7 +42,7 @@ export default function FeaturedJobs({ featuredJobs }) {
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-xl font-bold text-white">{largeJob.title}</h3>
                         <p className="text-sm text-white/80">
-                          {largeJob.company?.name || ""}{largeJob.city ? ` – ${largeJob.city}` : largeJob.location ? ` – ${largeJob.location}` : ""}
+                          {largeJob.company?.name || ""}{largeJob.county ? ` – ${largeJob.county}` : largeJob.location ? ` – ${largeJob.location}` : ""}
                         </p>
                       </div>
                     </div>
@@ -89,7 +89,7 @@ export default function FeaturedJobs({ featuredJobs }) {
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                         <h3 className="font-bold text-sm text-white">{job.title}</h3>
                         <p className="text-xs text-white/80">
-                          {job.company?.name || ""}{job.city ? ` – ${job.city}` : ""}
+                          {job.company?.name || ""}{job.county ? ` – ${job.county}` : ""}
                         </p>
                       </div>
                     </div>

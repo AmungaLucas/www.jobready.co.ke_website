@@ -58,8 +58,21 @@ export function formatTimeLeft(deadline) {
  * @returns {string}
  */
 export function buildLocation(entity) {
-  const parts = [entity.town, entity.city, entity.country].filter(Boolean);
+  const parts = [entity.town, entity.county, entity.country].filter(Boolean);
   return parts.join(", ");
+}
+
+/**
+ * Build a display location string for a Job from structured fields.
+ * Replaces the old denormalized `location` text field.
+ * @param {object} job — job record with county, town, country, isRemote
+ * @returns {string} e.g. "Westlands, Nairobi" or "Remote" or "Nairobi"
+ */
+export function formatLocation(job) {
+  if (job.isRemote) return "Remote";
+  const parts = [job.town, job.county].filter(Boolean);
+  if (job.country && job.country !== "Kenya") parts.push(job.country);
+  return parts.join(", ") || "Kenya";
 }
 
 // ─── Job normalization ────────────────────────────────────────

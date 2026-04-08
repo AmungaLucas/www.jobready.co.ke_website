@@ -101,7 +101,7 @@ export async function GET(request, { params }) {
           logoColor: true,
           tagline: true,
           industry: true,
-          city: true,
+          county: true,
           town: true,
           country: true,
           isVerified: true,

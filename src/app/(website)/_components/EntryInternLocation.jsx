@@ -4,20 +4,20 @@ import { formatDate } from "@/lib/format";
 
 export default function EntryInternLocation({ entryJobs, internJobs, locationCounts }) {
   const defaultLocations = [
-    { city: "Nairobi", count: 0 },
-    { city: "Mombasa", count: 0 },
-    { city: "Kisumu", count: 0 },
-    { city: "Nakuru", count: 0 },
-    { city: "Eldoret", count: 0 },
-    { city: "Remote", count: 0 },
+    { county: "Nairobi", count: 0 },
+    { county: "Mombasa", count: 0 },
+    { county: "Kisumu", count: 0 },
+    { county: "Nakuru", count: 0 },
+    { county: "Eldoret", count: 0 },
+    { county: "Remote", count: 0 },
   ];
 
   const locationData = locationCounts?.length > 0
     ? defaultLocations.map((dl) => {
         const found = locationCounts.find(
-          (lc) => lc.city?.toLowerCase() === dl.city.toLowerCase()
+          (lc) => lc.county?.toLowerCase() === dl.county.toLowerCase()
         );
-        return { city: dl.city, count: found?._count?.id || 0 };
+        return { county: dl.county, count: found?._count?.id || 0 };
       })
     : defaultLocations;
 
@@ -41,7 +41,7 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                     href={`/jobs/${job.slug}`}
                     className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                   >
-                    {job.title} – {job.company?.name || ""}{job.city ? `, ${job.city}` : ""}
+                    {job.title} – {job.company?.name || ""}{job.county ? `, ${job.county}` : ""}
                   </Link>
                   {job.applicationDeadline && (
                     <div className="text-gray-400 text-xs">
@@ -80,7 +80,7 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                     href={`/jobs/${job.slug}`}
                     className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                   >
-                    {job.title} – {job.company?.name || ""}{job.city ? `, ${job.city}` : ""}
+                    {job.title} – {job.company?.name || ""}{job.county ? `, ${job.county}` : ""}
                   </Link>
                   {job.applicationDeadline && (
                     <div className="text-gray-400 text-xs">
@@ -111,17 +111,17 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
             <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
               {locationData.map((loc) => (
                 <div
-                  key={loc.city}
+                  key={loc.county}
                   className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 transition-colors"
                 >
                   <Link
-                    href={`/jobs/${loc.city.toLowerCase()}`}
+                    href={`/jobs/${loc.county.toLowerCase()}`}
                     className="text-gray-700 hover:text-teal-600 transition-colors no-underline text-sm"
                   >
-                    {loc.city}
+                    {loc.county}
                   </Link>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                    {loc.count > 0 ? `${loc.count.toLocaleString()} jobs` : `${loc.city}`}
+                    {loc.count > 0 ? `${loc.count.toLocaleString()} jobs` : `${loc.county}`}
                   </span>
                 </div>
               ))}

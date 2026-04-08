@@ -85,7 +85,12 @@ export async function GET(request) {
       conditions.push({ experienceLevel });
     }
     if (location) {
-      conditions.push({ location: { contains: location } });
+      conditions.push({
+        OR: [
+          { county: { contains: location } },
+          { town: { contains: location } },
+        ],
+      });
     }
     if (isRemote === "true") {
       conditions.push({ isRemote: true });
@@ -205,7 +210,6 @@ export async function POST(request) {
       category,
       jobType,
       experienceLevel,
-      location,
       isRemote,
       salaryMin,
       salaryMax,
@@ -261,13 +265,6 @@ export async function POST(request) {
       );
     }
 
-    if (!location || typeof location !== "string" || location.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Job location is required" },
-        { status: 400 }
-      );
-    }
-
     // Generate slug from title
     let slug = generateSlug(title.trim());
 
@@ -303,7 +300,6 @@ export async function POST(request) {
       categories,
       employmentType: mappedJobType,
       experienceLevel,
-      location: location.trim(),
       isRemote: Boolean(isRemote),
       salaryMin: salaryMin ? parseInt(salaryMin, 10) : null,
       salaryMax: salaryMax ? parseInt(salaryMax, 10) : null,
@@ -315,7 +311,7 @@ export async function POST(request) {
       applicationEmail: applicationEmail || null,
       applicationUrl: externalApplyUrl || null,
       country: country || null,
-      city: city || null,
+      county: city || null,
       town: town || null,
       status: status || "DRAFT",
       isFeatured: Boolean(isFeatured) && user.role === "ADMIN",

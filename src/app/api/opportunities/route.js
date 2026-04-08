@@ -12,7 +12,7 @@ export async function GET(request) {
     const opportunityType = searchParams.get("opportunityType") || "";
     const category = searchParams.get("category") || "";
     const country = searchParams.get("country") || "";
-    const city = searchParams.get("city") || "";
+    const county = searchParams.get("county") || "";
     const isRemote = searchParams.get("isRemote");
     const isOnline = searchParams.get("isOnline");
     const sort = searchParams.get("sort") || "newest";
@@ -61,8 +61,8 @@ export async function GET(request) {
     if (country) {
       conditions.push({ country: { contains: country } });
     }
-    if (city) {
-      conditions.push({ city: { contains: city } });
+    if (county) {
+      conditions.push({ county: { contains: county } });
     }
     if (isRemote === "true") {
       conditions.push({ isRemote: true });
@@ -106,7 +106,7 @@ export async function GET(request) {
         opportunityType: true,
         category: true,
         country: true,
-        city: true,
+        county: true,
         town: true,
         isRemote: true,
         isOnline: true,

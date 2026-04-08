@@ -6,7 +6,7 @@
 //
 // Design Decisions:
 //   - Enums stored as String, validated in app code against data.js
-//   - Location stored as structured fields (country, city, town) plus display string
+//   - Location stored as structured fields (country, county, town) plus display string
 //   - No JobCategory table (driven by hub-config.js / org_data.js)
 //   - Json type for array fields (MySQL JSON columns)
 //   - Nullable userId on orders (walk-in WhatsApp orders)
@@ -162,7 +162,7 @@ model Company {
   creator         User?     @relation("CompanyCreator", fields: [createdBy], references: [id])
 
   // Location
-  city            String?                              // "Nairobi"
+  county          String?                              // "Nairobi" — maps to organizationLocation[].regions[]
   town            String?                              // "Westlands" (manual input for specific area)
   country         String    @default("Kenya")
   website         String?
@@ -199,7 +199,7 @@ model Company {
 
   @@index([organizationType])                    // For gov/NGO/private filtering
   @@index([industry])                              // Already exists conceptually, now explicit
-  @@index([city])
+  @@index([county])
   @@map("companies")
 }
 
@@ -241,10 +241,9 @@ model Job {
   company             Company   @relation(fields: [companyId], references: [id])
 
   // Location
-  location            String                           // "Westlands, Nairobi" (display string)
   country             String?                          // Structured: "Kenya"
-  city                String?                          // Structured: "Nairobi"
-  town                String?                          // Specific area (manual input)
+  county              String?                          // Structured: "Nairobi" — maps to organizationLocation[].regions[]
+  town                String?                          // Specific area/town within county
   isRemote            Boolean   @default(false)  @map("is_remote")
 
   // Salary
@@ -297,7 +296,7 @@ model Job {
   @@index([employmentType])
   @@index([experienceLevel])
   @@index([companyId])
-  @@index([location])
+  @@index([county])
   @@index([isActive])
   @@index([isFeatured])
   @@index([status])
@@ -341,8 +340,8 @@ model Opportunity {
 
   // Location
   country           String?                              // Structured: "Kenya"
-  city              String?                              // Structured: "Nairobi"
-  town              String?                              // Specific area
+  county            String?                              // Structured: "Nairobi" — maps to organizationLocation[].regions[]
+  town              String?                              // Specific area/town within county
   isRemote          Boolean   @default(false)
   isOnline          Boolean   @default(false)             // For virtual opportunities
 

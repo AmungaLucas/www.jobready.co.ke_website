@@ -26,6 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatRelativeDate } from "@/lib/format";
+import { formatLocation } from "@/lib/normalize";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -218,7 +219,7 @@ export default function SavedJobsPage() {
                 company={companyName}
                 companyInitials={initials}
                 companyColor={logoColor}
-                location={job.location}
+                location={formatLocation(job)}
                 type={jobType}
                 salary={salary}
                 dateSaved={savedJob.createdAt}

@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { formatLocation } from "@/lib/normalize";
 import { useSession } from "next-auth/react";
 
 // ── Helpers ──────────────────────────────────────────
@@ -273,7 +274,7 @@ export default function ApplicationsPage() {
                     company={companyName}
                     companyInitials={initials}
                     companyColor={logoColor}
-                    location={job.location}
+                    location={formatLocation(job)}
                     type={jobType}
                     appliedDate={app.createdAt}
                     status={app.status}

@@ -31,7 +31,7 @@ export async function GET(request) {
     if (location && location !== "All Locations") {
       andConditions.push({
         OR: [
-          { city: { contains: location } },
+          { county: { contains: location } },
           { town: { contains: location } },
         ],
       });
@@ -71,7 +71,7 @@ export async function GET(request) {
           logoColor: true,
           tagline: true,
           industry: true,
-          city: true,
+          county: true,
           town: true,
           country: true,
           socialLinks: true,

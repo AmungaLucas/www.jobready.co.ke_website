@@ -107,7 +107,8 @@ export async function GET(request) {
             title: true,
             slug: true,
             employmentType: true,
-            location: true,
+            county: true,
+            town: true,
             isRemote: true,
             company: {
               select: {

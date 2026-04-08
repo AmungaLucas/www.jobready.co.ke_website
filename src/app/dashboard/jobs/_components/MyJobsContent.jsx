@@ -52,13 +52,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { formatLocation } from "@/lib/normalize";
 
 // ── Mock Data ──────────────────────────────────────────
 const MOCK_JOBS = [
   {
     id: 1,
     title: "Senior Software Engineer",
-    location: "Nairobi, Kenya",
+    county: "Nairobi",
     employmentType: "FULL_TIME",
     status: "PUBLISHED",
     createdAt: "2026-03-15",
@@ -67,7 +68,7 @@ const MOCK_JOBS = [
   {
     id: 2,
     title: "Financial Analyst",
-    location: "Nairobi, Kenya",
+    county: "Nairobi",
     employmentType: "FULL_TIME",
     status: "PUBLISHED",
     createdAt: "2026-03-12",
@@ -76,7 +77,7 @@ const MOCK_JOBS = [
   {
     id: 3,
     title: "Marketing Manager",
-    location: "Nairobi, Kenya",
+    county: "Nairobi",
     employmentType: "FULL_TIME",
     status: "DRAFT",
     createdAt: "2026-03-08",
@@ -85,7 +86,7 @@ const MOCK_JOBS = [
   {
     id: 4,
     title: "Network Engineer",
-    location: "Mombasa, Kenya",
+    county: "Mombasa",
     employmentType: "FULL_TIME",
     status: "PUBLISHED",
     createdAt: "2026-03-05",
@@ -94,7 +95,7 @@ const MOCK_JOBS = [
   {
     id: 5,
     title: "Human Resources Intern",
-    location: "Nairobi, Kenya",
+    county: "Nairobi",
     employmentType: "INTERNSHIP",
     status: "CLOSED",
     createdAt: "2026-02-20",
@@ -103,7 +104,7 @@ const MOCK_JOBS = [
   {
     id: 6,
     title: "Product Manager — M-PESA",
-    location: "Nairobi, Kenya",
+    county: "Nairobi",
     employmentType: "FULL_TIME",
     status: "PUBLISHED",
     createdAt: "2026-03-01",
@@ -112,7 +113,7 @@ const MOCK_JOBS = [
   {
     id: 7,
     title: "Data Analyst",
-    location: "Nakuru, Kenya",
+    county: "Nakuru",
     employmentType: "CONTRACT",
     status: "DRAFT",
     createdAt: "2026-03-28",
@@ -121,7 +122,7 @@ const MOCK_JOBS = [
   {
     id: 8,
     title: "Customer Service Representative",
-    location: "Kisumu, Kenya",
+    county: "Kisumu",
     employmentType: "FULL_TIME",
     status: "DRAFT",
     createdAt: "2026-03-28",
@@ -298,7 +299,7 @@ export default function MyJobsContent() {
                           <TableCell>
                             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                               <MapPin className="size-3.5" />
-                              {job.location}
+                              {formatLocation(job)}
                             </span>
                           </TableCell>
                           <TableCell>

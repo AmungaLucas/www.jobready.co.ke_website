@@ -121,7 +121,6 @@ const INITIAL_FORM = {
   experienceLevel: "",
   country: "",
   region: "",
-  location: "",
   workMode: "",
   salaryCurrency: "KES",
   salaryMin: "",
@@ -241,7 +240,6 @@ export default function PostJobForm() {
     if (!form.employmentType) newErrors.employmentType = "Job type is required";
     if (!form.experienceLevel)
       newErrors.experienceLevel = "Experience level is required";
-    if (!form.location.trim()) newErrors.location = "Location is required";
     if (!form.description.trim())
       newErrors.description = "Job description is required";
     if (!form.applicationDeadline) newErrors.applicationDeadline = "Application deadline is required";
@@ -536,24 +534,7 @@ export default function PostJobForm() {
                 </div>
               </div>
 
-              {/* Free-text location */}
-              <div className="space-y-2">
-                <Label htmlFor="location">
-                  Specific Location <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="location"
-                  placeholder="e.g., Westlands, Nairobi"
-                  value={form.location}
-                  onChange={(e) => updateField("location", e.target.value)}
-                  className={errors.location ? "border-destructive" : ""}
-                />
-                {errors.location && (
-                  <p className="text-xs text-destructive">
-                    {errors.location}
-                  </p>
-                )}
-              </div>
+
             </div>
 
             <Separator />

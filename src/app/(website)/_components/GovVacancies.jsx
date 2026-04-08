@@ -31,7 +31,7 @@ export default function GovVacancies({ countyJobs, nationalJobs }) {
                   {(countyJobs || []).map((job) => (
                     <div key={job.id} className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center shrink-0 text-gray-400 text-xs font-bold">
-                        {job.city?.charAt(0) || "G"}
+                        {job.county?.charAt(0) || "G"}
                       </div>
                       <div>
                         <div>
@@ -39,7 +39,7 @@ export default function GovVacancies({ countyJobs, nationalJobs }) {
                             href={`/jobs/${job.slug}`}
                             className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
                           >
-                            {job.city || ""} – {job.title}
+                            {job.county || ""} – {job.title}
                           </Link>
                         </div>
                         {job.applicationDeadline && (

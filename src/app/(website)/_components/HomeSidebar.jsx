@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { formatRelativeDate, formatDate } from "@/lib/format";
 import AdSense from "@/components/AdSense";
+import { formatLocation } from "@/lib/normalize";
 
 function getCompanyInitials(name) {
   if (!name) return "?";
@@ -74,7 +75,7 @@ function FeaturedJobs({ jobs }) {
                 {job.title}
               </p>
               <p className="text-[11px] text-gray-500 truncate">
-                {job.company?.name} &middot; {job.location || "Kenya"}
+                {job.company?.name} &middot; {formatLocation(job)}
               </p>
             </div>
           </Link>

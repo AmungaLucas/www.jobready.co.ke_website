@@ -145,8 +145,8 @@ async function fetchHomepageData() {
       }),
       // Location counts
       db.job.groupBy({
-        by: ["city"],
-        where: { status: "PUBLISHED", isActive: true, city: { not: null } },
+        by: ["county"],
+        where: { status: "PUBLISHED", isActive: true, county: { not: null } },
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 6,

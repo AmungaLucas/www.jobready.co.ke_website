@@ -49,7 +49,7 @@ export async function GET(request, { params }) {
             logoColor: true,
             tagline: true,
             industry: true,
-            city: true,
+            county: true,
             country: true,
             website: true,
             isVerified: true,
@@ -178,7 +178,6 @@ export async function PUT(request, { params }) {
       category,
       jobType,
       experienceLevel,
-      location,
       isRemote,
       salaryMin,
       salaryMax,
@@ -261,16 +260,6 @@ export async function PUT(request, { params }) {
       updateData.experienceLevel = experienceLevel.trim();
     }
 
-    if (location !== undefined) {
-      if (typeof location !== "string" || location.trim().length === 0) {
-        return NextResponse.json(
-          { error: "Location is required" },
-          { status: 400 }
-        );
-      }
-      updateData.location = location.trim();
-    }
-
     if (isRemote !== undefined) {
       updateData.isRemote = Boolean(isRemote);
     }
@@ -331,7 +320,7 @@ export async function PUT(request, { params }) {
     }
 
     if (city !== undefined) {
-      updateData.city = city || null;
+      updateData.county = city || null;
     }
 
     if (town !== undefined) {

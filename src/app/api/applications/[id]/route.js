@@ -116,7 +116,8 @@ export async function PUT(request, { params }) {
             title: true,
             slug: true,
             employmentType: true,
-            location: true,
+            county: true,
+            town: true,
             company: {
               select: {
                 name: true,

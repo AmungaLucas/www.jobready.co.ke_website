@@ -68,7 +68,7 @@ export async function GET(request, { params }) {
         opportunityType: true,
         category: true,
         country: true,
-        city: true,
+        county: true,
         town: true,
         isRemote: true,
         isOnline: true,
