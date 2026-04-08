@@ -17,6 +17,7 @@ import CVServiceStrip from "../_components/CVServiceStrip";
 
 // ─── Data Fetching ──────────────────────────────────────
 async function getJob(slug) {
+  try {
   const job = await db.job.findUnique({
     where: { slug },
     include: {
@@ -86,6 +87,10 @@ async function getJob(slug) {
   });
 
   return { job, similarJobs };
+  } catch (error) {
+    console.error("[getJob] DB error for slug:", slug, error.message);
+    return null;
+  }
 }
 
 // ─── Metadata ───────────────────────────────────────────

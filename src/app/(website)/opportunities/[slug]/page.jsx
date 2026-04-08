@@ -51,6 +51,7 @@ const OPP_TYPE_COLORS = {
 
 // ─── Data Fetching ──────────────────────────────────────
 async function getOpportunity(slug) {
+  try {
   const opportunity = await db.opportunity.findUnique({
     where: { slug },
     include: {
@@ -110,6 +111,10 @@ async function getOpportunity(slug) {
   });
 
   return { opportunity, similarOpportunities };
+  } catch (error) {
+    console.error("[getOpportunity] DB error for slug:", slug, error.message);
+    return null;
+  }
 }
 
 // ─── Metadata ───────────────────────────────────────────
