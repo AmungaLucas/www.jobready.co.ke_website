@@ -26,13 +26,15 @@ function mapEmploymentType(val) {
  * Public route — no auth required.
  *
  * Query params:
- *   q         — search query (required)
- *   type      — "all" (default), "jobs", "opportunities", "companies", "articles"
- *   category  — filter by category
- *   location  — filter by location
- *   jobType   — filter by job type
- *   page      — page number (default 1)
- *   limit     — results per type per page (default 10)
+ *   q                — search query (required)
+ *   type             — "all" (default), "jobs", "opportunities", "companies", "articles"
+ *   category         — filter by category
+ *   location         — filter by location
+ *   jobType          — filter by job type
+ *   experienceLevel  — filter by experience level
+ *   remote           — filter remote jobs (value "true")
+ *   page             — page number (default 1)
+ *   limit            — results per type per page (default 10)
  */
 export async function GET(request) {
   try {
@@ -50,6 +52,8 @@ export async function GET(request) {
     const category = searchParams.get("category") || null;
     const location = searchParams.get("location") || null;
     const jobType = searchParams.get("jobType") || null;
+    const experienceLevel = searchParams.get("experienceLevel") || null;
+    const remote = searchParams.get("remote") || null;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
     const skip = (page - 1) * limit;
@@ -83,6 +87,8 @@ export async function GET(request) {
           ...(category ? [{ categories: { string_contains: `"${category}"` } }] : []),
           ...(location ? [{ OR: [{ county: { contains: location } }, { town: { contains: location } }] }] : []),
           ...(jobType ? [{ employmentType: mapEmploymentType(jobType) }] : []),
+          ...(experienceLevel ? [{ experienceLevel }] : []),
+          ...(remote === "true" ? [{ isRemote: true }] : []),
         ],
       };
 

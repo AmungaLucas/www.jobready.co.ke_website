@@ -16,6 +16,7 @@ import {
   FiFilter,
   FiX,
   FiUsers,
+  FiStar,
 } from "react-icons/fi";
 import { formatDate, formatCurrency, formatJobType, formatExperienceLevel } from "@/lib/format";
 import { formatLocation, getInitials } from "@/lib/normalize";
@@ -27,6 +28,47 @@ const TABS = [
   { key: "opportunities", label: "Opportunities", icon: FiAward },
   { key: "companies", label: "Companies", icon: FiLayers },
   { key: "articles", label: "Career Advice", icon: FiBookOpen },
+];
+
+const EXPERIENCE_LEVELS = [
+  { value: "ENTRY_LEVEL", label: "Entry Level" },
+  { value: "JUNIOR", label: "Junior" },
+  { value: "INTERNSHIP", label: "Internship" },
+  { value: "MID_LEVEL", label: "Mid Level" },
+  { value: "SENIOR", label: "Senior" },
+  { value: "LEAD", label: "Lead" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "DIRECTOR", label: "Director" },
+  { value: "EXECUTIVE", label: "Executive" },
+];
+
+const CATEGORIES = [
+  { value: "TECHNOLOGY", label: "Technology" },
+  { value: "FINANCE_ACCOUNTING", label: "Finance" },
+  { value: "SALES_BUSINESS", label: "Sales" },
+  { value: "MARKETING_COMMUNICATIONS", label: "Marketing" },
+  { value: "HUMAN_RESOURCES", label: "HR" },
+  { value: "ENGINEERING", label: "Engineering" },
+  { value: "HEALTHCARE", label: "Healthcare" },
+  { value: "EDUCATION", label: "Education" },
+  { value: "OPERATIONS_ADMIN", label: "Operations" },
+  { value: "SUPPLY_CHAIN", label: "Supply Chain" },
+  { value: "HOSPITALITY", label: "Hospitality" },
+  { value: "AGRICULTURE", label: "Agriculture" },
+  { value: "LEGAL", label: "Legal" },
+  { value: "CREATIVE_DESIGN", label: "Creative" },
+  { value: "ARCHITECTURE_CONSTRUCTION", label: "Architecture" },
+  { value: "SCIENCE_RESEARCH", label: "Science" },
+  { value: "CUSTOMER_SERVICE", label: "Customer Service" },
+  { value: "SKILLED_TRADES", label: "Skilled Trades" },
+  { value: "MEDIA_PUBLISHING", label: "Media" },
+  { value: "NONPROFIT", label: "Nonprofit" },
+  { value: "REAL_ESTATE", label: "Real Estate" },
+  { value: "FITNESS_WELLNESS", label: "Fitness" },
+  { value: "GOVERNMENT_PUBLIC_SECTOR", label: "Government" },
+  { value: "CONSULTING", label: "Consulting" },
+  { value: "INSURANCE", label: "Insurance" },
+  { value: "TRANSPORTATION", label: "Transportation" },
 ];
 
 const OPP_TYPE_DISPLAY = {
@@ -74,11 +116,17 @@ function SearchPageInner() {
   const initialType = searchParams.get("type") || "all";
   const initialLocation = searchParams.get("location") || "";
   const initialJobType = searchParams.get("jobType") || "";
+  const initialExperienceLevel = searchParams.get("experienceLevel") || "";
+  const initialCategory = searchParams.get("category") || "";
+  const initialRemote = searchParams.get("remote") || "";
 
   const [query, setQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState(initialType);
   const [locationFilter, setLocationFilter] = useState(initialLocation);
   const [jobTypeFilter, setJobTypeFilter] = useState(initialJobType);
+  const [experienceLevelFilter, setExperienceLevelFilter] = useState(initialExperienceLevel);
+  const [categoryFilter, setCategoryFilter] = useState(initialCategory);
+  const [remoteFilter, setRemoteFilter] = useState(initialRemote);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -97,12 +145,15 @@ function SearchPageInner() {
       if (t && t !== "all") params.set("type", t);
       if (locationFilter) params.set("location", locationFilter);
       if (jobTypeFilter) params.set("jobType", jobTypeFilter);
+      if (experienceLevelFilter) params.set("experienceLevel", experienceLevelFilter);
+      if (categoryFilter) params.set("category", categoryFilter);
+      if (remoteFilter) params.set("remote", remoteFilter);
       params.set("page", p.toString());
       params.set("limit", "10");
 
       return params.toString();
     },
-    [query, activeTab, page, locationFilter, jobTypeFilter]
+    [query, activeTab, page, locationFilter, jobTypeFilter, experienceLevelFilter, categoryFilter, remoteFilter]
   );
 
   // Update URL without re-fetching
@@ -115,9 +166,12 @@ function SearchPageInner() {
       if (t && t !== "all") params.set("type", t);
       if (locationFilter) params.set("location", locationFilter);
       if (jobTypeFilter) params.set("jobType", jobTypeFilter);
+      if (experienceLevelFilter) params.set("experienceLevel", experienceLevelFilter);
+      if (categoryFilter) params.set("category", categoryFilter);
+      if (remoteFilter) params.set("remote", remoteFilter);
       router.push(`/search?${params.toString()}`, { scroll: false });
     },
-    [query, activeTab, locationFilter, jobTypeFilter, router]
+    [query, activeTab, locationFilter, jobTypeFilter, experienceLevelFilter, categoryFilter, remoteFilter, router]
   );
 
   // Fetch results
@@ -160,7 +214,7 @@ function SearchPageInner() {
     fetchResults({ page: 1 });
     updateUrl({ page: 1 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, locationFilter, jobTypeFilter]);
+  }, [activeTab, locationFilter, jobTypeFilter, experienceLevelFilter, categoryFilter, remoteFilter]);
 
   // Re-fetch on page change
   useEffect(() => {
@@ -189,9 +243,12 @@ function SearchPageInner() {
   const clearFilters = () => {
     setLocationFilter("");
     setJobTypeFilter("");
+    setExperienceLevelFilter("");
+    setCategoryFilter("");
+    setRemoteFilter("");
   };
 
-  const hasActiveFilters = !!locationFilter || !!jobTypeFilter;
+  const hasActiveFilters = !!locationFilter || !!jobTypeFilter || !!experienceLevelFilter || !!categoryFilter || !!remoteFilter;
 
   // Current tab results
   const currentResults = results?.results?.[activeTab] || { items: [], total: 0 };
@@ -284,6 +341,46 @@ function SearchPageInner() {
                     <option value="FREELANCE">Freelance</option>
                     <option value="VOLUNTEER">Volunteer</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Experience Level</label>
+                  <div className="relative">
+                    <FiStar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 pointer-events-none" />
+                    <select
+                      value={experienceLevelFilter}
+                      onChange={(e) => setExperienceLevelFilter(e.target.value)}
+                      className="w-full appearance-none pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+                    >
+                      <option value="">All Levels</option>
+                      {EXPERIENCE_LEVELS.map((lvl) => (
+                        <option key={lvl.value} value={lvl.value}>{lvl.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">All Categories</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={remoteFilter === "true"}
+                      onChange={(e) => setRemoteFilter(e.target.checked ? "true" : "")}
+                      className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    />
+                    <span className="text-sm text-gray-700">Remote only</span>
+                  </label>
                 </div>
               </div>
               {hasActiveFilters && (

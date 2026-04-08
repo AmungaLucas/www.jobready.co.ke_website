@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
-import { FiUser, FiMenu, FiX, FiLogOut, FiChevronDown, FiBell } from "react-icons/fi";
+import { FiUser, FiMenu, FiX, FiLogOut, FiChevronDown, FiBell, FiSearch } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { siteConfig } from "@/config/site-config";
 
@@ -86,6 +86,16 @@ export default function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-3">
+          {/* Search */}
+          <form action="/search" method="GET" className="relative">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              name="q"
+              placeholder="Search jobs..."
+              className="w-48 lg:w-56 pl-9 pr-3 py-1.5 rounded-full border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+            />
+          </form>
           {/* WhatsApp button */}
           <Link
             href={siteConfig.whatsapp.links.general}
@@ -207,6 +217,17 @@ export default function Header() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-[#5B21B6] bg-[#FAFAFA] py-4 px-4 space-y-3">
+          {/* Mobile search */}
+          <form action="/search" method="GET" className="relative">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              name="q"
+              placeholder="Search jobs, companies..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+            />
+          </form>
+
           {/* Nav links */}
           {siteConfig.nav.map((item) => (
             <Link

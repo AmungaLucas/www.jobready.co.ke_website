@@ -7,43 +7,36 @@ import {
   FiCode, FiTrendingUp, FiBarChart2, FiFlag, FiUsers, FiSettings, FiHeart, FiBookOpen,
   FiClipboard, FiTruck, FiCoffee, FiSun, FiEdit3, FiGrid, FiZap, FiHeadphones,
   FiTool, FiFileText, FiGlobe, FiHome, FiActivity, FiAward, FiMessageSquare, FiShield,
-  FiNavigation, FiEye, FiFilm, FiLayers, FiMonitor, FiCircle, FiHash,
+  FiNavigation,
 } from "react-icons/fi";
 
 const categories = [
   { value: "TECHNOLOGY", label: "Technology", slug: "technology", Icon: FiCode },
   { value: "FINANCE_ACCOUNTING", label: "Finance", slug: "finance-accounting", Icon: FiTrendingUp },
-  { value: "SALES_BUSINESS", label: "Sales", slug: "sales-marketing", Icon: FiBarChart2 },
-  { value: "MARKETING_COMMUNICATIONS", label: "Marketing", slug: "sales-marketing", Icon: FiFlag },
+  { value: "SALES_BUSINESS", label: "Sales", slug: "sales-business", Icon: FiBarChart2 },
+  { value: "MARKETING_COMMUNICATIONS", label: "Marketing", slug: "marketing-communications", Icon: FiFlag },
   { value: "HUMAN_RESOURCES", label: "Human Resources", slug: "human-resources", Icon: FiUsers },
   { value: "ENGINEERING", label: "Engineering", slug: "engineering", Icon: FiSettings },
   { value: "HEALTHCARE", label: "Healthcare", slug: "healthcare", Icon: FiHeart },
-  { value: "EDUCATION", label: "Education", slug: "education", Icon: FiBookOpen },
-  { value: "OPERATIONS_ADMIN", label: "Operations", slug: "entry-level", Icon: FiClipboard },
-  { value: "SUPPLY_CHAIN", label: "Supply Chain", slug: "logistics", Icon: FiTruck },
-  { value: "HOSPITALITY", label: "Hospitality", slug: "entry-level", Icon: FiCoffee },
-  { value: "AGRICULTURE", label: "Agriculture", slug: "entry-level", Icon: FiSun },
-  { value: "LEGAL", label: "Legal", slug: "legal", Icon: FiHash },
+  { value: "EDUCATION", label: "Education", slug: "education-training", Icon: FiBookOpen },
+  { value: "OPERATIONS_ADMIN", label: "Operations", slug: "operations-admin", Icon: FiClipboard },
+  { value: "SUPPLY_CHAIN", label: "Supply Chain", slug: "logistics-supply-chain", Icon: FiTruck },
+  { value: "HOSPITALITY", label: "Hospitality", slug: "hospitality-tourism", Icon: FiCoffee },
+  { value: "AGRICULTURE", label: "Agriculture", slug: "agriculture", Icon: FiSun },
+  { value: "LEGAL", label: "Legal", slug: "legal-compliance", Icon: FiShield },
   { value: "CREATIVE_DESIGN", label: "Creative", slug: "creative-design", Icon: FiEdit3 },
-  { value: "ARCHITECTURE_CONSTRUCTION", label: "Architecture", slug: "engineering", Icon: FiGrid },
-  { value: "SCIENCE_RESEARCH", label: "Science", slug: "entry-level", Icon: FiZap },
+  { value: "ARCHITECTURE_CONSTRUCTION", label: "Architecture", slug: "architecture-construction", Icon: FiGrid },
+  { value: "SCIENCE_RESEARCH", label: "Science", slug: "science-research", Icon: FiZap },
   { value: "CUSTOMER_SERVICE", label: "Customer Service", slug: "customer-service", Icon: FiHeadphones },
-  { value: "SKILLED_TRADES", label: "Skilled Trades", slug: "apprenticeships", Icon: FiTool },
-  { value: "MEDIA_PUBLISHING", label: "Media", slug: "entry-level", Icon: FiFileText },
-  { value: "NONPROFIT", label: "Nonprofit", slug: "ngo", Icon: FiGlobe },
-  { value: "REAL_ESTATE", label: "Real Estate", slug: "entry-level", Icon: FiHome },
-  { value: "FITNESS_WELLNESS", label: "Fitness", slug: "entry-level", Icon: FiActivity },
+  { value: "SKILLED_TRADES", label: "Skilled Trades", slug: "skilled-trades", Icon: FiTool },
+  { value: "MEDIA_PUBLISHING", label: "Media", slug: "media-publishing", Icon: FiFileText },
+  { value: "NONPROFIT", label: "Nonprofit", slug: "nonprofit", Icon: FiGlobe },
+  { value: "REAL_ESTATE", label: "Real Estate", slug: "real-estate", Icon: FiHome },
+  { value: "FITNESS_WELLNESS", label: "Fitness", slug: "fitness-wellness", Icon: FiActivity },
   { value: "GOVERNMENT_PUBLIC_SECTOR", label: "Government", slug: "government", Icon: FiAward },
   { value: "CONSULTING", label: "Consulting", slug: "consulting", Icon: FiMessageSquare },
-  { value: "INSURANCE", label: "Insurance", slug: "finance-accounting", Icon: FiShield },
-  { value: "TRANSPORTATION", label: "Transport", slug: "logistics", Icon: FiNavigation },
-  { value: "SECURITY_SERVICES", label: "Security", slug: "entry-level", Icon: FiEye },
-  { value: "ENVIRONMENTAL_SUSTAINABILITY", label: "Environment", slug: "ngo", Icon: FiGlobe },
-  { value: "INTERNATIONAL_DEVELOPMENT", label: "International", slug: "ngo", Icon: FiGlobe },
-  { value: "ENTERTAINMENT", label: "Entertainment", slug: "entry-level", Icon: FiFilm },
-  { value: "VETERINARY", label: "Veterinary", slug: "entry-level", Icon: FiLayers },
-  { value: "DENTAL", label: "Dental", slug: "healthcare", Icon: FiCircle },
-  { value: "SPORTS_RECREATION", label: "Sports", slug: "entry-level", Icon: FiMonitor },
+  { value: "INSURANCE", label: "Insurance", slug: "insurance", Icon: FiShield },
+  { value: "TRANSPORTATION", label: "Transport", slug: "transportation", Icon: FiNavigation },
 ];
 
 export default function CategoryGrid() {
@@ -112,7 +105,7 @@ export default function CategoryGrid() {
             href="/jobs"
             className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
           >
-            View all 32 categories <FiArrowRight className="w-3.5 h-3.5" />
+            View all 26 categories <FiArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

@@ -8,6 +8,26 @@ import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight
 
 const PER_PAGE = 20;
 
+const EMPLOYMENT_TYPES = [
+  { value: "FULL_TIME", label: "Full-time" },
+  { value: "PART_TIME", label: "Part-time" },
+  { value: "CONTRACT", label: "Contract" },
+  { value: "TEMPORARY", label: "Temporary" },
+  { value: "INTERNSHIP", label: "Internship" },
+  { value: "VOLUNTEER", label: "Volunteer" },
+];
+
+const EXPERIENCE_LEVELS = [
+  { value: "ENTRY_LEVEL", label: "Entry Level" },
+  { value: "INTERNSHIP", label: "Internship" },
+  { value: "MID_LEVEL", label: "Mid Level" },
+  { value: "SENIOR", label: "Senior" },
+  { value: "LEAD", label: "Lead" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "DIRECTOR", label: "Director" },
+  { value: "EXECUTIVE", label: "Executive" },
+];
+
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
   { value: "trending", label: "Most Viewed" },
@@ -50,29 +70,45 @@ function buildBaseFilters(q) {
   return base;
 }
 
-function buildWhere(config, q) {
+function buildWhere(config, searchParams) {
+  const q = searchParams.q || null;
+  const location = searchParams.location || null;
+  const employmentType = searchParams.employmentType || null;
+  const experienceLevel = searchParams.experienceLevel || null;
+
   const baseFilters = buildBaseFilters(q);
 
   if (config.filterKey === "category") {
-    // Category filter: JSON array_contains with fallback to text search
     const categoryValue = config.filterValue;
+    const fallbackKeywords = categoryValue.split("_").map((w) => w.toLowerCase());
 
-    // Generate human-readable keywords from the category value for fallback
-    const fallbackKeywords = categoryValue
-      .split("_")
-      .map((w) => w.toLowerCase());
-
-    const whereCategories = {
-      AND: [
-        ...baseFilters,
-        {
-          categories: {
-            path: "$",
-            array_contains: categoryValue,
-          },
+    const andConditions = [
+      ...baseFilters,
+      {
+        categories: {
+          path: "$",
+          array_contains: categoryValue,
         },
-      ],
-    };
+      },
+    ];
+
+    // Add extra filters from searchParams
+    if (location) {
+      andConditions.push({
+        OR: [
+          { county: { contains: location } },
+          { town: { contains: location } },
+        ],
+      });
+    }
+    if (employmentType) {
+      andConditions.push({ employmentType });
+    }
+    if (experienceLevel) {
+      andConditions.push({ experienceLevel });
+    }
+
+    const whereCategories = { AND: andConditions };
 
     const whereFallback = {
       AND: [
@@ -98,16 +134,33 @@ function buildWhere(config, q) {
     AND: [...baseFilters, fieldFilter],
   };
 
+  // Add extra filters from searchParams
+  if (location) {
+    where.AND.push({
+      OR: [
+        { county: { contains: location } },
+        { town: { contains: location } },
+      ],
+    });
+  }
+  // Only add employmentType filter if it doesn't conflict with the fixed filter
+  if (employmentType && config.filterKey !== "employmentType") {
+    where.AND.push({ employmentType });
+  }
+  // Only add experienceLevel filter if it doesn't conflict with the fixed filter
+  if (experienceLevel && config.filterKey !== "experienceLevel") {
+    where.AND.push({ experienceLevel });
+  }
+
   return { where };
 }
 
 async function fetchJobs(config, searchParams) {
-  const q = searchParams.q || null;
   const page = Math.max(1, parseInt(searchParams.page, 10) || 1);
   const sort = searchParams.sort || "newest";
 
   const orderBy = buildOrderBy(sort);
-  const queryResult = buildWhere(config, q);
+  const queryResult = buildWhere(config, searchParams);
 
   let jobs = [];
   let total = 0;
@@ -115,7 +168,6 @@ async function fetchJobs(config, searchParams) {
   if (config.filterKey === "category") {
     const { whereCategories, whereFallback } = queryResult;
 
-    // Try categories filter first, fall back to text match
     try {
       const result = await Promise.all([
         db.job.findMany({
@@ -235,6 +287,14 @@ export default async function JobFilterView({ searchParams, ...config }) {
 
   const q = params.q || "";
   const sort = params.sort || "newest";
+  const location = params.location || "";
+  const employmentType = params.employmentType || "";
+  const experienceLevel = params.experienceLevel || "";
+
+  // Determine if we should show employment type / experience level dropdowns
+  // (hide them when they conflict with the page's fixed filter)
+  const showEmploymentTypeFilter = config.filterKey !== "employmentType";
+  const showExperienceLevelFilter = config.filterKey !== "experienceLevel";
 
   const breadcrumbItems = [
     { name: "Home", href: "/" },
@@ -244,7 +304,6 @@ export default async function JobFilterView({ searchParams, ...config }) {
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbItems);
 
-  // Determine the vacancy label
   const vacancyLabel = config.filterKey === "isRemote"
     ? "remote job"
     : config.filterKey === "category"
@@ -307,9 +366,10 @@ export default async function JobFilterView({ searchParams, ...config }) {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search + Filter Bar */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-          <form action={config.pagePath} method="GET" className="flex flex-col sm:flex-row gap-3">
+          <form action={config.pagePath} method="GET" className="flex flex-col md:flex-row gap-3">
+            {/* Search Input */}
             <div className="relative flex-1">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -320,23 +380,111 @@ export default async function JobFilterView({ searchParams, ...config }) {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               />
             </div>
-            <button
-              type="submit"
-              className="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-            >
-              <FiFilter className="w-4 h-4" />
-              Search
-            </button>
-            {q && (
-              <Link
-                href={config.pagePath}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-1.5 whitespace-nowrap"
-              >
-                <FiX className="w-4 h-4" />
-                Clear
-              </Link>
+
+            {/* Location Input */}
+            <div className="relative min-w-[140px]">
+              <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                name="location"
+                defaultValue={location}
+                placeholder="Location..."
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              />
+            </div>
+
+            {/* Employment Type Dropdown — only if not conflicting */}
+            {showEmploymentTypeFilter && (
+              <div className="relative min-w-[150px]">
+                <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <select
+                  name="employmentType"
+                  defaultValue={employmentType || ""}
+                  className="w-full appearance-none pl-10 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 cursor-pointer bg-white"
+                >
+                  <option value="">All Job Types</option>
+                  {EMPLOYMENT_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
             )}
+
+            {/* Experience Level Dropdown — only if not conflicting */}
+            {showExperienceLevelFilter && (
+              <div className="relative min-w-[150px]">
+                <FiStar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <select
+                  name="experienceLevel"
+                  defaultValue={experienceLevel || ""}
+                  className="w-full appearance-none pl-10 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 cursor-pointer bg-white"
+                >
+                  <option value="">All Experience</option>
+                  {EXPERIENCE_LEVELS.map((lvl) => (
+                    <option key={lvl.value} value={lvl.value}>{lvl.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Submit + Clear */}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+              >
+                <FiFilter className="w-4 h-4" />
+                Filter
+              </button>
+              {(q || location || employmentType || experienceLevel) && (
+                <Link
+                  href={config.pagePath}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <FiX className="w-4 h-4" />
+                  Clear
+                </Link>
+              )}
+            </div>
           </form>
+
+          {/* Active filter badges */}
+          {(q || location || employmentType || experienceLevel) && (
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
+              {q && (
+                <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1 rounded-full">
+                  Search: &quot;{q}&quot;
+                  <Link href={buildUrl(config.pagePath, params, { q: undefined })} className="hover:text-teal-900 ml-0.5">
+                    <FiX className="w-3 h-3" />
+                  </Link>
+                </span>
+              )}
+              {location && (
+                <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1 rounded-full">
+                  📍 {location}
+                  <Link href={buildUrl(config.pagePath, params, { location: undefined })} className="hover:text-teal-900 ml-0.5">
+                    <FiX className="w-3 h-3" />
+                  </Link>
+                </span>
+              )}
+              {showEmploymentTypeFilter && employmentType && (
+                <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1 rounded-full">
+                  {formatJobType(employmentType)}
+                  <Link href={buildUrl(config.pagePath, params, { employmentType: undefined })} className="hover:text-teal-900 ml-0.5">
+                    <FiX className="w-3 h-3" />
+                  </Link>
+                </span>
+              )}
+              {showExperienceLevelFilter && experienceLevel && (
+                <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1 rounded-full">
+                  {formatExperienceLevel(experienceLevel)}
+                  <Link href={buildUrl(config.pagePath, params, { experienceLevel: undefined })} className="hover:text-teal-900 ml-0.5">
+                    <FiX className="w-3 h-3" />
+                  </Link>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
