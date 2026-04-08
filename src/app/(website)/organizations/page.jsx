@@ -18,7 +18,7 @@ export async function generateMetadata({ searchParams }) {
 export default async function OrganizationsPage({ searchParams }) {
   const q = (await searchParams).q || "";
   const industry = (await searchParams).industry || "";
-  const county = (await searchParams).county || "";
+  const city = (await searchParams).city || "";
   const page = parseInt((await searchParams).page || "1", 10);
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -28,18 +28,18 @@ export default async function OrganizationsPage({ searchParams }) {
     where.OR = [
       { name: { contains: q } },
       { industry: { contains: q } },
-      { county: { contains: q } },
+      { city: { contains: q } },
     ];
   }
   if (industry) where.industry = { contains: industry };
-  if (county) where.county = { contains: county };
+  if (city) where.city = { contains: city };
 
   const [companies, total] = await Promise.all([
     db.company.findMany({
       where,
       select: {
         id: true, name: true, slug: true, logo: true, logoColor: true,
-        industry: true, county: true, country: true, website: true,
+        industry: true, city: true, country: true, website: true,
         isVerified: true, createdAt: true,
         _count: { select: { jobs: { where: { status: "PUBLISHED", isActive: true } } } },
       },
@@ -95,8 +95,8 @@ export default async function OrganizationsPage({ searchParams }) {
             <option value="Manufacturing">Manufacturing</option>
             <option value="Retail">Retail &amp; E-Commerce</option>
           </select>
-          <input type="text" name="county" defaultValue={county} placeholder="Location..." className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
-          {(q || industry || county) && (
+          <input type="text" name="city" defaultValue={city} placeholder="Location..." className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+          {(q || industry || city) && (
             <a href="/organizations" className="px-4 py-2 text-sm text-red-500 hover:text-red-700">Clear</a>
           )}
         </div>
@@ -121,7 +121,7 @@ export default async function OrganizationsPage({ searchParams }) {
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-400">
-                      <span>{[c.county, c.country].filter(Boolean).join(", ")}</span>
+                      <span>{[c.city, c.country].filter(Boolean).join(", ")}</span>
                       <span className="font-medium text-teal-600">{c._count.jobs} job{c._count.jobs !== 1 ? "s" : ""}</span>
                     </div>
                   </Link>
@@ -137,11 +137,11 @@ export default async function OrganizationsPage({ searchParams }) {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-8">
-                {page > 1 && <a href={`/organizations?page=${page-1}&q=${encodeURIComponent(q)}&industry=${industry}&county=${county}`} className="px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-100">Previous</a>}
+                {page > 1 && <a href={`/organizations?page=${page-1}&q=${encodeURIComponent(q)}&industry=${industry}&city=${city}`} className="px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-100">Previous</a>}
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
-                  <a key={p} href={`/organizations?page=${p}&q=${encodeURIComponent(q)}&industry=${industry}&county=${county}`} className={`px-3 py-2 rounded-lg text-sm ${p === page ? "bg-teal-600 text-white" : "border border-gray-300 hover:bg-gray-100"}`}>{p}</a>
+                  <a key={p} href={`/organizations?page=${p}&q=${encodeURIComponent(q)}&industry=${industry}&city=${city}`} className={`px-3 py-2 rounded-lg text-sm ${p === page ? "bg-teal-600 text-white" : "border border-gray-300 hover:bg-gray-100"}`}>{p}</a>
                 ))}
-                {page < totalPages && <a href={`/organizations?page=${page+1}&q=${encodeURIComponent(q)}&industry=${industry}&county=${county}`} className="px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-100">Next</a>}
+                {page < totalPages && <a href={`/organizations?page=${page+1}&q=${encodeURIComponent(q)}&industry=${industry}&city=${city}`} className="px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-100">Next</a>}
               </div>
             )}
           </div>

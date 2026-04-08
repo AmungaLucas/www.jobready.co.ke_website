@@ -77,7 +77,7 @@ export default function DeadlineStrip({ jobs }) {
                     <span className="text-gray-500">
                       {" "}
                       – {job.company?.name || "Company"}
-                      {job.county ? ` – ${job.county}` : ""}
+                      {job.city ? ` – ${job.city}` : ""}
                     </span>
                   </div>
                   <CountdownDisplay deadline={job.applicationDeadline} />

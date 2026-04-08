@@ -25,7 +25,7 @@ export default function RelatedJobsCard({ jobs = [], title = "Related Jobs", typ
               {[
                 item.employmentType && item.employmentType.replace(/_/g, " "),
                 item.opportunityType && item.opportunityType.replace(/_/g, " "),
-                item.company?.county || item.company?.town,
+                item.company?.city || item.company?.town,
               ]
                 .filter(Boolean)
                 .join(" • ")}

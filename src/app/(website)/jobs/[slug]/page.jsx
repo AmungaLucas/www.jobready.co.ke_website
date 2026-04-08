@@ -150,10 +150,10 @@ export default async function JobDetailPage({ params }) {
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
   ];
-  if (job.county) {
-    breadcrumbItems.push({ name: job.county, href: `/jobs?county=${encodeURIComponent(job.county)}` });
+  if (job.city) {
+    breadcrumbItems.push({ name: job.city, href: `/jobs?county=${encodeURIComponent(job.city)}` });
   }
-  if (job.town && job.town !== job.county) {
+  if (job.town && job.town !== job.city) {
     breadcrumbItems.push({ name: job.town, href: `/jobs?town=${encodeURIComponent(job.town)}` });
   }
   breadcrumbItems.push({ name: job.title, href: `/jobs/${slug}` });

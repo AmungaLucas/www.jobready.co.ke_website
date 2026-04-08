@@ -92,8 +92,9 @@ function buildWhereClause({ q, type, location, experienceLevel }) {
   if (location) {
     where.AND.push({
       OR: [
-        { county: { contains: location } },
+        { city: { contains: location } },
         { town: { contains: location } },
+        { location: { contains: location } },
       ],
     });
   }
@@ -539,7 +540,7 @@ export default async function JobsPage({ searchParams }) {
                               {company && (
                                 <Link
                                   href={`/organizations/${company.slug}`}
-                                  onClick={(e) => e.stopPropagation()}
+                                 
                                   className="text-xs text-gray-500 hover:text-teal-600 transition-colors"
                                 >
                                   {company.name}

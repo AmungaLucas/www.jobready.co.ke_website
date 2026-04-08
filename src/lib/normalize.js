@@ -58,7 +58,7 @@ export function formatTimeLeft(deadline) {
  * @returns {string}
  */
 export function buildLocation(entity) {
-  const parts = [entity.town, entity.county, entity.country].filter(Boolean);
+  const parts = [entity.town, entity.city, entity.country].filter(Boolean);
   return parts.join(", ");
 }
 
@@ -70,8 +70,9 @@ export function buildLocation(entity) {
  */
 export function formatLocation(job) {
   if (job.isRemote) return "Remote";
-  const parts = [job.town, job.county].filter(Boolean);
+  const parts = [job.town, job.city].filter(Boolean);
   if (job.country && job.country !== "Kenya") parts.push(job.country);
+  if (parts.length === 0 && job.location) return job.location;
   return parts.join(", ") || "Kenya";
 }
 

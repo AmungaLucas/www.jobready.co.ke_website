@@ -24,7 +24,7 @@ export default function JobList({ jobs }) {
               {job.title}
             </Link>
             <span className="text-gray-500 text-sm">
-              {" "}- {job.company?.name || "Company"}{job.county ? ` - ${job.county}` : ""}
+              {" "}- {job.company?.name || "Company"}{job.city ? ` - ${job.city}` : ""}
             </span>
             {job.applicationDeadline && (
               <div className="text-gray-400 text-xs">

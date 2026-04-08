@@ -276,7 +276,7 @@ export default async function RemoteJobsPage({ searchParams }) {
                               {company && (
                                 <Link
                                   href={`/organizations/${company.slug}`}
-                                  onClick={(e) => e.stopPropagation()}
+                                 
                                   className="text-xs text-gray-500 hover:text-teal-600 transition-colors"
                                 >
                                   {company.name}
