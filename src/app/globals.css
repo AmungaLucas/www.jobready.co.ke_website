@@ -2,9 +2,9 @@
 
 /* ===== JobReady.co.ke — Tailwind v4 Theme ===== */
 @theme {
-  --color-primary: #1a56db;
-  --color-primary-dark: #1e40af;
-  --color-primary-light: #dbeafe;
+  --color-primary: #5B21B6;
+  --color-primary-dark: #4C1D95;
+  --color-primary-light: #EDE9FE;
   --color-secondary: #059669;
   --color-secondary-dark: #047857;
   --color-secondary-light: #d1fae5;
@@ -35,8 +35,8 @@
   --color-sidebar-accent: #254b73;
   --color-sidebar-accent-foreground: #f8fafc;
   --color-sidebar-border: rgba(255, 255, 255, 0.08);
-  --color-sidebar-ring: rgba(59, 130, 246, 0.5);
-  --color-sidebar-primary: #1a56db;
+  --color-sidebar-ring: rgba(91, 33, 182, 0.5);
+  --color-sidebar-primary: #5B21B6;
   --color-sidebar-primary-foreground: #ffffff;
   --color-sidebar-muted: rgba(255, 255, 255, 0.5);
   --color-sidebar-muted-foreground: #cbd5e1;
@@ -52,7 +52,7 @@
   --color-muted-foreground: #6b7280;
   --color-border: #e5e7eb;
   --color-input: #e5e7eb;
-  --color-ring: #1a56db;
+  --color-ring: #5B21B6;
   --color-destructive: #dc2626;
 }
 

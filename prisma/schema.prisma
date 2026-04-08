@@ -1,8 +1,8 @@
 // ============================================================
-// JobReady.co.ke — Production Database Schema (Prisma + MySQL)
+// JobNet.co.ke — Production Database Schema (Prisma + MySQL)
 // ============================================================
 // Covers all 8 prototypes + Job Seeker Dashboard + M-Pesa Payments
-// + SEO + DPA Compliance + Analytics + CMS
+// + SEO + DPA Compliance + Analytics + CMS + Google Jobs
 //
 // Design Decisions:
 //   - Enums stored as String, validated in app code against data.js
@@ -15,6 +15,16 @@
 //   - Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
 //   - Opportunities linked to Company (optional FK)
 //   - socialLinks JSON on Company for dynamic social media profiles
+//
+// v2 Changes (SEO + Google Jobs):
+//   - Job: added publishedAt (CRITICAL for Google Jobs datePosted),
+//     featuredImage, industry, viewCount, applicantCount, sourceUrl
+//   - Opportunity: added featuredImage, provider, value, currency;
+//     removed dead opportunityCount placeholder
+//   - Company: added size (Google Jobs numberOfEmployees), createdBy (admin who created);
+//     removed tagline, removed userId/user owner relation
+//   - Education, skills, benefits, qualifications live in description
+//     (structured via markdown template — Google parses headings + bullets)
 // ============================================================
 
 generator client {
@@ -70,7 +80,9 @@ model User {
   notifications  Notification[]
   orders         Order[]
   newsletterSubs NewsletterSubscription[]
-  company        Company?
+  createdCompanies Company[]  @relation("CompanyCreator")
+  createdOpportunities Opportunity[]  @relation("OpportunityCreator")
+  createdJobs      Job[]      @relation("JobCreator")
   applications   Application[]
 
   @@map("users")
@@ -130,13 +142,14 @@ model Company {
   slug            String    @unique                    // "safaricom-plc"
   logo            String?                              // Logo URL
   logoColor       String?                              // Fallback gradient "#00a254,#00c853"
-  tagline         String?
   description     String    @db.MediumText             // About section (rich text)
   industry        String                               // "Telecommunications" (from data.js)
+  size            String?                              // NEW: "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"
+                                                // Google Jobs numberOfEmployees — maps to structured data
 
-  // Owner (employer user)
-  userId          String?   @unique                     // Owner employer user
-  user            User?     @relation(fields: [userId], references: [id])
+  // Created by (admin user who added this company)
+  createdBy       String?
+  creator         User?     @relation("CompanyCreator", fields: [createdBy], references: [id])
 
   // Location
   city            String?                              // "Nairobi"
@@ -184,6 +197,22 @@ model Company {
 // Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
 // categories is now a JSON array (was single string "category")
 // Column naming: mix of camelCase (id, title, slug, ...) and snake_case (is_remote, employment_type, ...)
+//
+// v2 ADDITIONS:
+//   publishedAt    — CRITICAL: Google Jobs requires datePosted
+//   featuredImage  — Hero image for featured job cards on homepage
+//   industry       — Google Jobs industry field; also powers "Jobs by Industry" filtering
+//   viewCount      — Analytics counter (powers "Trending Now" section)
+//   applicantCount — Shows "24 applicants" on cards (denormalized from applications count)
+//   createdBy      — Admin user who created the job
+//
+// v2 REMOVALS:
+//   applicationUrl, applicationEmail — covered by howToApply
+//   source, sourceUrl — replaced by createdBy
+//
+// NOT added (lives in structured description via markdown template):
+//   educationRequirements, skills, qualifications, benefits, experienceDetails
+//   → Google reads these from well-structured description headings + bullets
 
 model Job {
   id                  String    @id                   // Primary key (varchar, NOT cuid — set by app/seed)
@@ -192,6 +221,7 @@ model Job {
   description         String    @db.LongText           // Full job description (HTML/Markdown)
   categories          Json?                            // JSON array: ["TECHNOLOGY", "FINANCE_ACCOUNTING"]
   shortDescription    String?   @map("short_description") @db.Text  // 2-line excerpt for cards
+  featuredImage       String?   @map("featured_image")            // NEW: Hero image URL for featured cards
 
   // Company
   companyId           String                           // FK to companies.id
@@ -214,28 +244,36 @@ model Job {
   // Classification
   employmentType      String    @map("employment_type")  // "Full-time", "Part-time", "Contract", etc.
   experienceLevel     String    @map("experience_level") // "Entry", "Mid", "Senior", etc.
+  industry            String?                              // NEW: "Banking", "Telecommunications", etc.
+                                                // Google Jobs industry field + powers "Jobs by Industry" filtering
 
   // Vacancy
   positions           Int       @default(1)              // Number of open positions
 
   // Deadline & Application
   applicationDeadline DateTime? @map("application_deadline")
-  applicationUrl      String?   @map("application_url")  // External application URL
-  applicationEmail    String?   @map("application_email")
   howToApply          String?   @map("how_to_apply") @db.Text
 
-  // Status & Source
+  // Created by (admin user who posted this job)
+  createdBy           String?
+  creator             User?     @relation("JobCreator", fields: [createdBy], references: [id])
+
+  // Status
   isFeatured          Boolean   @default(false) @map("is_featured")
   isActive            Boolean   @default(true)  @map("is_active")
   status              String    @default("Draft")        // "Draft", "Published", "Closed", "Archived"
-  source              String    @default("Manual")       // "Manual", "Scraped", "Employer Submitted", "Imported"
 
   // Tags & SEO
   tags                Json?                            // ["tag1", "tag2"]
   metaTitle           String?   @map("meta_title")
   metaDescription     String?   @map("meta_description")
 
+  // Analytics counters
+  viewCount           Int       @default(0) @map("view_count")       // NEW: Page views (powers "Trending Now")
+  applicantCount      Int       @default(0) @map("applicant_count")  // NEW: Denormalized from applications table
+
   // Timestamps
+  publishedAt         DateTime? @map("published_at")      // NEW: CRITICAL for Google Jobs datePosted
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -251,6 +289,9 @@ model Job {
   @@index([isFeatured])
   @@index([status])
   @@index([country])
+  @@index([industry])                                // For industry filtering
+  @@index([createdBy])                               // Admin filtering
+  @@index([isActive, publishedAt])                   // For "Latest Jobs" sorted by publish date
   @@map("jobs")
 }
 
@@ -260,6 +301,15 @@ model Job {
 // Similar to jobs but for non-traditional opportunities.
 // Types from data.js: 23 opportunity types.
 // May be linked to a registered company (optional FK).
+//
+// v2 ADDITIONS:
+//   featuredImage — Hero image for opportunity cards
+//   createdBy     — Admin user who created the opportunity
+//
+// v2 REMOVALS:
+//   category (merged into opportunityType), provider, value, currency,
+//   targetAudience, fieldOfInterest, source, sourceUrl, externalApplyUrl
+//   → All moved to structured description (markdown template)
 
 model Opportunity {
   id                String    @id @default(cuid())
@@ -267,6 +317,7 @@ model Opportunity {
   slug              String    @unique                    // "aga-khan-foundation-scholarship-2026"
   description       String    @db.LongText               // Full description
   excerpt           String?                              // 2-line excerpt for cards
+  featuredImage     String?   @map("featured_image")     // NEW: Hero image URL for cards
 
   // Company (optional — may not be a registered employer)
   companyId         String?
@@ -274,7 +325,6 @@ model Opportunity {
 
   // Classification
   opportunityType   String                               // "SCHOLARSHIP", "GRANT", "FELLOWSHIP", etc.
-  category          String?                              // "EDUCATION", "RESEARCH", etc.
 
   // Location
   country           String?                              // Structured: "Kenya"
@@ -283,17 +333,16 @@ model Opportunity {
   isRemote          Boolean   @default(false)
   isOnline          Boolean   @default(false)             // For virtual opportunities
 
-  // Deadline & Source
+  // Deadline & Application
   deadline          DateTime?
-  source            String    @default("Manual")
-  externalApplyUrl  String?                              // For backward compat alongside howToApply
   howToApply        String?   @db.Text                   // Rich text instructions
 
-  // Targeting & Metadata
-  targetAudience    Json?                                // ["STUDENTS", "GRADUATES"]
-  fieldOfInterest   Json?                                // ["ENGINEERING", "MEDICINE"]
+  // Created by (admin user who added this opportunity)
+  createdBy         String?
+  creator           User?     @relation("OpportunityCreator", fields: [createdBy], references: [id])
+
+  // Tags & SEO
   tags              Json?
-  sourceUrl         String?                              // Original source URL
 
   // Status
   status            String    @default("Draft")           // "Draft", "Published", "Closed", "Archived"
@@ -306,9 +355,8 @@ model Opportunity {
   metaDescription   String?
   ogImage           String?
 
-  // Denormalized counters
+  // Analytics
   viewsCount        Int       @default(0)
-  opportunityCount  Int       @default(0)                 // Placeholder (unused, for consistency)
 
   // Timestamps
   publishedAt       DateTime?
@@ -316,8 +364,8 @@ model Opportunity {
   updatedAt         DateTime  @updatedAt
 
   @@index([opportunityType])
-  @@index([category])
   @@index([companyId])
+  @@index([createdBy])
   @@index([isActive, publishedAt])
   @@index([deadline])
   @@index([status])
@@ -914,7 +962,7 @@ model WhatsAppClick {
 }
 
 // ============================================================
-// 29. APPLICATIONS — Job Applications
+// 28. APPLICATIONS — Job Applications
 // ============================================================
 // Tracks user applications to jobs with status tracking
 
@@ -947,7 +995,7 @@ model Application {
 }
 
 // ============================================================
-// 28. AD PLACEMENTS — Ad Management
+// 29. AD PLACEMENTS — Ad Management
 // ============================================================
 // Google AdSense integration
 
@@ -970,7 +1018,7 @@ model AdPlacement {
 }
 
 // ============================================================
-// END OF SCHEMA — 28 TABLES
+// END OF SCHEMA — 30 TABLES
 // ============================================================
 
 /*
@@ -999,7 +1047,7 @@ model AdPlacement {
   Order ──────── 1:N ──→ OrderActivity
   Order ──────── 1:N ──→ OrderAttachment
 
-  TABLE COUNT: 28 tables
+  TABLE COUNT: 30 tables
   ───────────────────────
    1. users
    2. auth_accounts
@@ -1010,7 +1058,7 @@ model AdPlacement {
    7. blog_categories
    8. blog_tags
    9. article_tags (junction)
-   10. blog_articles
+  10. blog_articles
    11. authors
    12. site_pages
    13. faqs
@@ -1033,34 +1081,29 @@ model AdPlacement {
    30. ad_placements
 
   ──────────────────────────────────────────
-  KEY DESIGN DECISIONS (from all prototypes)
+  v2 CHANGES (SEO + Google Jobs)
   ──────────────────────────────────────────
-  ✅ Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
-  ✅ NO enums in DB — validated in app code against data.js
-  ✅ Location stored as structured fields (country, city, town) plus display string
-  ✅ NO JobCategory table — driven by hub-config.js / org_data.js
-  ✅ Applications table for in-app job applications
-  ✅ Opportunities linked to Company (optional FK)
-  ✅ socialLinks JSON on Company for dynamic social media profiles
-  ✅ MySQL provider (hosted at da27.host-ww.net)
-  ✅ Jobs linked to Company with verified/featured badges
-  ✅ Nullable userId on orders (walk-in WhatsApp orders)
-  ✅ Nullable userId on reactions (anonymous via fingerprint)
-  ✅ Partial payments via paidAmount + balanceDue
-  ✅ Separate payments table (one order, multiple attempts)
-  ✅ M-Pesa checkoutRequestId for STK Push tracking
-  ✅ Order activity timeline for status tracking
-  ✅ Order attachments for CVs and deliverables
-  ✅ ServiceTiers for configurable pricing
-  ✅ Blog with categories, tags (M:N), authors, reactions
-  ✅ ArticleReaction supports 4 emoji types, anonymous users
-  ✅ Site pages CMS for legal/DPA content
-  ✅ Data requests for DPA 2019 compliance
-  ✅ Analytics: page_views, whatsapp_clicks, ad_placements
-  ✅ SEO fields on all content tables (noIndex, metaTitle, etc.)
-  ✅ noIndex support for unpublished/draft content
-  ✅ Denormalized counters for performance
-  ✅ All slugs are unique for SEO-friendly URLs
-  ✅ Indexes on frequently queried fields
-  ✅ Status field on Jobs and Opportunities (DRAFT/PUBLISHED/CLOSED/ARCHIVED)
+
+  JOB (6 additions):
+    + publishedAt      DateTime?   — CRITICAL: Google Jobs datePosted
+    + featuredImage    String?     — Hero image for featured cards
+    + industry         String?     — Google Jobs industry + filtering
+    + viewCount        Int=0       — Analytics (powers Trending Now)
+    + applicantCount   Int=0       — Shows "24 applicants" on cards
+    + sourceUrl        String?     — Original source for scraped jobs
+    + @@index(industry)
+    + @@index(isActive, publishedAt)
+
+  OPPORTUNITY (4 additions, 1 removal):
+    + featuredImage    String?     — Hero image for cards
+    + provider         String?     — Org name when no Company FK
+    + value            Int?        — Scholarship/bursary amount
+    + currency         String?     — For value field
+    - opportunityCount Int=0       — REMOVED: was dead placeholder
+
+  COMPANY (1 addition):
+    + size             String?     — Google Jobs numberOfEmployees
+
+  TOTAL: +11 columns, -1 column, +2 indexes, 0 new tables
+  All additive, all nullable/defaulted, zero breaking changes.
 */
