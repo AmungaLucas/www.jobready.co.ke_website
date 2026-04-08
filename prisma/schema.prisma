@@ -18,9 +18,10 @@
 //
 // v2 Changes (SEO + Google Jobs):
 //   - Job: added publishedAt (CRITICAL for Google Jobs datePosted),
-//     featuredImage, industry, viewCount, applicantCount, sourceUrl
-//   - Opportunity: added featuredImage, provider, value, currency;
-//     removed dead opportunityCount placeholder
+//     featuredImage, industry, viewCount, applicantCount, createdBy
+//   - Opportunity: added featuredImage, createdBy;
+//     removed: category (merged into opportunityType), provider, value, currency,
+//     targetAudience, fieldOfInterest, source, sourceUrl, externalApplyUrl
 //   - Company: added size (Google Jobs numberOfEmployees), createdBy (admin who created);
 //     removed tagline, removed userId/user owner relation
 //   - Education, skills, benefits, qualifications live in description
