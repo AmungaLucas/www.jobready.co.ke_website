@@ -195,15 +195,15 @@ export default async function HomePage() {
   const data = await fetchHomepageData();
   const jsonLd = generateWebSiteJsonLd();
 
-  // Split gov jobs: county = those with "County" in location/title, national = rest
+  // Split gov jobs: county = those with "County" in county/title, national = rest
   const countyJobs = data.govJobs.filter(
     (j) =>
-      (j.location && j.location.toLowerCase().includes("county")) ||
+      (j.county && j.county.toLowerCase().includes("county")) ||
       (j.title && j.title.toLowerCase().includes("county"))
   );
   const nationalJobs = data.govJobs.filter(
     (j) =>
-      !(j.location && j.location.toLowerCase().includes("county")) &&
+      !(j.county && j.county.toLowerCase().includes("county")) &&
       !(j.title && j.title.toLowerCase().includes("county"))
   );
 

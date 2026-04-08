@@ -40,7 +40,6 @@ export async function GET(request) {
       andConditions.push({
         OR: [
           { name: { contains: search } },
-          { tagline: { contains: search } },
           { industry: { contains: search } },
         ],
       });
@@ -69,7 +68,6 @@ export async function GET(request) {
           slug: true,
           logo: true,
           logoColor: true,
-          tagline: true,
           industry: true,
           county: true,
           town: true,

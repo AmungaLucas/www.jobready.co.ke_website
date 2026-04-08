@@ -47,7 +47,6 @@ export async function GET(request, { params }) {
             slug: true,
             logo: true,
             logoColor: true,
-            tagline: true,
             industry: true,
             county: true,
             country: true,
@@ -143,7 +142,7 @@ export async function PUT(request, { params }) {
       where: { slug },
       include: {
         company: {
-          select: { userId: true },
+          select: { id: true },
         },
       },
     });
@@ -163,7 +162,7 @@ export async function PUT(request, { params }) {
 
     if (
       !currentUser ||
-      (currentUser.role !== "ADMIN" && existingJob.company.userId !== session.user.id)
+      (currentUser.role !== "ADMIN" && existingJob.company.id !== session.user.id)
     ) {
       return NextResponse.json(
         { error: "You do not have permission to update this job" },
@@ -186,10 +185,8 @@ export async function PUT(request, { params }) {
       deadline,
       howToApply,
       tags,
-      applicationEmail,
-      externalApplyUrl,
       country,
-      city,
+      county,
       town,
       status,
       isFeatured,
@@ -307,20 +304,12 @@ export async function PUT(request, { params }) {
       updateData.tags = tags && Array.isArray(tags) ? tags : null;
     }
 
-    if (applicationEmail !== undefined) {
-      updateData.applicationEmail = applicationEmail || null;
-    }
-
-    if (externalApplyUrl !== undefined) {
-      updateData.applicationUrl = externalApplyUrl || null;
-    }
-
     if (country !== undefined) {
       updateData.country = country || null;
     }
 
-    if (city !== undefined) {
-      updateData.county = city || null;
+    if (county !== undefined) {
+      updateData.county = county || null;
     }
 
     if (town !== undefined) {
@@ -416,7 +405,7 @@ export async function DELETE(request, { params }) {
       where: { slug },
       include: {
         company: {
-          select: { userId: true },
+          select: { id: true },
         },
       },
     });
@@ -436,7 +425,7 @@ export async function DELETE(request, { params }) {
 
     if (
       !currentUser ||
-      (currentUser.role !== "ADMIN" && existingJob.company.userId !== session.user.id)
+      (currentUser.role !== "ADMIN" && existingJob.company.id !== session.user.id)
     ) {
       return NextResponse.json(
         { error: "You do not have permission to delete this job" },

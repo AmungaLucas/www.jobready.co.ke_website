@@ -183,26 +183,7 @@ export async function POST(request) {
       );
     }
 
-    // Find user's company
-    const company = await db.company.findUnique({
-      where: { userId: session.user.id },
-      select: { id: true, isActive: true },
-    });
-
-    if (!company) {
-      return NextResponse.json(
-        { error: "You must create a company profile before posting jobs" },
-        { status: 400 }
-      );
-    }
-
-    if (!company.isActive) {
-      return NextResponse.json(
-        { error: "Your company profile is not active" },
-        { status: 400 }
-      );
-    }
-
+    // Parse body — companyId is required (employer must have a linked company)
     const body = await request.json();
     const {
       title,
@@ -218,16 +199,42 @@ export async function POST(request) {
       deadline,
       howToApply,
       tags,
-      applicationEmail,
-      externalApplyUrl,
       country,
-      city,
+      county,
       town,
       status,
       isFeatured,
       positions,
       draft,
+      companyId,
     } = body;
+
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify company exists and is active
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!company) {
+      return NextResponse.json(
+        { error: "Company not found" },
+        { status: 400 }
+      );
+    }
+
+    if (!company.isActive) {
+      return NextResponse.json(
+        { error: "Your company profile is not active" },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!title || typeof title !== "string" || title.trim().length < 3) {
@@ -308,10 +315,8 @@ export async function POST(request) {
       applicationDeadline: parsedDeadline,
       howToApply: howToApply || null,
       tags: tags && Array.isArray(tags) ? tags : null,
-      applicationEmail: applicationEmail || null,
-      applicationUrl: externalApplyUrl || null,
       country: country || null,
-      county: city || null,
+      county: county || null,
       town: town || null,
       status: status || "DRAFT",
       isFeatured: Boolean(isFeatured) && user.role === "ADMIN",

@@ -138,7 +138,6 @@ export async function GET(request) {
           ]},
           { isActive: true },
           ...(category ? [{ category }] : []),
-          ...(location ? [{ county: { contains: location } }] : []),
         ],
       };
 
@@ -151,11 +150,6 @@ export async function GET(request) {
             slug: true,
             opportunityType: true,
             category: true,
-            country: true,
-            county: true,
-            town: true,
-            isRemote: true,
-            isOnline: true,
             isFeatured: true,
             deadline: true,
             publishedAt: true,
@@ -204,7 +198,6 @@ export async function GET(request) {
             slug: true,
             logo: true,
             logoColor: true,
-            tagline: true,
             industry: true,
             county: true,
             isVerified: true,

@@ -49,8 +49,8 @@ export async function GET(request, { params }) {
       isActive: true,
       publishedAt: { not: null, lte: now },
       OR: [
-        { deadline: null },
-        { deadline: { gte: today } },
+        { applicationDeadline: null },
+        { applicationDeadline: { gte: today } },
       ],
     };
 
@@ -99,7 +99,6 @@ export async function GET(request, { params }) {
           slug: true,
           logo: true,
           logoColor: true,
-          tagline: true,
           industry: true,
           county: true,
           town: true,
