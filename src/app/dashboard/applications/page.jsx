@@ -318,7 +318,7 @@ function ApplicationCard({
             </div>
             <div className="min-w-0 flex-1">
               {jobSlug ? (
-                <Link href={`/job/${jobSlug}`} className="block">
+                <Link href={`/jobs/${jobSlug}`} className="block">
                   <h3 className="font-semibold text-sm truncate hover:text-primary transition-colors">
                     {jobTitle}
                   </h3>
@@ -352,7 +352,7 @@ function ApplicationCard({
             </p>
             {jobSlug ? (
               <Button variant="ghost" size="sm" className="text-xs h-7" asChild>
-                <Link href={`/job/${jobSlug}`}>
+                <Link href={`/jobs/${jobSlug}`}>
                   <ExternalLink className="size-3 mr-1" />
                   View Job
                 </Link>

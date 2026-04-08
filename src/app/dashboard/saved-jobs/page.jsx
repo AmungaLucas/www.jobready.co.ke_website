@@ -292,7 +292,7 @@ function SavedJobCard({
         {/* Job Title */}
         <div>
           {jobSlug ? (
-            <Link href={`/job/${jobSlug}`} className="block">
+            <Link href={`/jobs/${jobSlug}`} className="block">
               <h3 className="font-semibold text-sm leading-snug line-clamp-2 hover:text-primary transition-colors">
                 {jobTitle}
               </h3>
@@ -333,7 +333,7 @@ function SavedJobCard({
           </div>
           {jobSlug ? (
             <Button variant="outline" size="sm" className="text-xs h-7" asChild>
-              <Link href={`/job/${jobSlug}`}>
+              <Link href={`/jobs/${jobSlug}`}>
                 <ExternalLink className="size-3 mr-1" />
                 View
               </Link>

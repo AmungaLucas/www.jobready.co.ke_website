@@ -3,6 +3,7 @@ import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 import HomeHero from "./_components/HomeHero";
+import TrustedByBar from "./_components/TrustedByBar";
 import DeadlineStrip from "./_components/DeadlineStrip";
 import FeaturedJobs from "./_components/FeaturedJobs";
 import JobList from "./_components/JobList";
@@ -13,6 +14,7 @@ import EntryInternLocation from "./_components/EntryInternLocation";
 import OpportunityGrid from "./_components/OpportunityGrid";
 import UniCvBursaries from "./_components/UniCvBursaries";
 import CareerBlog from "./_components/CareerBlog";
+import HomeSidebar from "./_components/HomeSidebar";
 import WhatsAppFloat from "./_components/WhatsAppFloat";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +44,8 @@ async function fetchHomepageData() {
       locationCounts,
       totalJobs,
       totalCompanies,
+      topCompanies,
+      blogArticles,
     ] = await Promise.all([
       // Latest 10 published jobs (for job list)
       db.job.findMany({
@@ -157,6 +161,32 @@ async function fetchHomepageData() {
       // Counts
       db.job.count({ where: { status: "PUBLISHED", isActive: true } }),
       db.company.count({ where: { isActive: true } }),
+      // Top companies for TrustedByBar (sorted by active job count)
+      db.company.findMany({
+        where: { isActive: true },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          logoColor: true,
+          industry: true,
+          isVerified: true,
+          _count: { select: { jobs: { where: { status: "PUBLISHED", isActive: true } } } },
+        },
+      }),
+      // Recent blog articles for CareerBlog
+      db.blogArticle.findMany({
+        where: { status: "PUBLISHED", publishedAt: { not: null } },
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+        include: {
+          author: { select: { name: true } },
+          category: { select: { name: true, color: true } },
+        },
+      }),
     ]);
 
     return {
@@ -173,6 +203,8 @@ async function fetchHomepageData() {
       locationCounts: locationCounts || [],
       totalJobs: totalJobs || 0,
       totalCompanies: totalCompanies || 0,
+      topCompanies: topCompanies || [],
+      blogArticles: blogArticles || [],
     };
   } catch (error) {
     console.error("[Homepage] DB fetch error:", error);
@@ -190,6 +222,8 @@ async function fetchHomepageData() {
       locationCounts: [],
       totalJobs: 0,
       totalCompanies: 0,
+      topCompanies: [],
+      blogArticles: [],
     };
   }
 }
@@ -223,15 +257,17 @@ export default async function HomePage() {
       />
 
       <HomeHero />
+      <TrustedByBar companies={data.topCompanies} />
       <DeadlineStrip jobs={data.deadlineJobs} />
       <FeaturedJobs featuredJobs={data.featuredJobs} />
 
-      {/* Latest Jobs + Trending — 2 column */}
+      {/* Latest Jobs + Trending + Sidebar — 3 column */}
       <section className="py-8 md:py-12">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-[1fr_320px] gap-8">
             <JobList jobs={data.latestJobs} />
             <TrendingNow jobs={data.trendingJobs} />
+            <HomeSidebar featuredJobs={data.featuredJobs} topCompanies={data.topCompanies} deadlineJobs={data.deadlineJobs} />
           </div>
         </div>
       </section>
@@ -251,7 +287,7 @@ export default async function HomePage() {
         universityOpps={data.universityOpps}
         bursaryOpps={data.bursaryOpps}
       />
-      <CareerBlog />
+      <CareerBlog articles={data.blogArticles} />
       <WhatsAppFloat />
     </>
   );

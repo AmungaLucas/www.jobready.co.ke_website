@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/useSession";
 
 /**
  * ProtectedRoute — wraps children requiring authentication.
- * - If not authenticated and not loading → redirects to /auth/login?callbackUrl=...
+ * - If not authenticated and not loading → redirects to /login?callbackUrl=...
  * - If loading → shows full-page spinner
  * - If authenticated → renders children
  */
@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       const callbackUrl = encodeURIComponent(pathname);
-      router.replace(`/auth/login?callbackUrl=${callbackUrl}`);
+      router.replace(`/login?callbackUrl=${callbackUrl}`);
     }
   }, [isLoading, isAuthenticated, router, pathname]);
 
