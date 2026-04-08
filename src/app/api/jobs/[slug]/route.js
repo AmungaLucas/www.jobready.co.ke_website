@@ -66,6 +66,12 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Increment view count (fire and forget — no await for performance)
+    db.job.update({
+      where: { id: job.id },
+      data: { viewCount: { increment: 1 } },
+    }).catch(() => {});
+
     // Fetch similar jobs (same categories, different job, active, published)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
