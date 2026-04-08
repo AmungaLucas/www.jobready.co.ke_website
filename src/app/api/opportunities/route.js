@@ -101,7 +101,7 @@ export async function GET(request) {
           },
         },
         isFeatured: true,
-        viewsCount: true,
+        viewCount: true,
         publishedAt: true,
       },
     });

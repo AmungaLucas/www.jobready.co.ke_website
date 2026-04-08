@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
     // Increment view count (fire and forget — no await for performance)
     db.opportunity.update({
       where: { id: opportunity.id },
-      data: { viewsCount: { increment: 1 } },
+      data: { viewCount: { increment: 1 } },
     }).catch(() => {});
 
     // Fetch similar opportunities (same opportunityType, different id, active, published)
@@ -77,7 +77,7 @@ export async function GET(request, { params }) {
           },
         },
         isFeatured: true,
-        viewsCount: true,
+        viewCount: true,
         publishedAt: true,
       },
     });

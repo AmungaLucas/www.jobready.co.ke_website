@@ -81,9 +81,6 @@ model User {
   notifications  Notification[]
   orders         Order[]
   newsletterSubs NewsletterSubscription[]
-  createdCompanies Company[]  @relation("CompanyCreator")
-  createdOpportunities Opportunity[]  @relation("OpportunityCreator")
-  createdJobs      Job[]      @relation("JobCreator")
   applications   Application[]
 
   @@map("users")
@@ -157,9 +154,8 @@ model Company {
                                                 // "501-1000", "1000+"
                                                 // Google Jobs numberOfEmployees
 
-  // Created by (admin user who added this company)
+  // Created by (store user ID or email, no relation)
   createdBy       String?
-  creator         User?     @relation("CompanyCreator", fields: [createdBy], references: [id])
 
   // Location
   county          String?                              // "Nairobi" — maps to organizationLocation[].regions[]
@@ -228,7 +224,7 @@ model Company {
 //   → Google reads these from well-structured description headings + bullets
 
 model Job {
-  id                  String    @id                   // Primary key (varchar, NOT cuid — set by app/seed)
+  id                  String    @id @default(cuid())
   title               String                           // "Senior Accountant — Financial Reporting"
   slug                String    @unique                // "senior-accountant-safaricom-2026"
   description         String    @db.LongText           // Full job description (HTML/Markdown)
@@ -266,9 +262,8 @@ model Job {
   applicationDeadline DateTime? @map("application_deadline")
   howToApply          String?   @map("how_to_apply") @db.Text
 
-  // Created by (admin user who posted this job)
+  // Created by (store user ID or email, no relation)
   createdBy           String?
-  creator             User?     @relation("JobCreator", fields: [createdBy], references: [id])
 
   // Status
   isFeatured          Boolean   @default(false) @map("is_featured")
@@ -342,9 +337,8 @@ model Opportunity {
   deadline          DateTime?
   howToApply        String?   @db.Text                   // Rich text instructions
 
-  // Created by (admin user who added this opportunity)
+  // Created by (store user ID or email, no relation)
   createdBy         String?
-  creator           User?     @relation("OpportunityCreator", fields: [createdBy], references: [id])
 
   // Tags & SEO
   tags              Json?
@@ -361,7 +355,7 @@ model Opportunity {
   ogImage           String?
 
   // Analytics
-  viewsCount        Int       @default(0)
+  viewCount         Int       @default(0)
 
   // Timestamps
   publishedAt       DateTime?
