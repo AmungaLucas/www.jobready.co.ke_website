@@ -21,6 +21,14 @@ export const companySize = [
     { value: "1000+", label: "1000+ employees" }
 ];
 
+export const salaryPeriod = [
+    { value: "HOURLY", label: "Hourly" },
+    { value: "DAILY", label: "Daily" },
+    { value: "WEEKLY", label: "Weekly" },
+    { value: "MONTHLY", label: "Monthly" },
+    { value: "ANNUALLY", label: "Annually" }
+];
+
 export const organizationIndustry = [
     { value: "AGRICULTURE", label: "Agriculture, Forestry & Fishing" },
     { value: "AUTOMOTIVE", label: "Automotive & Vehicle Manufacturing" },
@@ -1293,14 +1301,6 @@ export const currencies = [
     { value: "AUD", label: "AUD - Australian Dollar" },
     { value: "INR", label: "INR - Indian Rupee" },
     { value: "CNY", label: "CNY - Chinese Yuan" }
-];
-
-// ── Salary Periods ──
-export const salaryPeriod = [
-    { value: "MONTHLY", label: "Monthly" },
-    { value: "ANNUALLY", label: "Annually" },
-    { value: "HOURLY", label: "Hourly" },
-    { value: "WEEKLY", label: "Weekly" }
 ];
 
 // ── Post Statuses ──

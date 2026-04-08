@@ -10,7 +10,7 @@ function getCountdownText(deadline) {
   const end = new Date(deadline).getTime();
   const diff = end - now;
 
-  if (diff <= 0) return "Closed";
+  if (diff <= 0) return "CLOSED";
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

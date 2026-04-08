@@ -167,6 +167,16 @@ export function generateJobJsonLd(job) {
   // Experience level
   if (job.experienceLevel) {
     const qualMapping = {
+      // Canonical UPPER_SNAKE_CASE values
+      ENTRY_LEVEL: "No experience required",
+      JUNIOR: "1-2 years experience",
+      MID_LEVEL: "1-3 years experience",
+      SENIOR: "5+ years experience",
+      LEAD: "5+ years experience",
+      MANAGER: "7+ years experience",
+      DIRECTOR: "10+ years experience",
+      EXECUTIVE: "10+ years experience",
+      // Legacy Title Case values (backward compat)
       "Entry Level": "No experience required",
       "Junior": "1-2 years experience",
       "Mid Level": "1-3 years experience",
@@ -175,11 +185,9 @@ export function generateJobJsonLd(job) {
       "Manager": "7+ years experience",
       "Director": "10+ years experience",
       "Executive": "10+ years experience",
-      // Legacy enum values (backward compat)
+      // Legacy short-form enum values
       ENTRY: "No experience required",
       MID: "1-3 years experience",
-      SENIOR: "5+ years experience",
-      MANAGER: "7+ years experience",
     };
     jsonLd.qualifications = qualMapping[job.experienceLevel] || "";
   }
@@ -548,21 +556,22 @@ export function mergeJsonLd(...jsonLdObjects) {
  */
 function mapEmploymentType(type) {
   const mapping = {
-    // New display-ready values
+    // Canonical UPPER_SNAKE_CASE values
+    FULL_TIME: "FULL_TIME",
+    PART_TIME: "PART_TIME",
+    CONTRACT: "CONTRACTOR",
+    INTERNSHIP: "INTERN",
+    FREELANCE: "CONTRACTOR",
+    VOLUNTEER: "VOLUNTEER",
+    TEMPORARY: "TEMPORARY",
+    PERMANENT: "FULL_TIME",
+    // Legacy Title Case display values (backward compat)
     "Full-time": "FULL_TIME",
     "Part-time": "PART_TIME",
     "Contract": "CONTRACTOR",
     "Internship": "INTERN",
     "Freelance": "CONTRACTOR",
     "Volunteer": "VOLUNTEER",
-    // Legacy enum values (backward compat)
-    FULL_TIME: "FULL_TIME",
-    PART_TIME: "PART_TIME",
-    CONTRACT: "CONTRACTOR",
-    INTERNSHIP: "INTERN",
-    TEMPORARY: "TEMPORARY",
-    PERMANENT: "FULL_TIME",
-    FREELANCE: "CONTRACTOR",
   };
   return mapping[type] || "FULL_TIME";
 }

@@ -138,7 +138,7 @@ export async function POST(request, { params }) {
     }
 
     // Check: job is active and published
-    if (!job.isActive || job.status !== "Published") {
+    if (!job.isActive || job.status !== "PUBLISHED") {
       return NextResponse.json(
         { error: "This job is no longer available" },
         { status: 400 }

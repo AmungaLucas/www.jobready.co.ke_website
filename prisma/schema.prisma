@@ -251,12 +251,12 @@ model Job {
   salaryMin           Int?       @map("salary_min")      // Minimum salary (e.g. 80000)
   salaryMax           Int?       @map("salary_max")      // Maximum salary (e.g. 120000)
   salaryCurrency      String    @default("KES") @map("salary_currency")
-  salaryPeriod        String    @default("Monthly") @map("salary_period")  // "Monthly", "Annually", "Hourly", "Weekly"
+  salaryPeriod        String    @default("MONTHLY") @map("salary_period")  // salaryPeriod enum: "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "ANNUALLY"
   isSalaryNegotiable  Boolean   @default(false) @map("is_salary_negotiable")
 
   // Classification
-  employmentType      String    @map("employment_type")  // "Full-time", "Part-time", "Contract", etc.
-  experienceLevel     String    @map("experience_level") // "Entry", "Mid", "Senior", etc.
+  employmentType      String    @map("employment_type")  // "FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "FREELANCE", "VOLUNTEER"
+  experienceLevel     String    @map("experience_level") // "ENTRY_LEVEL", "MID_LEVEL", "SENIOR", "JUNIOR", "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE"
   industry            String?                              // NEW: "Banking", "Telecommunications", etc.
                                                 // Google Jobs industry field + powers "Jobs by Industry" filtering
 
@@ -274,7 +274,7 @@ model Job {
   // Status
   isFeatured          Boolean   @default(false) @map("is_featured")
   isActive            Boolean   @default(true)  @map("is_active")
-  status              String    @default("Draft")        // "Draft", "Published", "Closed", "Archived"
+  status              String    @default("DRAFT")        // jobStatus enum: "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED", "FILLED", "EXPIRED"
 
   // Tags & SEO
   tags                Json?                            // ["tag1", "tag2"]
@@ -358,7 +358,7 @@ model Opportunity {
   tags              Json?
 
   // Status
-  status            String    @default("Draft")           // "Draft", "Published", "Closed", "Archived"
+  status            String    @default("Draft")           // "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
   isFeatured        Boolean   @default(false)
   isActive          Boolean   @default(true)
 

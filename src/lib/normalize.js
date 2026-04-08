@@ -33,7 +33,7 @@ export function formatTimeLeft(deadline) {
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();
 
-  if (diffMs <= 0) return "Closed";
+  if (diffMs <= 0) return "CLOSED";
 
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMins / 60);

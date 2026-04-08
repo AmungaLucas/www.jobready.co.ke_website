@@ -23,7 +23,7 @@ export async function GET() {
     const [jobs, opportunities] = await Promise.allSettled([
       // Latest 50 published jobs
       db.job.findMany({
-        where: { status: "Published" },
+        where: { status: "PUBLISHED" },
         include: {
           company: { select: { name: true } },
         },

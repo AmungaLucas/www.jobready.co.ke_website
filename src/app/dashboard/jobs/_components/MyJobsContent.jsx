@@ -59,8 +59,8 @@ const MOCK_JOBS = [
     id: 1,
     title: "Senior Software Engineer",
     location: "Nairobi, Kenya",
-    employmentType: "Full-time",
-    status: "Published",
+    employmentType: "FULL_TIME",
+    status: "PUBLISHED",
     createdAt: "2026-03-15",
     categories: ["Technology"],
   },
@@ -68,8 +68,8 @@ const MOCK_JOBS = [
     id: 2,
     title: "Financial Analyst",
     location: "Nairobi, Kenya",
-    employmentType: "Full-time",
-    status: "Published",
+    employmentType: "FULL_TIME",
+    status: "PUBLISHED",
     createdAt: "2026-03-12",
     categories: ["Finance & Accounting"],
   },
@@ -77,8 +77,8 @@ const MOCK_JOBS = [
     id: 3,
     title: "Marketing Manager",
     location: "Nairobi, Kenya",
-    employmentType: "Full-time",
-    status: "Draft",
+    employmentType: "FULL_TIME",
+    status: "DRAFT",
     createdAt: "2026-03-08",
     categories: ["Marketing"],
   },
@@ -86,8 +86,8 @@ const MOCK_JOBS = [
     id: 4,
     title: "Network Engineer",
     location: "Mombasa, Kenya",
-    employmentType: "Full-time",
-    status: "Published",
+    employmentType: "FULL_TIME",
+    status: "PUBLISHED",
     createdAt: "2026-03-05",
     categories: ["Technology"],
   },
@@ -95,8 +95,8 @@ const MOCK_JOBS = [
     id: 5,
     title: "Human Resources Intern",
     location: "Nairobi, Kenya",
-    employmentType: "Internship",
-    status: "Closed",
+    employmentType: "INTERNSHIP",
+    status: "CLOSED",
     createdAt: "2026-02-20",
     categories: ["HR"],
   },
@@ -104,8 +104,8 @@ const MOCK_JOBS = [
     id: 6,
     title: "Product Manager — M-PESA",
     location: "Nairobi, Kenya",
-    employmentType: "Full-time",
-    status: "Published",
+    employmentType: "FULL_TIME",
+    status: "PUBLISHED",
     createdAt: "2026-03-01",
     categories: ["Technology"],
   },
@@ -113,8 +113,8 @@ const MOCK_JOBS = [
     id: 7,
     title: "Data Analyst",
     location: "Nakuru, Kenya",
-    employmentType: "Contract",
-    status: "Draft",
+    employmentType: "CONTRACT",
+    status: "DRAFT",
     createdAt: "2026-03-28",
     categories: ["Finance & Accounting"],
   },
@@ -122,18 +122,18 @@ const MOCK_JOBS = [
     id: 8,
     title: "Customer Service Representative",
     location: "Kisumu, Kenya",
-    employmentType: "Full-time",
-    status: "Draft",
+    employmentType: "FULL_TIME",
+    status: "DRAFT",
     createdAt: "2026-03-28",
     categories: ["Customer Service"],
   },
 ];
 
 const STATUS_CONFIG = {
-  Published: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  Draft: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
-  Closed: { label: "Closed", className: "bg-red-50 text-red-700 border-red-200" },
-  Archived: { label: "Archived", className: "bg-gray-50 text-gray-600 border-gray-200" },
+  PUBLISHED: { label: "Active", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  DRAFT: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
+  CLOSED: { label: "Closed", className: "bg-red-50 text-red-700 border-red-200" },
+  ARCHIVED: { label: "Archived", className: "bg-gray-50 text-gray-600 border-gray-200" },
 };
 
 const ITEMS_PER_PAGE = 5;
@@ -202,9 +202,9 @@ export default function MyJobsContent() {
         <div className="flex flex-wrap gap-1">
           {[
             { key: "all", label: "All", count: MOCK_JOBS.length },
-            { key: "Published", label: "Active", count: statusCounts["Published"] || 0 },
-            { key: "Draft", label: "Draft", count: statusCounts["Draft"] || 0 },
-            { key: "Closed", label: "Closed", count: statusCounts["Closed"] || 0 },
+            { key: "PUBLISHED", label: "Active", count: statusCounts["PUBLISHED"] || 0 },
+            { key: "DRAFT", label: "Draft", count: statusCounts["DRAFT"] || 0 },
+            { key: "CLOSED", label: "Closed", count: statusCounts["CLOSED"] || 0 },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -286,7 +286,7 @@ export default function MyJobsContent() {
                   </TableHeader>
                   <TableBody>
                     {paginatedJobs.map((job) => {
-                      const statusCfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.Draft;
+                      const statusCfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.DRAFT;
                       return (
                         <TableRow key={job.id} className="group">
                           <TableCell>
@@ -337,7 +337,7 @@ export default function MyJobsContent() {
                                     Edit
                                   </Link>
                                 </DropdownMenuItem>
-                                {job.status === "Published" ? (
+                                {job.status === "PUBLISHED" ? (
                                   <DropdownMenuItem>
                                     <Pause className="mr-2 size-4" />
                                     Close Job

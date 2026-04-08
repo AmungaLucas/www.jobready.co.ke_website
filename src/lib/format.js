@@ -98,8 +98,8 @@ export function formatReadingTime(wordCount) {
 
 /**
  * Format an employment type value to display string.
- * New DB values are already display-ready ("Full-time", "Part-time", etc.).
- * Legacy enum values ("FULL_TIME", "INTERNSHIP", etc.) are mapped for backward compat.
+ * DB values are UPPER_SNAKE_CASE ("FULL_TIME", "INTERNSHIP", etc.).
+ * Legacy Title Case values ("Full-time", "Part-time", etc.) are mapped for backward compat.
  *
  * @param {string} value
  * @returns {string}
@@ -107,7 +107,7 @@ export function formatReadingTime(wordCount) {
 export function formatJobType(value) {
   if (!value) return "";
   const map = {
-    // Legacy enum values
+    // Canonical UPPER_SNAKE_CASE values
     FULL_TIME: "Full-time",
     PART_TIME: "Part-time",
     CONTRACT: "Contract",
@@ -122,8 +122,8 @@ export function formatJobType(value) {
 
 /**
  * Format an experience level value to display string.
- * New DB values are already display-ready ("Entry Level", "Mid Level", etc.).
- * Legacy enum values ("ENTRY", "MID", etc.) are mapped for backward compat.
+ * DB values are UPPER_SNAKE_CASE ("ENTRY_LEVEL", "MID_LEVEL", "SENIOR", etc.).
+ * Legacy values ("Entry Level", "MID", etc.) are mapped for backward compat.
  *
  * @param {string} value
  * @returns {string}
@@ -131,10 +131,9 @@ export function formatJobType(value) {
 export function formatExperienceLevel(value) {
   if (!value) return "";
   const map = {
-    // Legacy enum values
-    ENTRY: "Entry Level",
+    // Canonical UPPER_SNAKE_CASE values
+    ENTRY_LEVEL: "Entry Level",
     JUNIOR: "Junior",
-    MID: "Mid Level",
     MID_LEVEL: "Mid Level",
     SENIOR: "Senior",
     LEAD: "Lead",

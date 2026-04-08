@@ -4,21 +4,23 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateSlug } from "@/lib/slug";
 
-// ─── Value mapping: old uppercase → new Title Case ─────────
-const EMPLOYMENT_TYPE_MAP = {
-  FULL_TIME: "Full-time",
-  "FULL-TIME": "Full-time",
-  PART_TIME: "Part-time",
-  "PART-TIME": "Part-time",
-  CONTRACT: "Contract",
-  INTERNSHIP: "Internship",
-  FREELANCE: "Freelance",
-  VOLUNTEER: "Volunteer",
-};
-
+// ─── Value mapping: Title Case display → UPPER_SNAKE_CASE (DB canonical) ─────────
+// The DB now stores UPPER_SNAKE_CASE values. This helper normalises incoming
+// legacy Title Case values from the frontend so queries match correctly.
 function mapEmploymentType(val) {
   if (!val) return undefined;
-  return EMPLOYMENT_TYPE_MAP[val] || EMPLOYMENT_TYPE_MAP[val.toUpperCase()] || val;
+  // Already UPPER_SNAKE — return as-is
+  if (/^[A-Z][A-Z0-9_]*$/.test(val)) return val;
+  // Common legacy mappings
+  const legacy = {
+    "Full-time": "FULL_TIME",
+    "Part-time": "PART_TIME",
+    Contract: "CONTRACT",
+    Internship: "INTERNSHIP",
+    Freelance: "FREELANCE",
+    Volunteer: "VOLUNTEER",
+  };
+  return legacy[val] || val;
 }
 
 // ─── GET /api/jobs/[slug] ─────────────────────────────────────
@@ -80,7 +82,7 @@ export async function GET(request, { params }) {
         id: { not: job.id },
         ...categoryFilter,
         isActive: true,
-        status: "Published",
+        status: "PUBLISHED",
         OR: [
           { applicationDeadline: null },
           { applicationDeadline: { gte: today } },
@@ -346,9 +348,9 @@ export async function PUT(request, { params }) {
 
     if (isActive !== undefined) {
       updateData.isActive = Boolean(isActive);
-      // When activating, also set status to Published
+      // When activating, also set status to PUBLISHED
       if (isActive === true) {
-        updateData.status = "Published";
+        updateData.status = "PUBLISHED";
       }
     }
 
@@ -456,7 +458,7 @@ export async function DELETE(request, { params }) {
     // Soft delete: set isActive=false and status=Archived
     await db.job.update({
       where: { id: existingJob.id },
-      data: { isActive: false, status: "Archived" },
+      data: { isActive: false, status: "ARCHIVED" },
     });
 
     return NextResponse.json({

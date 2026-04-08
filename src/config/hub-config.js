@@ -163,7 +163,7 @@ export const hubConfig = [
       "No experience needed. Browse entry-level positions and graduate trainee programs in Kenya.",
     metaTitle: "Entry Level Jobs in Kenya 2026 — No Experience | JobReady",
     heroSubtitle: "Start your career journey today",
-    filters: { experienceLevel: "ENTRY" },
+    filters: { experienceLevel: "ENTRY_LEVEL" },
   },
   {
     slug: "management",

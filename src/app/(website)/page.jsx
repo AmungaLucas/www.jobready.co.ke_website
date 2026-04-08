@@ -45,7 +45,7 @@ async function fetchHomepageData() {
     ] = await Promise.all([
       // Latest 10 published jobs (for job list)
       db.job.findMany({
-        where: { status: "Published", isActive: true },
+        where: { status: "PUBLISHED", isActive: true },
         orderBy: { createdAt: "desc" },
         take: 10,
         include: {
@@ -56,7 +56,7 @@ async function fetchHomepageData() {
       }),
       // Featured jobs (isFeatured: true)
       db.job.findMany({
-        where: { status: "Published", isActive: true, isFeatured: true },
+        where: { status: "PUBLISHED", isActive: true, isFeatured: true },
         orderBy: { createdAt: "desc" },
         take: 5,
         include: {
@@ -68,7 +68,7 @@ async function fetchHomepageData() {
       // Deadline jobs (urgent — closing within 7 days)
       db.job.findMany({
         where: {
-          status: "Published",
+          status: "PUBLISHED",
           isActive: true,
           applicationDeadline: {
             gte: new Date(),
@@ -81,35 +81,35 @@ async function fetchHomepageData() {
       }),
       // Trending jobs (sorted by viewCount)
       db.job.findMany({
-        where: { status: "Published", isActive: true },
+        where: { status: "PUBLISHED", isActive: true },
         orderBy: { viewCount: "desc" },
         take: 5,
         include: { company: { select: { name: true, slug: true } } },
       }),
       // Entry level jobs
       db.job.findMany({
-        where: { status: "Published", isActive: true, experienceLevel: "Entry" },
+        where: { status: "PUBLISHED", isActive: true, experienceLevel: "ENTRY_LEVEL" },
         orderBy: { createdAt: "desc" },
         take: 4,
         include: { company: { select: { name: true, slug: true } } },
       }),
       // Internship jobs
       db.job.findMany({
-        where: { status: "Published", isActive: true, employmentType: "Internship" },
+        where: { status: "PUBLISHED", isActive: true, employmentType: "INTERNSHIP" },
         orderBy: { createdAt: "desc" },
         take: 4,
         include: { company: { select: { name: true, slug: true } } },
       }),
       // All government jobs (we'll split county/national in component)
       db.job.findMany({
-        where: { status: "Published", isActive: true, categories: { path: "$", array_contains: "GOVERNMENT_PUBLIC_SECTOR" } },
+        where: { status: "PUBLISHED", isActive: true, categories: { path: "$", array_contains: "GOVERNMENT_PUBLIC_SECTOR" } },
         orderBy: { createdAt: "desc" },
         take: 8,
         include: { company: { select: { name: true, slug: true } } },
       }).catch(() => {
         // Fallback if JSON filter fails: fetch and filter in-memory
         return db.job.findMany({
-          where: { status: "Published", isActive: true },
+          where: { status: "PUBLISHED", isActive: true },
           orderBy: { createdAt: "desc" },
           take: 50,
           include: { company: { select: { name: true, slug: true } } },
@@ -122,21 +122,21 @@ async function fetchHomepageData() {
       }),
       // Latest opportunities
       db.opportunity.findMany({
-        where: { status: "Published", isActive: true },
+        where: { status: "PUBLISHED", isActive: true },
         orderBy: { createdAt: "desc" },
         take: 6,
         include: { company: { select: { name: true } } },
       }),
       // University opportunities
       db.opportunity.findMany({
-        where: { status: "Published", isActive: true },
+        where: { status: "PUBLISHED", isActive: true },
         orderBy: { createdAt: "desc" },
         take: 4,
       }),
       // Bursary/Scholarship opportunities
       db.opportunity.findMany({
         where: {
-          status: "Published",
+          status: "PUBLISHED",
           isActive: true,
           opportunityType: { in: ["BURSARY", "SCHOLARSHIP"] },
         },
@@ -146,13 +146,13 @@ async function fetchHomepageData() {
       // Location counts
       db.job.groupBy({
         by: ["city"],
-        where: { status: "Published", isActive: true, city: { not: null } },
+        where: { status: "PUBLISHED", isActive: true, city: { not: null } },
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 6,
       }),
       // Counts
-      db.job.count({ where: { status: "Published", isActive: true } }),
+      db.job.count({ where: { status: "PUBLISHED", isActive: true } }),
       db.company.count({ where: { isActive: true } }),
     ]);
 

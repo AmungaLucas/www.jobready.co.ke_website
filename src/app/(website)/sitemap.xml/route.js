@@ -66,7 +66,7 @@ export async function GET() {
     const [jobs, opportunities, articles, companies] = await Promise.allSettled([
       // Published jobs (most recent 500)
       db.job.findMany({
-        where: { status: "Published" },
+        where: { status: "PUBLISHED" },
         select: { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 500,

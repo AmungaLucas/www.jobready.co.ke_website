@@ -4,21 +4,23 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateSlug } from "@/lib/slug";
 
-// ─── Value mapping: old uppercase → new Title Case ─────────
-const EMPLOYMENT_TYPE_MAP = {
-  FULL_TIME: "Full-time",
-  "FULL-TIME": "Full-time",
-  PART_TIME: "Part-time",
-  "PART-TIME": "Part-time",
-  CONTRACT: "Contract",
-  INTERNSHIP: "Internship",
-  FREELANCE: "Freelance",
-  VOLUNTEER: "Volunteer",
-};
-
+// ─── Value mapping: Title Case display → UPPER_SNAKE_CASE (DB canonical) ─────────
+// The DB now stores UPPER_SNAKE_CASE values. This helper normalises incoming
+// legacy Title Case values from the frontend so queries match correctly.
 function mapEmploymentType(val) {
   if (!val) return undefined;
-  return EMPLOYMENT_TYPE_MAP[val] || EMPLOYMENT_TYPE_MAP[val.toUpperCase()] || val;
+  // Already UPPER_SNAKE — return as-is
+  if (/^[A-Z][A-Z0-9_]*$/.test(val)) return val;
+  // Common legacy mappings
+  const legacy = {
+    "Full-time": "FULL_TIME",
+    "Part-time": "PART_TIME",
+    Contract: "CONTRACT",
+    Internship: "INTERNSHIP",
+    Freelance: "FREELANCE",
+    Volunteer: "VOLUNTEER",
+  };
+  return legacy[val] || val;
 }
 
 // ─── GET /api/jobs ────────────────────────────────────────────
@@ -51,7 +53,7 @@ export async function GET(request) {
 
     const conditions = [
       { isActive: true },
-      { status: "Published" },
+      { status: "PUBLISHED" },
       {
         OR: [
           { applicationDeadline: null },
@@ -305,7 +307,7 @@ export async function POST(request) {
       isRemote: Boolean(isRemote),
       salaryMin: salaryMin ? parseInt(salaryMin, 10) : null,
       salaryMax: salaryMax ? parseInt(salaryMax, 10) : null,
-      salaryPeriod: salaryPeriod || "Monthly",
+      salaryPeriod: salaryPeriod || "MONTHLY",
       isSalaryNegotiable: Boolean(isSalaryNegotiable),
       applicationDeadline: parsedDeadline,
       howToApply: howToApply || null,
@@ -315,7 +317,7 @@ export async function POST(request) {
       country: country || null,
       city: city || null,
       town: town || null,
-      status: status || "Draft",
+      status: status || "DRAFT",
       isFeatured: Boolean(isFeatured) && user.role === "ADMIN",
       positions: positions ? parseInt(positions, 10) : 1,
       companyId: company.id,
@@ -324,10 +326,10 @@ export async function POST(request) {
     // If not draft, publish immediately
     if (draft !== true) {
       jobData.isActive = true;
-      jobData.status = "Published";
+      jobData.status = "PUBLISHED";
     } else {
       jobData.isActive = false;
-      jobData.status = "Draft";
+      jobData.status = "DRAFT";
     }
 
     // Create job
