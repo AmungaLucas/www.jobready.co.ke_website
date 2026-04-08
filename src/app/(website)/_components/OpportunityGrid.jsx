@@ -5,63 +5,84 @@ import Link from "next/link";
 import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi";
 import { HiAcademicCap, HiUserGroup, HiStar, HiCurrencyDollar, HiLightningBolt } from "react-icons/hi";
 import { FiMonitor } from "react-icons/fi";
-import { formatDate } from "@/lib/format";
 
-// Icon mapping for opportunity types
-const typeIcons = {
-  SCHOLARSHIP: HiAcademicCap,
-  SPONSORSHIP: HiUserGroup,
-  UNIVERSITY_ADMISSION: HiAcademicCap,
-  VOLUNTEER: HiUserGroup,
-  TRAINING: FiMonitor,
-  GRANT: HiCurrencyDollar,
-  CERTIFICATION: HiStar,
-  FUNDING: HiCurrencyDollar,
-  FELLOWSHIP: HiStar,
-  APPRENTICESHIP: HiUserGroup,
-  WORKSHOP: FiMonitor,
-  CONFERENCE: HiUserGroup,
-  COMPETITION: HiLightningBolt,
-  AWARD: HiStar,
-  RESIDENCY: HiAcademicCap,
-  MENTORSHIP: HiUserGroup,
-  ACCELERATOR: HiLightningBolt,
-  INCUBATOR: HiLightningBolt,
-  BOOTCAMP: FiMonitor,
-  EXCHANGE: HiAcademicCap,
-  RESEARCH: HiAcademicCap,
-  BURSARY: HiCurrencyDollar,
-  INTERNSHIP: HiUserGroup,
-};
+// ─── The 9 opportunity types we showcase on the homepage ─────────
+const hubCategories = [
+  {
+    type: "INTERNSHIP",
+    label: "Internships",
+    description: "Paid & unpaid internship placements across Kenya and beyond.",
+    Icon: HiUserGroup,
+    color: "#0D9488", // teal
+    bgColor: "#F0FDFA",
+  },
+  {
+    type: "SPONSORSHIP",
+    label: "Sponsorships",
+    description: "Training, conference, and event sponsorships.",
+    Icon: HiUserGroup,
+    color: "#7C3AED", // violet
+    bgColor: "#F5F3FF",
+  },
+  {
+    type: "BURSARY",
+    label: "Bursaries",
+    description: "Financial aid for students in need of tuition support.",
+    Icon: HiCurrencyDollar,
+    color: "#EA580C", // orange
+    bgColor: "#FFF7ED",
+  },
+  {
+    type: "UNIVERSITY_ADMISSION",
+    label: "University Admissions",
+    description: "Admissions, application deadlines & guidance.",
+    Icon: HiAcademicCap,
+    color: "#2563EB", // blue
+    bgColor: "#EFF6FF",
+  },
+  {
+    type: "BOOTCAMP",
+    label: "Bootcamps",
+    description: "Intensive coding and skills bootcamps.",
+    Icon: FiMonitor,
+    color: "#DC2626", // red
+    bgColor: "#FEF2F2",
+  },
+  {
+    type: "MENTORSHIP",
+    label: "Mentorship",
+    description: "Connect with industry experts for career guidance.",
+    Icon: HiStar,
+    color: "#059669", // emerald
+    bgColor: "#ECFDF5",
+  },
+  {
+    type: "SCHOLARSHIP",
+    label: "Scholarships",
+    description: "Fully funded & partial scholarships for Kenyan students.",
+    Icon: HiAcademicCap,
+    color: "#5B21B6", // purple
+    bgColor: "#FAF5FF",
+  },
+  {
+    type: "CERTIFICATION",
+    label: "Certifications",
+    description: "Professional certification programmes & sponsorships.",
+    Icon: HiStar,
+    color: "#0891B2", // cyan
+    bgColor: "#ECFEFF",
+  },
+  {
+    type: "FUNDING",
+    label: "Funding",
+    description: "Grants, seed capital & research funding opportunities.",
+    Icon: HiCurrencyDollar,
+    color: "#CA8A04", // yellow-dark
+    bgColor: "#FEFCE8",
+  },
+];
 
-// Label mapping
-const typeLabels = {
-  SCHOLARSHIP: "Scholarship",
-  SPONSORSHIP: "Sponsorship",
-  UNIVERSITY_ADMISSION: "University Admission",
-  VOLUNTEER: "Volunteer",
-  TRAINING: "Training Program",
-  GRANT: "Grant",
-  CERTIFICATION: "Certification",
-  FUNDING: "Funding",
-  FELLOWSHIP: "Fellowship",
-  APPRENTICESHIP: "Apprenticeship",
-  WORKSHOP: "Workshop",
-  CONFERENCE: "Conference",
-  COMPETITION: "Competition",
-  AWARD: "Award",
-  RESIDENCY: "Residency",
-  MENTORSHIP: "Mentorship",
-  ACCELERATOR: "Accelerator",
-  INCUBATOR: "Incubator",
-  BOOTCAMP: "Bootcamp",
-  EXCHANGE: "Exchange",
-  RESEARCH: "Research",
-  BURSARY: "Bursary",
-  INTERNSHIP: "Internship",
-};
-
-export default function OpportunityGrid({ opportunities = [] }) {
+export default function OpportunityGrid({ typeCounts = {} }) {
   const scrollRef = useRef(null);
 
   const scroll = (direction) => {
@@ -72,28 +93,6 @@ export default function OpportunityGrid({ opportunities = [] }) {
       });
     }
   };
-
-  // Show mock category cards if no real opportunities yet
-  if (opportunities.length === 0) {
-    return (
-      <section className="py-8 md:py-12">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl md:text-2xl font-bold" style={{ color: "#1E293B" }}>
-              Opportunities Hub
-            </h2>
-            <Link
-              href="/opportunities"
-              className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
-            >
-              View all <FiArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <p className="text-gray-400 text-sm">No opportunities available at this time. Check back soon!</p>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="py-8 md:py-12">
@@ -106,7 +105,7 @@ export default function OpportunityGrid({ opportunities = [] }) {
             href="/opportunities"
             className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
           >
-            View all <FiArrowRight className="w-3.5 h-3.5" />
+            View all opportunities <FiArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -125,43 +124,33 @@ export default function OpportunityGrid({ opportunities = [] }) {
             ref={scrollRef}
             className="flex overflow-x-auto space-x-5 pb-4 hide-scrollbar scroll-smooth"
           >
-            {opportunities.map((opp) => {
-              const Icon = typeIcons[opp.opportunityType] || HiAcademicCap;
-              const label = typeLabels[opp.opportunityType] || opp.opportunityType;
+            {hubCategories.map((cat) => {
+              const count = typeCounts[cat.type] || 0;
               return (
                 <Link
-                  key={opp.id}
-                  href={`/opportunities/${opp.slug}`}
-                  className="flex-shrink-0 w-72 bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow no-underline"
+                  key={cat.type}
+                  href={`/opportunities?type=${cat.type}`}
+                  className="flex-shrink-0 w-64 bg-white rounded-xl shadow-md p-5 text-center hover:shadow-lg transition-shadow no-underline group"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Icon className="w-5 h-5" style={{ color: "#5B21B6" }} />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="inline-block text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 mb-1.5">
-                        {label}
-                      </span>
-                      <h3 className="font-bold text-sm text-gray-900 line-clamp-2 leading-snug">
-                        {opp.title}
-                      </h3>
-                    </div>
+                  <div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3"
+                    style={{ backgroundColor: cat.bgColor }}
+                  >
+                    <cat.Icon className="w-7 h-7" style={{ color: cat.color }} />
                   </div>
-                  {opp.company && (
-                    <p className="text-xs text-gray-500 mt-2 truncate">
-                      {opp.company.name}
-                    </p>
-                  )}
-                  {opp.excerpt && (
-                    <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">
-                      {opp.excerpt}
-                    </p>
-                  )}
-                  {opp.deadline && (
-                    <div className="mt-3 flex items-center gap-1 text-xs text-red-500 font-medium">
-                      <span>Deadline:</span>
-                      <span>{formatDate(opp.deadline)}</span>
-                    </div>
+                  <h3 className="font-bold text-base text-gray-900">
+                    {cat.label}
+                  </h3>
+                  <p className="text-gray-500 text-sm mt-1.5 leading-relaxed">
+                    {cat.description}
+                  </p>
+                  {count > 0 && (
+                    <span
+                      className="inline-block mt-3 text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style={{ backgroundColor: cat.bgColor, color: cat.color }}
+                    >
+                      {count} {count === 1 ? "opportunity" : "opportunities"}
+                    </span>
                   )}
                 </Link>
               );

@@ -36,7 +36,7 @@ async function fetchHomepageData() {
       entryLevelJobs,
       internshipJobs,
       allGovJobs,
-      latestOpportunities,
+      opportunityTypeCounts,
       universityOpps,
       bursaryOpps,
       locationCounts,
@@ -120,12 +120,11 @@ async function fetchHomepageData() {
           }).slice(0, 8);
         });
       }),
-      // Latest opportunities
-      db.opportunity.findMany({
+      // Opportunity type counts (for Opportunities Hub)
+      db.opportunity.groupBy({
+        by: ["opportunityType"],
         where: { status: "PUBLISHED", isActive: true },
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        include: { company: { select: { name: true } } },
+        _count: { id: true },
       }),
       // University opportunities (admissions, scholarships, exchange programs)
       db.opportunity.findMany({
@@ -168,7 +167,7 @@ async function fetchHomepageData() {
       entryLevelJobs: entryLevelJobs || [],
       internshipJobs: internshipJobs || [],
       govJobs: allGovJobs || [],
-      opportunities: latestOpportunities || [],
+      opportunityTypeCounts: opportunityTypeCounts || [],
       universityOpps: universityOpps || [],
       bursaryOpps: bursaryOpps || [],
       locationCounts: locationCounts || [],
@@ -185,7 +184,7 @@ async function fetchHomepageData() {
       entryLevelJobs: [],
       internshipJobs: [],
       govJobs: [],
-      opportunities: [],
+      opportunityTypeCounts: [],
       universityOpps: [],
       bursaryOpps: [],
       locationCounts: [],
@@ -247,7 +246,7 @@ export default async function HomePage() {
         internJobs={data.internshipJobs}
         locationCounts={data.locationCounts}
       />
-      <OpportunityGrid opportunities={data.opportunities} />
+      <OpportunityGrid typeCounts={Object.fromEntries((data.opportunityTypeCounts || []).map(r => [r.opportunityType, r._count.id]))} />
       <UniCvBursaries
         universityOpps={data.universityOpps}
         bursaryOpps={data.bursaryOpps}
