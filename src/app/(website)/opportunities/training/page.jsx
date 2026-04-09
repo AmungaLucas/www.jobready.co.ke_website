@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }) {
   const { generateMeta } = await import("@/lib/seo");
   const sp = await searchParams;
-  const q = sp.get("q")?.trim();
+  const q = ((sp.q || "") || "").trim();
   const title = q ? `${q} — Training Programs in Kenya` : "Training Programs in Kenya";
   const description = q
     ? `Search results for "${q}" in training programs. Find the latest training programs in Kenya. Apply now on JobReady Kenya.`

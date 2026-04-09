@@ -30,8 +30,8 @@ function getDeadlineCountdown(deadline) {
 // ─── Data Fetching ──────────────────────────────────────
 async function getOpportunities(searchParams, opportunityType) {
   const sp = searchParams;
-  const page = Math.max(1, parseInt(sp.get("page") || "1", 10));
-  const q = sp.get("q")?.trim();
+  const page = Math.max(1, parseInt(sp.page || "1", 10));
+  const q = ((sp.q || "") || "").trim();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -127,7 +127,7 @@ export default async function OpportunityFilterView({
   sidebarDescription = "Get expert feedback on your CV. Our career coaches will review it for free and help you land more interviews.",
 }) {
   const sp = searchParams;
-  const q = sp.get("q")?.trim() || "";
+  const q = ((sp.q || "") || "").trim() || "";
   const { opportunities, total, page, totalPages } = await getOpportunities(sp, opportunityType);
 
   // JSON-LD

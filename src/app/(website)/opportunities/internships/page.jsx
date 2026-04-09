@@ -38,7 +38,7 @@ function getDeadlineCountdown(deadline) {
 // ─── Metadata ───────────────────────────────────────────
 export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
-  const q = sp.get("q")?.trim();
+  const q = ((sp.q || "") || "").trim();
 
   const title = q ? `${q} — Internships in Kenya` : PAGE_TITLE;
   const description = q
@@ -55,8 +55,8 @@ export async function generateMetadata({ searchParams }) {
 // ─── Data Fetching ──────────────────────────────────────
 async function getOpportunities(searchParams) {
   const sp = searchParams;
-  const page = Math.max(1, parseInt(sp.get("page") || "1", 10));
-  const q = sp.get("q")?.trim();
+  const page = Math.max(1, parseInt(sp.page || "1", 10));
+  const q = ((sp.q || "") || "").trim();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -136,7 +136,7 @@ function generatePageNumbers(current, totalPages) {
 // ─── Page Component ─────────────────────────────────────
 export default async function InternshipsPage({ searchParams }) {
   const sp = await searchParams;
-  const q = sp.get("q")?.trim() || "";
+  const q = ((sp.q || "") || "").trim() || "";
   const { opportunities, total, page, totalPages } = await getOpportunities(sp);
 
   // JSON-LD

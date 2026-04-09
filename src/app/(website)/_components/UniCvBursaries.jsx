@@ -40,7 +40,7 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }) {
             </div>
             <div className="mt-4 text-right">
               <Link
-                href="/opportunities/scholarships"
+                href="/opportunities/university-admissions"
                 className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1"
               >
                 View all university apps <FiArrowRight className="w-3.5 h-3.5" />
