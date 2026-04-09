@@ -2,8 +2,8 @@
 export const siteConfig = {
   name: "JobReady Kenya",
   shortName: "JobReady",
-  domain: "jobready.co.ke",
-  url: "https://jobready.co.ke",
+  domain: "jobnet.co.ke",
+  url: "https://jobnet.co.ke",
   description:
     "Kenya's #1 job board — jobs, internships, scholarships & career services. Updated daily.",
 
@@ -62,7 +62,7 @@ export const siteConfig = {
 
   // SEO
   seo: {
-    ogImage: "https://jobready.co.ke/og-default.png",
+    ogImage: "https://jobnet.co.ke/og-default.png",
     twitterHandle: "@jobreadykenya",
   },
 

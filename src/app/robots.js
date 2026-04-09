@@ -28,7 +28,7 @@ export default function robots() {
         disallow: "/",
       },
     ],
-    sitemap: "https://jobready.co.ke/sitemap.xml",
-    host: "https://jobready.co.ke",
+    sitemap: "https://jobnet.co.ke/sitemap.xml",
+    host: "https://jobnet.co.ke",
   };
 }

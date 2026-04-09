@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://jobready.co.ke";
+const SITE_URL = "https://jobnet.co.ke";
 
 // ─── Static pages ──────────────────────────────────────────
 const staticPages = [
@@ -73,8 +73,8 @@ export async function GET() {
       }),
       // Published opportunities (most recent 500)
       db.opportunity.findMany({
-        where: { isPublished: true, publishedAt: { not: null } },
-        select: { slug: true, opportunityType: true, updatedAt: true },
+        where: { status: "PUBLISHED", publishedAt: { not: null } },
+        select: { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 500,
       }),
@@ -101,13 +101,13 @@ export async function GET() {
 
     dynamicEntries = [
       ...jobsData.map((job) => ({
-        url: `${SITE_URL}/job/${job.slug}`,
+        url: `${SITE_URL}/jobs/${job.slug}`,
         lastModified: new Date(job.updatedAt),
         changeFrequency: "daily",
         priority: 0.7,
       })),
       ...oppsData.map((opp) => ({
-        url: `${SITE_URL}/opportunities/${typeToHubSlug[opp.opportunityType] || "scholarships"}/${opp.slug}`,
+        url: `${SITE_URL}/opportunities/${opp.slug}`,
         lastModified: new Date(opp.updatedAt),
         changeFrequency: "daily",
         priority: 0.7,
