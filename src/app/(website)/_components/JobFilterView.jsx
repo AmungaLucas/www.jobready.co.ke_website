@@ -312,23 +312,18 @@ export default async function JobFilterView({ searchParams, ...config }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* ═══ Compact Header Bar ═══ */}
-      <section className="bg-gradient-to-r from-[#1e3a5f] via-[#2d4a7a] to-[#5B21B6] relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal-500/15 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-10">
+      {/* ═══ Compact Header ═══ */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-6">
           {/* Breadcrumb */}
-          <nav className="text-sm text-white/50 mb-4 flex flex-wrap items-center gap-1">
+          <nav className="text-sm text-gray-400 mb-4 flex flex-wrap items-center gap-1">
             {breadcrumbItems.map((item, i) => (
               <span key={item.href + item.name}>
-                {i > 0 && <span className="text-white/30 mx-1.5">/</span>}
+                {i > 0 && <span className="text-gray-300 mx-1.5">/</span>}
                 {i === breadcrumbItems.length - 1 ? (
-                  <span className="text-white/80 font-medium">{item.name}</span>
+                  <span className="text-gray-700 font-medium">{item.name}</span>
                 ) : (
-                  <Link href={item.href} className="hover:text-white/80 transition-colors">
+                  <Link href={item.href} className="hover:text-gray-700 transition-colors">
                     {item.name}
                   </Link>
                 )}
@@ -336,93 +331,87 @@ export default async function JobFilterView({ searchParams, ...config }) {
             ))}
           </nav>
 
-          {/* Title */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                {config.pageTitle}
-              </h1>
-              <p className="text-white/50 mt-1 text-sm">
-                {total.toLocaleString()} {pluralize(vacancyLabel, total)} available
-              </p>
-            </div>
+          {/* Title + Count */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">{config.pageTitle}</h1>
+            <span className="text-sm text-gray-500">
+              {total.toLocaleString()} {pluralize(vacancyLabel, total)} available
+            </span>
           </div>
 
-          {/* Embedded Search */}
-          <form action={config.pagePath} method="GET" className="mt-5 max-w-2xl">
-            <div className="relative bg-white rounded-xl shadow-2xl shadow-black/20 p-1.5 flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="q"
-                  defaultValue={q}
-                  placeholder={config.searchPlaceholder || `Search ${config.breadcrumbName.toLowerCase()} jobs...`}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                />
-              </div>
-              <div className="relative sm:w-40">
-                <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  name="location"
-                  defaultValue={location}
-                  placeholder="Location..."
-                  className="w-full pl-9 pr-3 py-3 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-[#5B21B6] to-[#7c3aed] hover:from-[#4C1D95] hover:to-[#6d28d9] text-white font-semibold px-5 py-3 rounded-lg text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25"
-              >
-                <FiSearch className="w-4 h-4" />
-                Search
-              </button>
+          {/* Search Bar */}
+          <form action={config.pagePath} method="GET" className="flex flex-col sm:flex-row gap-3 max-w-2xl">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                name="q"
+                defaultValue={q}
+                placeholder={config.searchPlaceholder || `Search ${config.breadcrumbName.toLowerCase()} jobs...`}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all"
+              />
             </div>
+            <div className="relative sm:w-40">
+              <FiMapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                name="location"
+                defaultValue={location}
+                placeholder="Location..."
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-[#5B21B6] hover:bg-[#4C1D95] text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <FiSearch className="w-4 h-4" />
+              Search
+            </button>
           </form>
 
           {/* Active filter badges */}
           {hasAnyFilter && (
             <div className="flex flex-wrap items-center gap-2 mt-3">
               {q && (
-                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                   &quot;{q}&quot;
-                  <Link href={buildUrl(config.pagePath, params, { q: undefined })} className="hover:text-red-200 transition-colors">
+                  <Link href={buildUrl(config.pagePath, params, { q: undefined })} className="hover:text-purple-900 ml-0.5">
                     <FiX className="w-3 h-3" />
                   </Link>
                 </span>
               )}
               {location && (
-                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                   📍 {location}
-                  <Link href={buildUrl(config.pagePath, params, { location: undefined })} className="hover:text-red-200 transition-colors">
+                  <Link href={buildUrl(config.pagePath, params, { location: undefined })} className="hover:text-purple-900 ml-0.5">
                     <FiX className="w-3 h-3" />
                   </Link>
                 </span>
               )}
               {showEmploymentTypeFilter && employmentType && (
-                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                   {formatJobType(employmentType)}
-                  <Link href={buildUrl(config.pagePath, params, { employmentType: undefined })} className="hover:text-red-200 transition-colors">
+                  <Link href={buildUrl(config.pagePath, params, { employmentType: undefined })} className="hover:text-purple-900 ml-0.5">
                     <FiX className="w-3 h-3" />
                   </Link>
                 </span>
               )}
               {showExperienceLevelFilter && experienceLevel && (
-                <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                   {formatExperienceLevel(experienceLevel)}
-                  <Link href={buildUrl(config.pagePath, params, { experienceLevel: undefined })} className="hover:text-red-200 transition-colors">
+                  <Link href={buildUrl(config.pagePath, params, { experienceLevel: undefined })} className="hover:text-purple-900 ml-0.5">
                     <FiX className="w-3 h-3" />
                   </Link>
                 </span>
               )}
-              <Link href={config.pagePath} className="text-white/50 hover:text-white text-xs underline underline-offset-2 transition-colors">
+              <Link href={config.pagePath} className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1">
                 Clear all
               </Link>
             </div>
           )}
         </div>
-      </section>
+      </div>
 
       {/* ═══ Main Content ═══ */}
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 py-8">

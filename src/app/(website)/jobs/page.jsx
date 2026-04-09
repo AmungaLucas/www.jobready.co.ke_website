@@ -295,32 +295,21 @@ export default async function JobsPage({ searchParams }) {
       />
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 1 — Hero / Search Header
+          SECTION 1 — Compact Listing Header
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] via-[#2d4a7a] to-[#5B21B6]">
-        {/* Decorative background shapes */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-teal-500/15 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-3xl" />
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }} />
-        </div>
-
-        <div className="relative max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-10 pb-14 md:pt-14 md:pb-20">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-6">
           {/* Breadcrumb */}
-          <nav className="text-sm text-white/50 mb-6 flex flex-wrap items-center gap-1">
+          <nav className="text-sm text-gray-400 mb-4 flex flex-wrap items-center gap-1">
             {breadcrumbItems.map((item, i) => (
               <span key={item.href + item.name}>
-                {i > 0 && <span className="text-white/30 mx-1.5">/</span>}
+                {i > 0 && <span className="text-gray-300 mx-1.5">/</span>}
                 {i === breadcrumbItems.length - 1 ? (
-                  <span className="text-white/80 font-medium truncate max-w-[250px] sm:max-w-none inline-block align-bottom">
+                  <span className="text-gray-700 font-medium truncate max-w-[250px] sm:max-w-none inline-block align-bottom">
                     {item.name}
                   </span>
                 ) : (
-                  <Link href={item.href} className="hover:text-white/80 transition-colors">
+                  <Link href={item.href} className="hover:text-gray-700 transition-colors">
                     {item.name}
                   </Link>
                 )}
@@ -328,145 +317,114 @@ export default async function JobsPage({ searchParams }) {
             ))}
           </nav>
 
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight">
-              Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-emerald-200">Dream Job</span>
+          {/* Title + Results Count */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+              Jobs in Kenya
             </h1>
-            <p className="text-white/60 text-base md:text-lg max-w-xl mx-auto">
-              {total.toLocaleString()} opportunities from Kenya&apos;s top employers — updated daily
-            </p>
+            <span className="text-sm text-gray-500">
+              {total.toLocaleString()} {total === 1 ? "job" : "jobs"} available
+            </span>
           </div>
 
           {/* ─── Search Bar ─── */}
-          <div className="max-w-3xl mx-auto">
-            <form action="/jobs" method="GET" className="relative bg-white rounded-2xl shadow-2xl shadow-black/20 p-2 flex flex-col md:flex-row gap-2">
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="q"
-                  defaultValue={q}
-                  placeholder="Job title, keyword, or company..."
-                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                />
-              </div>
+          <form action="/jobs" method="GET" className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                name="q"
+                defaultValue={q}
+                placeholder="Job title, keyword, or company..."
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all"
+              />
+            </div>
+            <div className="relative sm:w-48">
+              <FiMapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                name="location"
+                defaultValue={location}
+                placeholder="Location..."
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-[#5B21B6] hover:bg-[#4C1D95] text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <FiSearch className="w-4 h-4" />
+              Search
+            </button>
+          </form>
 
-              {/* Location Input */}
-              <div className="relative md:w-48">
-                <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="location"
-                  defaultValue={location}
-                  placeholder="Location..."
-                  className="w-full pl-10 pr-4 py-3.5 bg-gray-50 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Search Button */}
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-[#5B21B6] to-[#7c3aed] hover:from-[#4C1D95] hover:to-[#6d28d9] text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
-              >
-                <FiSearch className="w-4 h-4" />
-                Search Jobs
-              </button>
-            </form>
-
-            {/* Active filter badges */}
-            {hasActiveFilters(params) && (
-              <div className="flex flex-wrap items-center gap-2 mt-4 justify-center">
-                <span className="text-white/50 text-xs">Active filters:</span>
+          {/* Active filter badges + Popular categories row */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {hasActiveFilters(params) ? (
+              <>
                 {q && (
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                  <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                     &quot;{q}&quot;
-                    <Link href={buildFilterUrl(params, { q: null })} className="hover:text-red-200 transition-colors">
+                    <Link href={buildFilterUrl(params, { q: null })} className="hover:text-purple-900 ml-0.5">
                       <FiX className="w-3 h-3" />
                     </Link>
                   </span>
                 )}
                 {type && (
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                  <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                     {formatJobType(type)}
-                    <Link href={buildFilterUrl(params, { type: null })} className="hover:text-red-200 transition-colors">
+                    <Link href={buildFilterUrl(params, { type: null })} className="hover:text-purple-900 ml-0.5">
                       <FiX className="w-3 h-3" />
                     </Link>
                   </span>
                 )}
                 {experienceLevel && (
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                  <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                     {formatExperienceLevel(experienceLevel)}
-                    <Link href={buildFilterUrl(params, { experienceLevel: null })} className="hover:text-red-200 transition-colors">
+                    <Link href={buildFilterUrl(params, { experienceLevel: null })} className="hover:text-purple-900 ml-0.5">
                       <FiX className="w-3 h-3" />
                     </Link>
                   </span>
                 )}
                 {location && (
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/10">
+                  <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-medium px-2.5 py-1 rounded-full border border-purple-100">
                     📍 {location}
-                    <Link href={buildFilterUrl(params, { location: null })} className="hover:text-red-200 transition-colors">
+                    <Link href={buildFilterUrl(params, { location: null })} className="hover:text-purple-900 ml-0.5">
                       <FiX className="w-3 h-3" />
                     </Link>
                   </span>
                 )}
                 <Link
                   href="/jobs"
-                  className="text-white/60 hover:text-white text-xs underline underline-offset-2 transition-colors"
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1"
                 >
                   Clear all
                 </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Quick Stats */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-white/50 text-xs">
-            <div className="flex items-center gap-1.5">
-              <FiBriefcase className="w-3.5 h-3.5" />
-              <span><strong className="text-white/80">{total.toLocaleString()}</strong> Active Jobs</span>
-            </div>
-            <div className="w-1 h-1 bg-white/20 rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5">
-              <FiZap className="w-3.5 h-3.5" />
-              <span>Updated Daily</span>
-            </div>
-            <div className="w-1 h-1 bg-white/20 rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5">
-              <FiUsers className="w-3.5 h-3.5" />
-              <span><strong className="text-white/80">500+</strong> Employers</span>
-            </div>
-            <div className="w-1 h-1 bg-white/20 rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5">
-              <FiAward className="w-3.5 h-3.5" />
-              <span><strong className="text-white/80">92%</strong> Success Rate</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 2 — Popular Categories (Scrollable Pills)
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3 py-3 overflow-x-auto hide-scrollbar">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap flex-shrink-0">
+                <span className="text-gray-200 hidden sm:inline">|</span>
+              </>
+            ) : null}
+            {/* Popular categories (shown inline when no active filters, or after divider when filters active) */}
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
               Popular:
             </span>
-            {POPULAR_CATEGORIES.map((cat) => (
+            {POPULAR_CATEGORIES.slice(0, 8).map((cat) => (
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium text-gray-600 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 border border-gray-100 hover:border-purple-200 transition-all duration-200 whitespace-nowrap"
+                className="text-xs text-gray-500 hover:text-purple-600 transition-colors whitespace-nowrap"
               >
                 {cat.label}
               </Link>
             ))}
+            <Link href="/jobs/remote" className="text-xs text-gray-500 hover:text-purple-600 transition-colors whitespace-nowrap">
+              Remote
+            </Link>
+            <Link href="/jobs/internships" className="text-xs text-gray-500 hover:text-purple-600 transition-colors whitespace-nowrap">
+              Internships
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION 3 — Main Content Area
