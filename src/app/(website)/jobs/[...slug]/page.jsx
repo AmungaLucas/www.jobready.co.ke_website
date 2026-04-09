@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatCurrency, formatJobType, formatExperienceLevel } from "@/lib/format";
 import { formatLocation } from "@/lib/normalize";
 import { generateMeta, generateJobJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
-import { siteConfig } from "@/config/site-config";
+import { parseJobFilters, generateJobComboTitle, generateJobComboDescription } from "@/lib/filter-parser";
 
 // ─── Client Components ──────────────────────────────────
 import BookmarkButton from "../../_components/BookmarkButton";
@@ -14,8 +14,13 @@ import CompanyAboutCard from "../../_components/CompanyAboutCard";
 import RelatedJobsCard from "../../_components/RelatedJobsCard";
 import CVWritingCTA from "../../_components/CVWritingCTA";
 import CVServiceStrip from "../../_components/CVServiceStrip";
+import JobFilterView from "../../_components/JobFilterView";
 
-// ─── Data Fetching ──────────────────────────────────────
+export const dynamic = "force-dynamic";
+
+// ════════════════════════════════════════════════════════════
+// JOB DETAIL DATA FETCHING (unchanged from original)
+// ════════════════════════════════════════════════════════════
 async function getJob(slug) {
   try {
   const job = await db.job.findUnique({
@@ -23,20 +28,10 @@ async function getJob(slug) {
     include: {
       company: {
         select: {
-          id: true,
-          name: true,
-          slug: true,
-          logo: true,
-          logoColor: true,
-          industry: true,
-          size: true,
-          county: true,
-          country: true,
-          website: true,
-          isVerified: true,
-          description: true,
-          contactEmail: true,
-          phoneNumber: true,
+          id: true, name: true, slug: true, logo: true, logoColor: true,
+          industry: true, size: true, county: true, country: true,
+          website: true, isVerified: true, description: true,
+          contactEmail: true, phoneNumber: true,
         },
       },
     },
@@ -73,16 +68,9 @@ async function getJob(slug) {
     orderBy: { createdAt: "desc" },
     take: 5,
     select: {
-      id: true,
-      title: true,
-      slug: true,
-      employmentType: true,
-      applicationDeadline: true,
-      county: true,
-      town: true,
-      company: {
-        select: { name: true, slug: true, logo: true, logoColor: true },
-      },
+      id: true, title: true, slug: true, employmentType: true,
+      applicationDeadline: true, county: true, town: true,
+      company: { select: { name: true, slug: true, logo: true, logoColor: true } },
     },
   });
 
@@ -93,16 +81,31 @@ async function getJob(slug) {
   }
 }
 
-// ─── Metadata ───────────────────────────────────────────
-export async function generateMetadata({ params }) {
-  const { slug } = await params;
+// ════════════════════════════════════════════════════════════
+// METADATA — handles both detail and combo pages
+// ════════════════════════════════════════════════════════════
+export async function generateMetadata({ params, searchParams }) {
+  const segments = await params.slug;
+  const urlPath = `/jobs/${segments.join("/")}`;
 
+  // Multi-segment → combo filter page
+  if (segments.length >= 2) {
+    const parsed = parseJobFilters(segments);
+    if (parsed) {
+      return generateMeta({
+        title: generateJobComboTitle(parsed.labels),
+        description: generateJobComboDescription(parsed.labels),
+        path: urlPath,
+      });
+    }
+  }
+
+  // Single segment → try job detail
+  const slug = segments[0];
   try {
     const job = await db.job.findUnique({
       where: { slug },
-      include: {
-        company: { select: { name: true, county: true } },
-      },
+      include: { company: { select: { name: true, county: true } } },
     });
 
     if (!job) return { title: "Job Not Found | JobReady Kenya" };
@@ -125,9 +128,73 @@ export async function generateMetadata({ params }) {
   }
 }
 
-// ─── Page Component ─────────────────────────────────────
-export default async function JobDetailPage({ params }) {
-  const { slug } = await params;
+// ════════════════════════════════════════════════════════════
+// PAGE COMPONENT — routes to detail or combo filter view
+// ════════════════════════════════════════════════════════════
+export default async function JobCatchAllPage({ params, searchParams }) {
+  const segments = await params.slug;
+
+  // ── MULTI-SEGMENT → combo filter page ──────────────────
+  if (segments.length >= 2) {
+    const parsed = parseJobFilters(segments);
+
+    if (!parsed) notFound();
+
+    const { filters, labels } = parsed;
+    const urlPath = `/jobs/${segments.join("/")}`;
+
+    // Build the page title from labels
+    const titleParts = [];
+    if (labels.category) titleParts.push(labels.category);
+    else if (labels.employmentType) titleParts.push(labels.employmentType);
+    else if (labels.experienceLevel) titleParts.push(labels.experienceLevel);
+    else if (labels.isRemote) titleParts.push("Remote");
+    if (labels.location) titleParts.push(`in ${labels.location}`);
+    const pageTitle = `${titleParts.join(" Jobs ")} in Kenya`;
+
+    // Determine filterKey and filterValue for JobFilterView
+    let filterKey, filterValue;
+
+    if (filters.category) {
+      filterKey = "category";
+      filterValue = filters.category;
+    } else if (filters.employmentType) {
+      filterKey = "employmentType";
+      filterValue = filters.employmentType;
+    } else if (filters.experienceLevel) {
+      filterKey = "experienceLevel";
+      filterValue = filters.experienceLevel;
+    } else if (filters.isRemote) {
+      filterKey = "isRemote";
+      filterValue = true;
+    }
+
+    // Pass additional filters via searchParams merge
+    const mergedParams = { ...searchParams };
+    if (filters.county && filterKey !== "isRemote") {
+      mergedParams.location = filters.county;
+    }
+    if (filters.country && !filters.county) {
+      mergedParams.location = filters.country;
+    }
+
+    // Build breadcrumb name
+    const breadcrumbName = titleParts.join(" ");
+
+    return JobFilterView({
+      searchParams: mergedParams,
+      pageTitle,
+      pagePath: urlPath,
+      filterKey,
+      filterValue,
+      breadcrumbName,
+      emptyTitle: `No ${breadcrumbName.toLowerCase()} found`,
+      emptyDescription: `There are currently no ${breadcrumbName.toLowerCase()} matching your criteria. Check back soon or try adjusting your filters.`,
+    });
+  }
+
+  // ── SINGLE SEGMENT → job detail page ───────────────────
+  const slug = segments[0];
   const data = await getJob(slug);
 
   if (!data) notFound();
@@ -140,7 +207,6 @@ export default async function JobDetailPage({ params }) {
   const postedDate = formatDate(job.createdAt || job.publishedAt);
   const deadlineDate = job.applicationDeadline ? formatDate(job.applicationDeadline) : null;
 
-  // Salary display
   const salaryDisplay = job.salaryMin
     ? `${formatCurrency(job.salaryMin)}${job.salaryMax ? ` – ${formatCurrency(job.salaryMax)}` : ""} / ${job.salaryPeriod ? job.salaryPeriod.toLowerCase().replace(/_/g, " ") : "month"}`
     : null;
@@ -158,11 +224,8 @@ export default async function JobDetailPage({ params }) {
   }
   breadcrumbItems.push({ name: job.title, href: `/jobs/${slug}` });
 
-  // JSON-LD
   const jobJsonLd = generateJobJsonLd(job);
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbItems);
-
-  // Description is stored as HTML — render with dangerouslySetInnerHTML
   const hasDescription = !!job.description;
 
   return (
@@ -282,7 +345,6 @@ export default async function JobDetailPage({ params }) {
                 dangerouslySetInnerHTML={{ __html: hasDescription ? job.description : "<p>No description provided.</p>" }}
               />
 
-              {/* How to Apply */}
               {job.howToApply && (
                 <div className="mt-6 pt-4 border-t border-gray-200" id="how-to-apply">
                   <h3 className="font-semibold text-gray-800 text-lg mb-2">How to Apply</h3>
@@ -304,13 +366,9 @@ export default async function JobDetailPage({ params }) {
           {/* ═══ RIGHT SIDEBAR (1/3) ═══ */}
           <div className="space-y-6">
             <AdPlaceholder height="250px" />
-
             <CompanyAboutCard company={company} />
-
             <RelatedJobsCard jobs={similarJobs} title="Related Jobs" type="job" />
-
             <CVWritingCTA />
-
             <AdPlaceholder height="200px" label="Sponsored" />
           </div>
         </div>

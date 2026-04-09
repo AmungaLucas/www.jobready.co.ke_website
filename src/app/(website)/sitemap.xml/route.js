@@ -1,5 +1,10 @@
 import { getJobHubs, getOpportunityHubs } from "@/config/hub-config";
 import { db } from "@/lib/db";
+import {
+  generateJobComboUrls,
+  generateOppComboUrls,
+  generateOrgComboUrls,
+} from "@/lib/filter-parser";
 
 export const dynamic = "force-dynamic";
 
@@ -34,17 +39,29 @@ const opportunityHubs = getOpportunityHubs().map((hub) => ({
   changeFrequency: "daily",
 }));
 
-// ─── Opportunity type → hub slug mapping ───────────────────
-const typeToHubSlug = {
-  SCHOLARSHIP: "scholarships",
-  GRANT: "grants",
-  FELLOWSHIP: "fellowships",
-  BURSARY: "bursaries",
-  COMPETITION: "competitions",
-  CONFERENCE: "conferences",
-  VOLUNTEER: "volunteer",
-  APPRENTICESHIP: "apprenticeships",
-};
+// ─── Organization filter pages ──────────────────────────────
+const orgFilterPages = [
+  { slug: "ngos", label: "NGOs" },
+  { slug: "private", label: "Private Sector" },
+  { slug: "startups", label: "Startups" },
+  { slug: "government", label: "Government" },
+  { slug: "international", label: "International Orgs" },
+  { slug: "county-government", label: "County Gov" },
+  { slug: "state-corporations", label: "State Corps" },
+  { slug: "universities", label: "Universities" },
+  { slug: "smes", label: "SMEs" },
+  { slug: "foundations", label: "Foundations" },
+  { slug: "religious", label: "Religious Orgs" },
+].map((p) => ({
+  url: `/organizations/${p.slug}`,
+  priority: 0.7,
+  changeFrequency: "weekly",
+}));
+
+// ─── Combo filter URLs (auto-generated from data) ──────────
+const jobComboUrls = generateJobComboUrls();
+const oppComboUrls = generateOppComboUrls();
+const orgComboUrls = generateOrgComboUrls();
 
 // ─── GET /sitemap.xml ─────────────────────────────────────
 export async function GET() {
@@ -129,8 +146,21 @@ export async function GET() {
     console.warn("Sitemap: Could not fetch dynamic entries, using static-only sitemap.");
   }
 
+  // ─── Combo filter entries (static, auto-generated) ─────────
+  const comboEntries = [
+    ...orgFilterPages,
+    ...jobComboUrls,
+    ...oppComboUrls,
+    ...orgComboUrls,
+  ].map((page) => ({
+    url: `${SITE_URL}${page.url}`,
+    lastModified: new Date(),
+    changeFrequency: page.changeFrequency,
+    priority: page.priority,
+  }));
+
   // Build XML
-  const allEntries = [...staticEntries, ...dynamicEntries];
+  const allEntries = [...staticEntries, ...comboEntries, ...dynamicEntries];
   const urls = allEntries
     .map(
       (entry) => `  <url>
