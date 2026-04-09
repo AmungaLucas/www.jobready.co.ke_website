@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Privacy Policy — JobReady Kenya",
@@ -16,10 +18,10 @@ export default function PrivacyPage() {
         1. Introduction
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed
+        {siteConfig.brandName} (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed
         to protecting your privacy. This Privacy Policy explains how we collect,
         use, disclose, and safeguard your information when you visit our website
-        jobready.co.ke and use our services.
+        {siteConfig.domain} and use our services.
       </p>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         This policy is effective as of <strong>April 1, 2026</strong> and has
@@ -29,7 +31,7 @@ export default function PrivacyPage() {
       </p>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         Our ODPC registration number is{" "}
-        <strong>ODPC/KEN/DPI/2026/XXXX</strong>. By using JobReady.co.ke, you
+        <strong>{siteConfig.compliance.odpcRegistrationNumber}</strong>. By using {siteConfig.brandName}, you
         consent to the data practices described in this policy.
       </p>
 
@@ -238,10 +240,10 @@ export default function PrivacyPage() {
         To exercise any of these rights, please contact our Data Protection
         Officer at{" "}
         <a
-          href="mailto:privacy@jobready.co.ke"
+          href={`mailto:${siteConfig.email.privacy}`}
           className="text-[#1a56db] font-medium hover:underline no-underline"
         >
-          privacy@jobready.co.ke
+          {siteConfig.email.privacy}
         </a>
         . We will respond to your request within 21 days as required by law.
       </p>
@@ -253,7 +255,7 @@ export default function PrivacyPage() {
         7. Cookies Policy
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        We use cookies and similar tracking technologies on JobReady.co.ke. For
+        We use cookies and similar tracking technologies on {siteConfig.brandName}. For
         a detailed explanation of the cookies we use, how to manage them, and
         your choices, please visit our{" "}
         <Link
@@ -272,16 +274,16 @@ export default function PrivacyPage() {
         8. Children&apos;s Privacy
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke is not intended for use by individuals under the age of
+        {siteConfig.brandName} is not intended for use by individuals under the age of
         18. We do not knowingly collect personal information from children. If
         we become aware that we have collected data from a child under 18, we
         will take immediate steps to delete such information. If you believe we
         have inadvertently collected data from a minor, please contact us at{" "}
         <a
-          href="mailto:privacy@jobready.co.ke"
+          href={`mailto:${siteConfig.email.privacy}`}
           className="text-[#1a56db] font-medium hover:underline no-underline"
         >
-          privacy@jobready.co.ke
+          {siteConfig.email.privacy}
         </a>
         .
       </p>
@@ -303,7 +305,7 @@ export default function PrivacyPage() {
         <li>Updating the &quot;Last updated&quot; date at the top of this page</li>
       </ul>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        Your continued use of JobReady.co.ke after changes are posted
+        Your continued use of {siteConfig.brandName} after changes are posted
         constitutes your acceptance of the revised policy.
       </p>
 
@@ -317,40 +319,7 @@ export default function PrivacyPage() {
         If you have any questions about this Privacy Policy or our data
         practices, please contact us:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Data Protection Officer:{" "}
-            <a
-              href="mailto:privacy@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              privacy@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            General Support:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["dpo", "support", "contactPage"]} />
     </LegalLayout>
   );
 }

@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Terms of Service — JobReady Kenya",
@@ -19,10 +21,10 @@ export default function TermsPage() {
         1. Acceptance of Terms
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        By accessing or using JobReady.co.ke (&quot;the Platform&quot;), you
+        By accessing or using {siteConfig.brandName} (&quot;the Platform&quot;), you
         agree to be bound by these Terms of Service (&quot;Terms&quot;). If you
         do not agree to these Terms, you may not use the Platform. These Terms
-        constitute a legally binding agreement between you and JobReady Kenya.
+        constitute a legally binding agreement between you and {siteConfig.companyLegalName}.
       </p>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         We reserve the right to modify these Terms at any time. Continued use
@@ -37,7 +39,7 @@ export default function TermsPage() {
         2. Description of Service
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke is an online platform that provides:
+        {siteConfig.brandName} is an online platform that provides:
       </p>
       <ul className="list-disc pl-6 space-y-2 text-gray-600 text-[0.95rem] mb-4">
         <li>A job board listing employment opportunities in Kenya</li>
@@ -241,8 +243,7 @@ export default function TermsPage() {
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         All content on the Platform, including but not limited to logos, design,
-        text, graphics, code, and data compilations, is the property of JobReady
-        Kenya or its licensors and is protected by intellectual property laws.
+        text, graphics, code, and data compilations, is the property of {siteConfig.companyLegalName} or its licensors and is protected by intellectual property laws.
       </p>
       <ul className="list-disc pl-6 space-y-2 text-gray-600 text-[0.95rem] mb-4">
         <li>
@@ -265,7 +266,7 @@ export default function TermsPage() {
         9. Limitation of Liability
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        To the maximum extent permitted by law, JobReady Kenya shall not be
+        To the maximum extent permitted by law, {siteConfig.companyLegalName} shall not be
         liable for any indirect, incidental, special, consequential, or punitive
         damages, including but not limited to:
       </p>
@@ -291,7 +292,7 @@ export default function TermsPage() {
         10. Indemnification
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        You agree to indemnify, defend, and hold harmless JobReady Kenya, its
+        You agree to indemnify, defend, and hold harmless {siteConfig.companyLegalName}, its
         officers, directors, employees, and agents from and against any and all
         claims, damages, losses, costs, and expenses (including reasonable
         attorney fees) arising from:
@@ -331,10 +332,10 @@ export default function TermsPage() {
           <strong>Negotiation</strong> — you agree to first attempt to resolve
           the dispute by contacting us at{" "}
           <a
-            href="mailto:support@jobready.co.ke"
+            href={`mailto:${siteConfig.email.support}`}
             className="text-[#1a56db] hover:underline no-underline"
           >
-            support@jobready.co.ke
+            {siteConfig.email.support}
           </a>
         </li>
         <li>
@@ -379,54 +380,7 @@ export default function TermsPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         If you have any questions about these Terms of Service, please contact us:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Email:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-          <li>
-            Related:{" "}
-            <Link
-              href="/privacy"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Privacy Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/cookies"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Cookie Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/refunds"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Refund Policy
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["support", "contactPage"]} />
     </LegalLayout>
   );
 }

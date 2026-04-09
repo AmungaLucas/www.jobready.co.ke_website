@@ -29,7 +29,7 @@ export default function Footer() {
               className="inline-flex items-center gap-2 text-[1.3rem] font-extrabold text-white no-underline mb-3.5"
             >
               <LogoSvg />
-              JobReady<span className="text-gray-300">.co.ke</span>
+              {siteConfig.brandName}
             </Link>
             <p className="text-[0.87rem] leading-relaxed opacity-80">
               {siteConfig.footer.description}

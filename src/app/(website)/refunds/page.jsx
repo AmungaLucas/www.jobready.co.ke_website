@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Refund Policy — JobReady Kenya",
@@ -16,7 +18,7 @@ export default function RefundsPage() {
         1. Overview
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        This Refund Policy applies to all paid services offered by JobReady.co.ke,
+        This Refund Policy applies to all paid services offered by {siteConfig.brandName},
         including but not limited to professional CV writing, cover letter
         creation, LinkedIn profile optimisation, and any other premium services
         for which a fee is charged. All payments are processed via M-Pesa
@@ -117,10 +119,10 @@ export default function RefundsPage() {
         <li>
           Send an email to{" "}
           <a
-            href="mailto:payments@jobready.co.ke"
+            href={`mailto:${siteConfig.email.payments}`}
             className="text-[#1a56db] font-medium hover:underline no-underline"
           >
-            payments@jobready.co.ke
+            {siteConfig.email.payments}
           </a>{" "}
           with the subject line &quot;Refund Request — [Your Order Number]&quot;
         </li>
@@ -147,10 +149,10 @@ export default function RefundsPage() {
         </Link>{" "}
         or via WhatsApp at{" "}
         <a
-          href="https://wa.me/254786090635"
+          href={siteConfig.whatsapp.link}
           className="text-[#1a56db] hover:underline no-underline"
         >
-          +254 786 090 635
+          {siteConfig.whatsapp.display}
         </a>
         .
       </p>
@@ -219,7 +221,7 @@ export default function RefundsPage() {
         7. Free Services
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        Core features of JobReady.co.ke — including browsing and applying for
+        Core features of {siteConfig.brandName} — including browsing and applying for
         jobs, creating a profile, saving jobs, setting up job alerts, and
         reading career articles — are completely free of charge. No refund
         policy applies to free services as no payment is required.
@@ -237,72 +239,7 @@ export default function RefundsPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         If you have any questions about this Refund Policy, please contact us:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Payments:{" "}
-            <a
-              href="mailto:payments@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              payments@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            General Support:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            WhatsApp:{" "}
-            <a
-              href="https://wa.me/254786090635"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              +254 786 090 635
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-          <li>
-            Related:{" "}
-            <Link
-              href="/terms"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Terms of Service
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/privacy"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Privacy Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/disclaimer"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Disclaimer
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["payments", "support", "whatsapp", "contactPage"]} />
     </LegalLayout>
   );
 }

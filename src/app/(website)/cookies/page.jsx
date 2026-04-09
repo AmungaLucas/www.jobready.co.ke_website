@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Cookie Policy — JobReady Kenya",
@@ -32,7 +34,7 @@ export default function CookiesPage() {
         our trusted partners).
       </p>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke also uses similar technologies such as localStorage and
+        {siteConfig.brandName} also uses similar technologies such as localStorage and
         session storage, which function similarly to cookies.
       </p>
 
@@ -254,7 +256,7 @@ export default function CookiesPage() {
         4. Third-Party Cookies
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        Some cookies on JobReady.co.ke are set by third-party services that we
+        Some cookies on {siteConfig.brandName} are set by third-party services that we
         use to improve our Platform. These include:
       </p>
       <ul className="list-disc pl-6 space-y-2 text-gray-600 text-[0.95rem] mb-4">
@@ -410,40 +412,7 @@ export default function CookiesPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         If you have any questions about our use of cookies, please contact us:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Data Protection Officer:{" "}
-            <a
-              href="mailto:privacy@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              privacy@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            General Support:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["dpo", "support", "contactPage"]} />
     </LegalLayout>
   );
 }

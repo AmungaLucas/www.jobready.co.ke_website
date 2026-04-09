@@ -4,6 +4,7 @@ import { formatLocation, getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import AdPlaceholder from "../../_components/AdPlaceholder";
+import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiTrendingUp, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX } from "react-icons/fi";
 
 export const dynamic = "force-dynamic";
@@ -424,7 +425,7 @@ export default async function EntryLevelJobsPage({ searchParams }) {
                   Starting out? A professional CV makes all the difference. Get yours crafted by our experts.
                 </p>
                 <a
-                  href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20order%20a%20CV%20writing%20service.%20Please%20share%20the%20details."
+                  href={siteConfig.whatsapp.links.cvService}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm w-full"
@@ -446,7 +447,7 @@ export default async function EntryLevelJobsPage({ searchParams }) {
                 Get expert feedback on your CV and stand out to employers.
               </p>
               <a
-                href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%20saw%20the%20free%20CV%20review%20offer%20on%20your%20website.%20I%27d%20like%20to%20get%20mine%20reviewed."
+                href={siteConfig.whatsapp.links.freeCvReview}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-full transition-colors text-sm"

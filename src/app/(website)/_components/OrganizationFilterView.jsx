@@ -3,6 +3,7 @@ import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
 import AdPlaceholder from "./AdPlaceholder";
+import { siteConfig } from "@/config/site-config";
 
 const PER_PAGE = 20;
 
@@ -259,7 +260,7 @@ export default async function OrganizationFilterView({
                 Post jobs and find top talent on Kenya&apos;s #1 job board.
               </p>
               <a
-                href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20post%20a%20job%20on%20your%20platform."
+                href={siteConfig.whatsapp.links.employer}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors"

@@ -16,7 +16,8 @@ import { db } from "@/lib/db";
 // All significant actions are logged with [AuthIdentity] prefix.
 // ============================================================
 
-const PLACEHOLDER_DOMAIN = "jobready.co.ke";
+// Read email domain from env (same as siteConfig.emailDomain)
+const PLACEHOLDER_DOMAIN = process.env.NEXT_PUBLIC_EMAIL_DOMAIN || "jobready.co.ke";
 
 // ---------------------------------------------------------------------------
 // 1. normalizePhone(phone)

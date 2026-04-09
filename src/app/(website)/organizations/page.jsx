@@ -3,6 +3,7 @@ import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
 import AdPlaceholder from "../_components/AdPlaceholder";
+import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiFilter, FiX, FiTrendingUp } from "react-icons/fi";
 
 export const dynamic = "force-dynamic";
@@ -335,7 +336,7 @@ export default async function OrganizationsPage({ searchParams }) {
             <div className="bg-gradient-to-r from-purple-50 to-teal-50 p-5 rounded-xl border border-teal-200 text-center">
               <h3 className="font-bold text-gray-900 mb-2">Are You an Employer?</h3>
               <p className="text-sm text-gray-600 mb-4">Post jobs and find top talent on Kenya&apos;s #1 job board.</p>
-              <a href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20post%20a%20job%20on%20your%20platform." target="_blank" rel="noopener noreferrer" className="inline-block w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">Get Started →</a>
+              <a href={siteConfig.whatsapp.links.employer} target="_blank" rel="noopener noreferrer" className="inline-block w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">Get Started →</a>
             </div>
             <AdPlaceholder height="200px" label="Sponsored" />
           </aside>

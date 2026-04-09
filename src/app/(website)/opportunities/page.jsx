@@ -10,6 +10,7 @@ import {
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
 import AdPlaceholder from "../_components/AdPlaceholder";
+import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiClock, FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";
 
 // ─── Constants ──────────────────────────────────────────
@@ -522,7 +523,7 @@ export default async function OpportunitiesPage({ searchParams }) {
                 Get expert feedback on your CV. Our career coaches will review it for free and help you land more interviews.
               </p>
               <a
-                href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20get%20my%20CV%20reviewed%20for%20free."
+                href={siteConfig.whatsapp.links.freeCvReview}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-white text-purple-700 font-semibold px-6 py-2.5 rounded-lg hover:bg-purple-50 transition-colors text-sm no-underline"

@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Data Protection Notice — JobReady Kenya",
@@ -18,13 +20,13 @@ export default function DataProtectionPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         For the purposes of the Kenya Data Protection Act, 2019 (the
         &quot;Act&quot;), the data controller for personal data processed
-        through JobReady.co.ke is:
+        through {siteConfig.brandName} is:
       </p>
       <div className="bg-gray-50 rounded-lg p-5 mt-4 mb-4 border border-gray-100">
         <ul className="space-y-2 text-sm text-gray-600">
           <li>
-            <strong className="text-gray-800">Organisation:</strong> JobReady
-            Kenya
+            <strong className="text-gray-800">Organisation:</strong>{" "}
+            {siteConfig.companyLegalName}
           </li>
           <li>
             <strong className="text-gray-800">Website:</strong>{" "}
@@ -32,24 +34,24 @@ export default function DataProtectionPage() {
               href="/"
               className="text-[#1a56db] hover:underline no-underline"
             >
-              jobready.co.ke
+              {siteConfig.domain}
             </Link>
           </li>
           <li>
             <strong className="text-gray-800">
               ODPC Registration Number:
             </strong>{" "}
-            ODPC/KEN/DPI/2026/XXXX
+            {siteConfig.compliance.odpcRegistrationNumber}
           </li>
           <li>
             <strong className="text-gray-800">
               Data Protection Officer (DPO):
             </strong>{" "}
             <a
-              href="mailto:privacy@jobready.co.ke"
+              href={`mailto:${siteConfig.email.privacy}`}
               className="text-[#1a56db] hover:underline no-underline"
             >
-              privacy@jobready.co.ke
+              {siteConfig.email.privacy}
             </a>
           </li>
           <li>
@@ -59,10 +61,10 @@ export default function DataProtectionPage() {
           <li>
             <strong className="text-gray-800">General Enquiries:</strong>{" "}
             <a
-              href="mailto:support@jobready.co.ke"
+              href={`mailto:${siteConfig.email.support}`}
               className="text-[#1a56db] hover:underline no-underline"
             >
-              support@jobready.co.ke
+              {siteConfig.email.support}
             </a>
           </li>
         </ul>
@@ -76,7 +78,7 @@ export default function DataProtectionPage() {
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         Under Section 26 of the Act, personal data may only be processed if
-        there is a valid legal basis. JobReady.co.ke processes personal data on
+        there is a valid legal basis. {siteConfig.brandName} processes personal data on
         the following lawful grounds:
       </p>
       <ul className="list-disc pl-6 space-y-2 text-gray-600 text-[0.95rem] mb-4">
@@ -265,10 +267,10 @@ export default function DataProtectionPage() {
         information about the processing purposes, categories of data, and
         recipients. You can exercise this right by emailing{" "}
         <a
-          href="mailto:privacy@jobready.co.ke"
+          href={`mailto:${siteConfig.email.privacy}`}
           className="text-[#1a56db] hover:underline no-underline"
         >
-          privacy@jobready.co.ke
+          {siteConfig.email.privacy}
         </a>
         . We will respond within 21 days as required by law.
       </p>
@@ -305,10 +307,10 @@ export default function DataProtectionPage() {
         allows you to transfer your data to another service provider. To request
         a data export, contact our DPO at{" "}
         <a
-          href="mailto:privacy@jobready.co.ke"
+          href={`mailto:${siteConfig.email.privacy}`}
           className="text-[#1a56db] hover:underline no-underline"
         >
-          privacy@jobready.co.ke
+          {siteConfig.email.privacy}
         </a>
         .
       </p>
@@ -442,7 +444,7 @@ export default function DataProtectionPage() {
         9. Children&apos;s Data
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke is not directed at individuals under the age of 18. We
+        {siteConfig.brandName} is not directed at individuals under the age of 18. We
         do not knowingly collect or process personal data of children under 18
         years of age. Under Section 51 of the Act, a data controller may not
         process personal data in relation to a child without verifiable consent
@@ -528,63 +530,7 @@ export default function DataProtectionPage() {
         For any data protection related queries, requests, or complaints,
         please contact our Data Protection Officer:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Data Protection Officer:{" "}
-            <a
-              href="mailto:privacy@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              privacy@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            General Support:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-          <li>
-            Related:{" "}
-            <Link
-              href="/privacy"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Privacy Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/cookies"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Cookie Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/disclaimer"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Disclaimer
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["dpo", "support", "contactPage"]} />
     </LegalLayout>
   );
 }

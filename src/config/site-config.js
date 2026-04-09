@@ -1,56 +1,93 @@
 // Site-wide configuration
+// ─── All values can be overridden via .env.local ───
+// Just change .env.local and rebuild — everything updates automatically.
+
+const env = process.env;
+
+// Helper: read env var or return default
+function envOr(key, fallback) {
+  return env[key] || fallback;
+}
+
+// ─── Core brand & domain ────────────────────────────────────────────
+const SITE_DOMAIN = envOr("NEXT_PUBLIC_SITE_DOMAIN", "jobnet.co.ke");   // temporary → future: jobready.co.ke
+const EMAIL_DOMAIN = envOr("NEXT_PUBLIC_EMAIL_DOMAIN", "jobready.co.ke"); // email stays on jobready
+const BRAND_NAME = envOr("NEXT_PUBLIC_BRAND_NAME", "JobReady.co.ke");
+const BRAND_SHORT = envOr("NEXT_PUBLIC_BRAND_SHORT", "JobReady");
+const COMPANY_NAME = envOr("NEXT_PUBLIC_COMPANY_NAME", "JobReady Kenya");
+const SITE_URL = envOr("NEXT_PUBLIC_SITE_URL", `https://${SITE_DOMAIN}`);
+
+// ─── WhatsApp ───────────────────────────────────────────────────────
+const WA_NUMBER = envOr("NEXT_PUBLIC_WHATSAPP_NUMBER", "254786090635");
+const WA_DISPLAY = envOr("NEXT_PUBLIC_WHATSAPP_DISPLAY", "+254 786 090 635");
+
+function waLink(message) {
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+// ─── Computed WhatsApp config ───────────────────────────────────────
+const whatsappMessages = {
+  general: "Hi JobReady, I'd like to enquire about your services. Please assist me.",
+  cvService: "Hi JobReady, I'd like to order a CV writing service. Please share the details.",
+  payment: "Hi JobReady, I need help with my payment.",
+  freeCvReview: "Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.",
+  employer: "Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.",
+};
+
+// ─── Email config ───────────────────────────────────────────────────
+const emailUser = (prefix) => `${prefix}@${EMAIL_DOMAIN}`;
+
+// ─── Export ─────────────────────────────────────────────────────────
 export const siteConfig = {
-  name: "JobReady Kenya",
-  shortName: "JobReady",
-  // ─── DOMAIN (change these 2 to switch site URL everywhere) ───
-  // Current: jobnet.co.ke (temporary) → Future: jobready.co.ke (main)
-  domain: "jobnet.co.ke",
-  url: "https://jobnet.co.ke",
+  name: COMPANY_NAME,
+  shortName: BRAND_SHORT,
+  brandName: BRAND_NAME,
+  companyLegalName: COMPANY_NAME,
+
+  // ─── DOMAIN (change NEXT_PUBLIC_SITE_DOMAIN in .env.local to switch everywhere) ───
+  domain: SITE_DOMAIN,
+  url: SITE_URL,
+  emailDomain: EMAIL_DOMAIN,
   description:
     "Kenya's #1 job board — jobs, internships, scholarships & career services. Updated daily.",
 
   // WhatsApp (primary conversion closer)
   whatsapp: {
-    number: "254786090635",
-    display: "+254 786 090 635",
-    link: "https://wa.me/254786090635",
-    messages: {
-      general: "Hi JobReady, I'd like to enquire about your services. Please assist me.",
-      cvService: "Hi JobReady, I'd like to order a CV writing service. Please share the details.",
-      payment: "Hi JobReady, I need help with my payment.",
-      freeCvReview: "Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.",
-      employer: "Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.",
-    },
+    number: WA_NUMBER,
+    display: WA_DISPLAY,
+    link: `https://wa.me/${WA_NUMBER}`,
+    messages: whatsappMessages,
     links: {
-      general: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to enquire about your services. Please assist me.")}`,
-      cvService: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to order a CV writing service. Please share the details.")}`,
-      payment: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I need help with my payment.")}`,
-      freeCvReview: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.")}`,
-      employer: `https://wa.me/254786090635?text=${encodeURIComponent("Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.")}`,
+      general: waLink(whatsappMessages.general),
+      cvService: waLink(whatsappMessages.cvService),
+      payment: waLink(whatsappMessages.payment),
+      freeCvReview: waLink(whatsappMessages.freeCvReview),
+      employer: waLink(whatsappMessages.employer),
     },
   },
 
   // Social links
   social: {
-    twitter: "https://twitter.com/jobreadykenya",
-    facebook: "https://facebook.com/jobreadykenya",
-    linkedin: "https://linkedin.com/company/jobreadykenya",
-    instagram: "https://instagram.com/jobreadykenya",
-    tiktok: "https://tiktok.com/@jobreadykenya",
+    twitter: envOr("NEXT_PUBLIC_SOCIAL_TWITTER", "https://twitter.com/jobreadykenya"),
+    facebook: envOr("NEXT_PUBLIC_SOCIAL_FACEBOOK", "https://facebook.com/jobreadykenya"),
+    linkedin: envOr("NEXT_PUBLIC_SOCIAL_LINKEDIN", "https://linkedin.com/company/jobreadykenya"),
+    instagram: envOr("NEXT_PUBLIC_SOCIAL_INSTAGRAM", "https://instagram.com/jobreadykenya"),
+    tiktok: envOr("NEXT_PUBLIC_SOCIAL_TIKTOK", "https://tiktok.com/@jobreadykenya"),
   },
 
-  // Email addresses
+  // Email addresses (all built from EMAIL_DOMAIN)
   email: {
-    noreply: "noreply@jobready.co.ke",
-    support: "support@jobready.co.ke",
-    cv: "cv@jobready.co.ke",
-    payments: "payments@jobready.co.ke",
+    noreply: emailUser("noreply"),
+    support: emailUser("support"),
+    cv: emailUser("cv"),
+    payments: emailUser("payments"),
+    privacy: emailUser("privacy"),
   },
 
   // DPA / ODPC compliance (marketing advantage)
   compliance: {
-    odpcRegistrationNumber: "ODPC/KEN/DPI/2026/XXXX",
-    dpaOfficer: "privacy@jobready.co.ke",
+    odpcRegistrationNumber: envOr("NEXT_PUBLIC_ODPC_REG", "ODPC/KEN/DPI/2026/XXXX"),
+    dpaOfficer: emailUser("privacy"),
   },
 
   // Homepage stats (can be overwritten by DB cache)
@@ -64,13 +101,13 @@ export const siteConfig = {
 
   // SEO
   seo: {
-    get ogImage() { return `${siteConfig.url}/og-default.png`; },
-    twitterHandle: "@jobreadykenya",
+    get ogImage() { return `${SITE_URL}/og-default.png`; },
+    twitterHandle: envOr("NEXT_PUBLIC_TWITTER_HANDLE", "@jobreadykenya"),
   },
 
   // AdSense
   adsense: {
-    clientId: "ca-pub-8031704055036556",
+    clientId: envOr("NEXT_PUBLIC_ADSENSE_ID", "ca-pub-8031704055036556"),
   },
 
   // Navigation
@@ -134,7 +171,9 @@ export const siteConfig = {
         ],
       },
     ],
-    copyright: `© ${new Date().getFullYear()} JobReady.co.ke. All rights reserved. Data Protection Act 2019 compliant.`,
+    get copyright() {
+      return `© ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved. Data Protection Act 2019 compliant.`;
+    },
     legalLinks: [
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms", href: "/terms" },

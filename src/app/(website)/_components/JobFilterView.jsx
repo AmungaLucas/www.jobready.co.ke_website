@@ -4,6 +4,7 @@ import { formatLocation, getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import AdPlaceholder from "./AdPlaceholder";
+import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX, FiArrowRight, FiZap } from "react-icons/fi";
 
 const PER_PAGE = 20;
@@ -519,7 +520,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
                     Get your job seen by thousands of qualified candidates today.
                   </p>
                   <a
-                    href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20post%20a%20job.%20Please%20share%20the%20rates."
+                    href={siteConfig.whatsapp.links.employer}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 bg-white text-purple-700 font-semibold py-2 px-4 rounded-lg transition-colors text-xs hover:bg-purple-50 w-full"
@@ -782,7 +783,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
                     Get a professionally written CV that gets you noticed by top employers.
                   </p>
                   <a
-                    href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%27d%20like%20to%20order%20a%20CV%20writing%20service.%20Please%20share%20the%20details."
+                    href={siteConfig.whatsapp.links.cvService}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm w-full shadow-sm shadow-teal-500/20"
@@ -802,7 +803,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
                   Get expert feedback on your CV — identify gaps and improve your chances.
                 </p>
                 <a
-                  href="https://wa.me/254786090635?text=Hi%20JobReady%2C%20I%20saw%20the%20free%20CV%20review%20offer%20on%20your%20website.%20I%27d%20like%20to%20get%20mine%20reviewed."
+                  href={siteConfig.whatsapp.links.freeCvReview}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-1.5 bg-white text-purple-700 font-semibold py-2 px-4 rounded-lg transition-colors text-sm border border-purple-200 hover:bg-purple-50 w-full"

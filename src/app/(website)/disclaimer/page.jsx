@@ -1,6 +1,8 @@
 import { generateMeta } from "@/lib/seo";
 import LegalLayout from "@/app/(website)/_components/LegalLayout";
 import Link from "next/link";
+import { siteConfig } from "@/config/site-config";
+import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
   title: "Disclaimer — JobReady Kenya",
@@ -16,7 +18,7 @@ export default function DisclaimerPage() {
         1. General Disclaimer
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        The information provided on JobReady.co.ke (&quot;the Platform&quot;) is
+        The information provided on {siteConfig.brandName} (&quot;the Platform&quot;) is
         for general informational purposes only. While we strive to keep job
         listings, career articles, and other content accurate and up-to-date, we
         make no representations or warranties of any kind, express or implied,
@@ -36,8 +38,8 @@ export default function DisclaimerPage() {
         2. Job Listings Disclaimer
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        Job listings published on JobReady.co.ke are provided by third-party
-        employers, recruiters, and organisations. JobReady Kenya acts as an
+        Job listings published on {siteConfig.brandName} are provided by third-party
+        employers, recruiters, and organisations. {siteConfig.companyLegalName} acts as an
         intermediary platform and does not:
       </p>
       <ul className="list-disc pl-6 space-y-2 text-gray-600 text-[0.95rem] mb-4">
@@ -75,7 +77,7 @@ export default function DisclaimerPage() {
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         The career advice articles, guides, interview tips, CV templates, and
-        other educational content published on JobReady.co.ke are provided for
+        other educational content published on {siteConfig.brandName} are provided for
         informational and guidance purposes only. This content does not constitute
         professional career counselling, legal advice, financial advice, or any
         other form of professional consultation.
@@ -83,7 +85,7 @@ export default function DisclaimerPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         You should not act upon any information provided without first seeking
         qualified professional advice tailored to your specific circumstances.
-        JobReady Kenya, its contributors, and authors are not responsible for any
+        {siteConfig.companyLegalName}, its contributors, and authors are not responsible for any
         outcomes, decisions, or actions taken based on the content published on
         this Platform. Career outcomes depend on numerous factors beyond our
         control, including market conditions, individual qualifications, and
@@ -147,7 +149,7 @@ export default function DisclaimerPage() {
         5. Opportunities &amp; Scholarships
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady.co.ke lists scholarships, grants, fellowships, bursaries, and
+        {siteConfig.brandName} lists scholarships, grants, fellowships, bursaries, and
         other opportunities sourced from publicly available information. These
         listings are provided as a convenience and for informational purposes.
         We do not administer, award, or have any involvement in the selection
@@ -157,7 +159,7 @@ export default function DisclaimerPage() {
         Application deadlines, eligibility criteria, and award amounts may
         change without notice. We strongly recommend visiting the official
         website of the administering organisation for the most current and
-        accurate information. JobReady Kenya assumes no responsibility for
+        accurate information. {siteConfig.companyLegalName} assumes no responsibility for
         expired listings, changed deadlines, or inaccurate eligibility criteria.
       </p>
 
@@ -169,7 +171,7 @@ export default function DisclaimerPage() {
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         The Platform may contain links to third-party websites, resources, or
-        services that are not owned or controlled by JobReady Kenya. These links
+        services that are not owned or controlled by {siteConfig.companyLegalName}. These links
         are provided solely as a convenience to you. We have no control over,
         and assume no responsibility for, the content, privacy policies, or
         practices of any third-party websites or services.
@@ -186,9 +188,8 @@ export default function DisclaimerPage() {
         7. M-Pesa Payments
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        Payments for premium services on JobReady.co.ke are processed through
-        the M-Pesa mobile money service provided by Safaricom PLC. JobReady
-        Kenya does not process, store, or have access to your M-Pesa PIN or
+        Payments for premium services on {siteConfig.brandName} are processed through
+        the M-Pesa mobile money service provided by Safaricom PLC. {siteConfig.companyLegalName} does not process, store, or have access to your M-Pesa PIN or
         sensitive financial data. Payment-related issues should be directed to
         Safaricom customer care in the first instance.
       </p>
@@ -198,10 +199,10 @@ export default function DisclaimerPage() {
         processing that are beyond our reasonable control. For payment-related
         concerns, please contact us at{" "}
         <a
-          href="mailto:payments@jobready.co.ke"
+          href={`mailto:${siteConfig.email.payments}`}
           className="text-[#1a56db] hover:underline no-underline"
         >
-          payments@jobready.co.ke
+          {siteConfig.email.payments}
         </a>
         .
       </p>
@@ -213,7 +214,7 @@ export default function DisclaimerPage() {
         8. Limitation of Liability
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        To the fullest extent permitted by Kenyan law, JobReady Kenya, its
+        To the fullest extent permitted by Kenyan law, {siteConfig.companyLegalName}, its
         directors, employees, partners, agents, and affiliates shall not be
         liable for any direct, indirect, incidental, special, consequential, or
         punitive damages, including but not limited to loss of profits, data,
@@ -249,54 +250,7 @@ export default function DisclaimerPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         If you have any questions about this disclaimer, please contact us:
       </p>
-      <div className="bg-gray-50 rounded-lg p-5 mt-4 border border-gray-100">
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li>
-            <strong className="text-gray-800">JobReady Kenya</strong>
-          </li>
-          <li>
-            Email:{" "}
-            <a
-              href="mailto:support@jobready.co.ke"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              support@jobready.co.ke
-            </a>
-          </li>
-          <li>
-            Contact Page:{" "}
-            <Link
-              href="/contact"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              jobready.co.ke/contact
-            </Link>
-          </li>
-          <li>
-            Related:{" "}
-            <Link
-              href="/privacy"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Privacy Policy
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/terms"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Terms of Service
-            </Link>{" "}
-            ·{" "}
-            <Link
-              href="/refunds"
-              className="text-[#1a56db] hover:underline no-underline"
-            >
-              Refund Policy
-            </Link>
-          </li>
-        </ul>
-      </div>
+      <ContactInfoCard show={["support", "contactPage"]} />
     </LegalLayout>
   );
 }
