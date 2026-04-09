@@ -298,7 +298,7 @@ export default async function JobDetailPage({ params }) {
             <CVServiceStrip />
 
             {/* ─── Share Strip ─── */}
-            <ShareStrip title={job.title} />
+            <ShareStrip title={job.title} type="job" />
           </div>
 
           {/* ═══ RIGHT SIDEBAR (1/3) ═══ */}

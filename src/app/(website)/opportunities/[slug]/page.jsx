@@ -280,7 +280,7 @@ export default async function OpportunityDetailPage({ params }) {
             <CVServiceStrip />
 
             {/* ─── Share Strip ─── */}
-            <ShareStrip title={opp.title} />
+            <ShareStrip title={opp.title} type="opportunity" opportunityType={opp.opportunityType} />
           </div>
 
           {/* ═══ RIGHT SIDEBAR (1/3) ═══ */}

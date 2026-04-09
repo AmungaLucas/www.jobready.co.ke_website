@@ -311,7 +311,7 @@ export default async function ArticleDetailPage({ params }) {
             )}
 
             {/* ─── Share Strip ─── */}
-            <ShareStrip title={article.title} />
+            <ShareStrip title={article.title} type="article" />
           </article>
 
           {/* ═══ RIGHT SIDEBAR (1/3) ═══ */}

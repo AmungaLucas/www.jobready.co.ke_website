@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/format";
 import { getInitials, buildLocation } from "@/lib/normalize";
 import { generateMeta, generateOrganizationJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import AdPlaceholder from "../../_components/AdPlaceholder";
+import ShareStrip from "../../_components/ShareStrip";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +121,9 @@ export default async function CompanyDetailPage({ params }) {
                 )}
               </div>
             )}
+
+            {/* ─── Share Strip ─── */}
+            <ShareStrip title={`${company.name} — Jobs & Company Profile`} type="company" />
 
             {/* Jobs */}
             <div className="bg-white rounded-xl shadow-sm p-6">
