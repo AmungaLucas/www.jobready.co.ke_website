@@ -5,13 +5,25 @@ export default function robots() {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-        disallow: ["/dashboard", "/api", "/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/verify-phone"],
+        disallow: [
+          "/dashboard",
+          "/api",
+          "/login",
+          "/register",
+          "/forgot-password",
+          "/reset-password",
+          "/verify-email",
+          "/verify-phone",
+          "/payments",
+          "/orders",
+          "/billing",
+          "/mpesa",
+        ],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/dashboard", "/api"],
+        disallow: ["/dashboard", "/api", "/payments", "/orders", "/billing"],
       },
       {
         userAgent: "GPTBot",
@@ -29,8 +41,35 @@ export default function robots() {
         userAgent: "anthropic-ai",
         disallow: "/",
       },
+      {
+        userAgent: "ClaudeBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "Claude-Web",
+        disallow: "/",
+      },
+      {
+        userAgent: "FacebookBot",
+        allow: "/",
+        disallow: ["/dashboard", "/api", "/login", "/register"],
+      },
+      {
+        userAgent: "Twitterbot",
+        allow: "/",
+        disallow: ["/dashboard", "/api", "/login", "/register"],
+      },
+      {
+        userAgent: "LinkedInBot",
+        allow: "/",
+        disallow: ["/dashboard", "/api", "/login", "/register"],
+      },
+      {
+        userAgent: "WhatsApp",
+        allow: "/",
+        disallow: ["/dashboard", "/api", "/login", "/register"],
+      },
     ],
     sitemap: `${siteConfig.url}/sitemap.xml`,
-    host: siteConfig.url,
   };
 }
