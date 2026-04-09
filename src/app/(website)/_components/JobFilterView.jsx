@@ -5,7 +5,160 @@ import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import AdPlaceholder from "./AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
+import { getJobHubs } from "@/config/hub-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX, FiArrowRight, FiZap } from "react-icons/fi";
+
+// ─── Related Filter Links (internal linking for SEO) ────────────
+const TOP_LOCATIONS = [
+  { slug: "nairobi", label: "Nairobi" },
+  { slug: "mombasa", label: "Mombasa" },
+  { slug: "kisumu", label: "Kisumu" },
+  { slug: "nakuru", label: "Nakuru" },
+  { slug: "kiambu", label: "Kiambu" },
+  { slug: "machakos", label: "Machakos" },
+  { slug: "uasin-gishu", label: "Uasin Gishu" },
+  { slug: "kakamega", label: "Kakamega" },
+];
+
+const TOP_CATEGORIES = [
+  { slug: "technology", label: "Technology" },
+  { slug: "finance-accounting", label: "Finance & Accounting" },
+  { slug: "engineering", label: "Engineering" },
+  { slug: "healthcare", label: "Healthcare" },
+  { slug: "education-training", label: "Education" },
+  { slug: "marketing-communications", label: "Marketing" },
+  { slug: "human-resources", label: "Human Resources" },
+  { slug: "government-public-sector", label: "Government" },
+  { slug: "ngos", label: "NGO & Nonprofit" },
+  { slug: "logistics-supply-chain", label: "Logistics" },
+];
+
+const JOB_TYPE_LINKS = [
+  { slug: "full-time", label: "Full-Time" },
+  { slug: "part-time", label: "Part-Time" },
+  { slug: "contract", label: "Contract" },
+  { slug: "internships", label: "Internships" },
+  { slug: "remote", label: "Remote" },
+  { slug: "temporary", label: "Temporary" },
+];
+
+const EXP_LEVEL_LINKS = [
+  { slug: "entry-level", label: "Entry Level" },
+  { slug: "mid-level", label: "Mid Level" },
+  { slug: "senior", label: "Senior" },
+  { slug: "manager", label: "Manager" },
+  { slug: "executive", label: "Executive" },
+];
+
+function RelatedFilterLinks({ filterKey, filterValue }) {
+  // Determine which sections to show based on current filter
+  const showLocations = filterKey !== "isRemote";
+  const showCategories = filterKey !== "category";
+  const showJobTypes = filterKey !== "employmentType";
+  const showExpLevels = filterKey !== "experienceLevel";
+
+  if (!showLocations && !showCategories && !showJobTypes && !showExpLevels) return null;
+
+  const currentBase = `/jobs/${(filterValue || "").toLowerCase()}`;
+
+  return (
+    <div className="mt-10 border-t border-gray-200 pt-8">
+      <h2 className="text-lg font-bold text-gray-900 mb-5">Explore Related Jobs</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Browse by Location */}
+        {showLocations && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              📍 Top Locations
+            </h3>
+            <ul className="space-y-1.5">
+              {TOP_LOCATIONS.map((loc) => (
+                <li key={loc.slug}>
+                  <Link
+                    href={filterKey === "category" && filterValue
+                      ? `/jobs/${filterValue.toLowerCase().replace(/_/g, "-")}/${loc.slug}`
+                      : `/jobs/${loc.slug}`}
+                    className="text-sm text-gray-600 hover:text-purple-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <FiMapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    {loc.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Browse by Category */}
+        {showCategories && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              💼 Popular Categories
+            </h3>
+            <ul className="space-y-1.5">
+              {TOP_CATEGORIES.map((cat) => (
+                <li key={cat.slug}>
+                  <Link
+                    href={`/jobs/${cat.slug}`}
+                    className="text-sm text-gray-600 hover:text-purple-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <FiBriefcase className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    {cat.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Browse by Job Type */}
+        {showJobTypes && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              🏷️ By Job Type
+            </h3>
+            <ul className="space-y-1.5">
+              {JOB_TYPE_LINKS.map((jt) => (
+                <li key={jt.slug}>
+                  <Link
+                    href={`/jobs/${jt.slug}`}
+                    className="text-sm text-gray-600 hover:text-purple-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <FiClock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    {jt.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Browse by Experience Level */}
+        {showExpLevels && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              📊 By Experience
+            </h3>
+            <ul className="space-y-1.5">
+              {EXP_LEVEL_LINKS.map((el) => (
+                <li key={el.slug}>
+                  <Link
+                    href={`/jobs/${el.slug}`}
+                    className="text-sm text-gray-600 hover:text-purple-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <FiStar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    {el.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const PER_PAGE = 20;
 
@@ -768,6 +921,9 @@ export default async function JobFilterView({ searchParams, ...config }) {
               </>
             )}
           </div>
+
+          {/* ═══ INTERNAL LINKING — Related Filter Pages ═══ */}
+          <RelatedFilterLinks filterKey={config.filterKey} filterValue={config.filterValue} />
 
           {/* ═══ RIGHT SIDEBAR — CTAs (xl only) ═══ */}
           <aside className="hidden xl:block w-64 flex-shrink-0">

@@ -4,6 +4,10 @@
 // ──────────────────────────────────────────────────────────────
 
 import { jobCategory, organizationLocation } from "@/data/org_data";
+import { siteConfig } from "@/config/site-config";
+
+const BRAND_SUFFIX = `| ${siteConfig.shortName} Kenya`;
+const BRAND_NAME = siteConfig.shortName;
 
 // ════════════════════════════════════════════════════════════
 // 1. JOB CATEGORY SLUG → ENUM VALUE
@@ -436,7 +440,7 @@ export function generateJobComboTitle(labels) {
   if (labels.location) parts.push(`in ${labels.location}`);
 
   const base = parts.join(" Jobs ");
-  return base ? `${base} in Kenya 2026 | JobNet.co.ke` : "Jobs in Kenya 2026 | JobNet.co.ke";
+  return base ? `${base} in Kenya 2026 ${BRAND_SUFFIX}` : `Jobs in Kenya 2026 ${BRAND_SUFFIX}`;
 }
 
 /**
@@ -452,7 +456,7 @@ export function generateJobComboDescription(labels) {
   const filterStr = filterParts.join(" ");
   const locationStr = labels.location ? ` in ${labels.location}` : " in Kenya";
 
-  return `Browse ${filterStr.toLowerCase()} jobs${locationStr}. Updated daily. Apply now on JobNet.co.ke — Kenya's #1 job board.`;
+  return `Browse ${filterStr.toLowerCase()} jobs${locationStr}. Updated daily. Apply now on ${BRAND_NAME}.co.ke — Kenya's #1 job board.`;
 }
 
 /**
@@ -464,7 +468,7 @@ export function generateOppComboTitle(labels) {
   if (labels.location) parts.push(`in ${labels.location}`);
 
   const base = parts.join(" ");
-  return base ? `${base} 2026 | JobNet.co.ke` : "Opportunities 2026 | JobNet.co.ke";
+  return base ? `${base} 2026 ${BRAND_SUFFIX}` : `Opportunities 2026 ${BRAND_SUFFIX}`;
 }
 
 /**
@@ -473,7 +477,7 @@ export function generateOppComboTitle(labels) {
 export function generateOppComboDescription(labels) {
   const typeStr = labels.type ? labels.type.toLowerCase() : "opportunities";
   const locationStr = labels.location ? ` in ${labels.location}` : " in Kenya";
-  return `Find the latest ${typeStr}${locationStr}. Updated daily. Apply now on JobNet.co.ke.`;
+  return `Find the latest ${typeStr}${locationStr}. Updated daily. Apply now on ${BRAND_NAME}.co.ke.`;
 }
 
 /**
@@ -485,7 +489,7 @@ export function generateOrgComboTitle(labels) {
   if (labels.location) parts.push(`in ${labels.location}`);
 
   const base = parts.join(" ");
-  return base ? `${base} — Company Profiles | JobNet.co.ke` : "Companies & Organizations | JobNet.co.ke";
+  return base ? `${base} — Company Profiles ${BRAND_SUFFIX}` : `Companies & Organizations ${BRAND_SUFFIX}`;
 }
 
 /**
@@ -494,7 +498,7 @@ export function generateOrgComboTitle(labels) {
 export function generateOrgComboDescription(labels) {
   const typeStr = labels.type ? labels.type.toLowerCase() : "companies and organizations";
   const locationStr = labels.location ? ` in ${labels.location}` : " in Kenya";
-  return `Browse ${typeStr}${locationStr}. View profiles, open positions, and apply on JobNet.co.ke.`;
+  return `Browse ${typeStr}${locationStr}. View profiles, open positions, and apply on ${BRAND_NAME}.co.ke.`;
 }
 
 // ════════════════════════════════════════════════════════════

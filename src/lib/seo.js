@@ -105,7 +105,7 @@ export function generateJobJsonLd(job) {
     datePosted: job.createdAt
       ? new Date(job.createdAt).toISOString()
       : new Date().toISOString(),
-    url: `${SITE_URL}/job/${job.slug}`,
+    url: `${SITE_URL}/jobs/${job.slug}`,
     employmentType: mapEmploymentType(job.employmentType),
     hiringOrganization: {
       "@type": "Organization",

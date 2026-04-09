@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseOpportunityFilters, generateOppComboTitle, generateOppComboDescription } from "@/lib/filter-parser";
+import { siteConfig } from "@/config/site-config";
 
 // ─── Client Components ──────────────────────────────────
 import ShareStrip from "../../_components/ShareStrip";
@@ -203,7 +204,7 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
     const titleParts = [];
     if (labels.type) titleParts.push(labels.type);
     if (labels.location) titleParts.push(`in ${labels.location}`);
-    const pageTitle = `${titleParts.join(" ")} — JobNet.co.ke`;
+    const pageTitle = `${titleParts.join(" ")} — ${siteConfig.companyLegalName}`;
 
     const { opportunities, total, page, perPage } = await getFilteredOpportunities(filters, searchParams);
     const totalPages = Math.ceil(total / perPage);

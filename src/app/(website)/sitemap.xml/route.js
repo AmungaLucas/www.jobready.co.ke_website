@@ -59,6 +59,68 @@ const orgFilterPages = [
   changeFrequency: "weekly",
 }));
 
+
+// ─── Additional standalone job filter pages (not in hub-config) ──
+const additionalJobFilterPages = [
+  { slug: "full-time" },
+  { slug: "mid-level" },
+  { slug: "marketing-communications" },
+  { slug: "senior" },
+  { slug: "contract" },
+  { slug: "science-research" },
+  { slug: "nonprofit" },
+  { slug: "insurance" },
+  { slug: "director" },
+  { slug: "temporary" },
+  { slug: "architecture-construction" },
+  { slug: "hospitality-tourism" },
+  { slug: "sales-business" },
+  { slug: "logistics-supply-chain" },
+  { slug: "executive" },
+  { slug: "fitness-wellness" },
+  { slug: "education-training" },
+  { slug: "internship" },
+  { slug: "operations-admin" },
+  { slug: "media-publishing" },
+  { slug: "lead" },
+  { slug: "agriculture" },
+  { slug: "specialised-services" },
+  { slug: "government-public-sector" },
+  { slug: "manager" },
+  { slug: "skilled-trades" },
+  { slug: "volunteer" },
+  { slug: "transportation" },
+  { slug: "legal-compliance" },
+  { slug: "real-estate" },
+].map((p) => ({
+  url: `/jobs/${p.slug}`,
+  priority: 0.7,
+  changeFrequency: "daily",
+}));
+
+// ─── Additional standalone opportunity filter pages (not in hub-config) ──
+const additionalOppFilterPages = [
+  { slug: "sponsorships" },
+  { slug: "funding" },
+  { slug: "incubators" },
+  { slug: "accelerators" },
+  { slug: "research" },
+  { slug: "bootcamps" },
+  { slug: "internships" },
+  { slug: "university-admissions" },
+  { slug: "exchanges" },
+  { slug: "residencies" },
+  { slug: "training" },
+  { slug: "certifications" },
+  { slug: "mentorships" },
+  { slug: "awards" },
+  { slug: "workshops" },
+].map((p) => ({
+  url: `/opportunities/${p.slug}`,
+  priority: 0.7,
+  changeFrequency: "daily",
+}));
+
 // ─── Combo filter URLs (auto-generated from data) ──────────
 const jobComboUrls = generateJobComboUrls();
 const oppComboUrls = generateOppComboUrls();
@@ -71,6 +133,8 @@ export async function GET() {
     ...staticPages,
     ...jobHubs,
     ...opportunityHubs,
+    ...additionalJobFilterPages,
+    ...additionalOppFilterPages,
   ].map((page) => ({
     url: `${SITE_URL}${page.url}`,
     lastModified: new Date(),
