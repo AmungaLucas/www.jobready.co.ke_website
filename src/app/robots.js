@@ -1,3 +1,5 @@
+import { siteConfig } from "@/config/site-config";
+
 export default function robots() {
   return {
     rules: [
@@ -28,7 +30,7 @@ export default function robots() {
         disallow: "/",
       },
     ],
-    sitemap: "https://jobnet.co.ke/sitemap.xml",
-    host: "https://jobnet.co.ke",
+    sitemap: `${siteConfig.url}/sitemap.xml`,
+    host: siteConfig.url,
   };
 }

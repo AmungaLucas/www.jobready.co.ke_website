@@ -80,7 +80,8 @@ export async function POST(request) {
     });
 
     // --- Send password reset email ---
-    const resetUrl = `${process.env.NEXTAUTH_URL || "https://jobready.co.ke"}/auth/reset-password?token=${resetToken}`;
+    const { siteConfig } = await import("@/config/site-config");
+    const resetUrl = `${process.env.NEXTAUTH_URL || siteConfig.url}/auth/reset-password?token=${resetToken}`;
 
     await sendEmail({
       to: trimmedEmail,

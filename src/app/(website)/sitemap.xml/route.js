@@ -1,4 +1,5 @@
 import { getJobHubs, getOpportunityHubs } from "@/config/hub-config";
+import { siteConfig } from "@/config/site-config";
 import { db } from "@/lib/db";
 import {
   generateJobComboUrls,
@@ -8,7 +9,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://jobnet.co.ke";
+const SITE_URL = siteConfig.url;
 
 // ─── Static pages ──────────────────────────────────────────
 const staticPages = [

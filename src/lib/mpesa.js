@@ -23,14 +23,13 @@ const BASE_URLS = {
 
 const BASE_URL = BASE_URLS[ENV] || BASE_URLS.sandbox;
 
+import { siteConfig } from "@/config/site-config";
+
 // Callback URL — configurable via MPESA_CALLBACK_URL env var
 // For sandbox testing: set MPESA_CALLBACK_URL to your ngrok tunnel or registered URL
-// For production: https://jobready.co.ke/api/payments/mpesa/callback
-const CALLBACK_URL =
-  process.env.MPESA_CALLBACK_URL ||
-  (ENV === "production"
-    ? "https://jobready.co.ke/api/payments/mpesa/callback"
-    : "https://jobready.co.ke/api/payments/mpesa/callback");
+// For production: derived from siteConfig.url automatically
+const DEFAULT_CALLBACK_URL = `${siteConfig.url}/api/payments/mpesa/callback`;
+const CALLBACK_URL = process.env.MPESA_CALLBACK_URL || DEFAULT_CALLBACK_URL;
 
 // ─── OAuth Token Cache ──────────────────────────────────
 let cachedToken = null;

@@ -1,6 +1,7 @@
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import Analytics from "@/components/Analytics";
+import { siteConfig } from "@/config/site-config";
 
 export const metadata = {
   title: {
@@ -12,14 +13,14 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_KE",
-    url: "https://jobnet.co.ke",
+    url: siteConfig.url,
     siteName: "JobNet Kenya",
   },
   robots: {
     index: true,
     follow: true,
   },
-  metadataBase: new URL("https://jobnet.co.ke"),
+  metadataBase: new URL(siteConfig.url),
 };
 
 export default function RootLayout({ children }) {

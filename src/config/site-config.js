@@ -2,6 +2,8 @@
 export const siteConfig = {
   name: "JobReady Kenya",
   shortName: "JobReady",
+  // ─── DOMAIN (change these 2 to switch site URL everywhere) ───
+  // Current: jobnet.co.ke (temporary) → Future: jobready.co.ke (main)
   domain: "jobnet.co.ke",
   url: "https://jobnet.co.ke",
   description:
@@ -62,7 +64,7 @@ export const siteConfig = {
 
   // SEO
   seo: {
-    ogImage: "https://jobnet.co.ke/og-default.png",
+    get ogImage() { return `${siteConfig.url}/og-default.png`; },
     twitterHandle: "@jobreadykenya",
   },
 

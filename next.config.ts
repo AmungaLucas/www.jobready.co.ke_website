@@ -82,6 +82,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "jobready.co.ke",
+      },
+      {
+        protocol: "https",
         hostname: "*.googleusercontent.com",
       },
       {

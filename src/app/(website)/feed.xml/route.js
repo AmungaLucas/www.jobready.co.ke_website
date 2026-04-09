@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
+import { siteConfig } from "@/config/site-config";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://jobready.co.ke";
+const SITE_URL = siteConfig.url;
 
 // ─── Opportunity type → hub slug mapping ───────────────────
 const typeToHubSlug = {
