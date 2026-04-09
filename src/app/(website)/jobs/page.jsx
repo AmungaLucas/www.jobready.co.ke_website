@@ -34,6 +34,7 @@ import {
 } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import AdPlaceholder from "../_components/AdPlaceholder";
+import FilterSidebarWrapper from "../_components/FilterSidebarWrapper";
 
 export const dynamic = "force-dynamic";
 
@@ -432,9 +433,10 @@ export default async function JobsPage({ searchParams }) {
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* ═══ LEFT SIDEBAR — Filters ═══ */}
+          {/* ═══ LEFT SIDEBAR — Filters (toggleable + mobile drawer) ═══ */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="lg:sticky lg:top-16 space-y-5">
+            <FilterSidebarWrapper>
+            <div className="space-y-5">
 
               {/* Filter Header */}
               <div className="flex items-center justify-between">
@@ -553,6 +555,7 @@ export default async function JobsPage({ searchParams }) {
                 </div>
               </div>
             </div>
+            </FilterSidebarWrapper>
           </aside>
 
           {/* ═══ RIGHT COLUMN — Job Listings ═══ */}
@@ -819,7 +822,7 @@ export default async function JobsPage({ searchParams }) {
 
           {/* ═══ RIGHT SIDEBAR — CTAs ═══ */}
           <aside className="hidden xl:block w-64 flex-shrink-0">
-            <div className="sticky top-16 space-y-5">
+            <div className="space-y-5">
               {/* CV Writing CTA */}
               <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                 <div className="text-center">

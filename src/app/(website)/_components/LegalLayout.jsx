@@ -80,7 +80,7 @@ export default function LegalLayout({ title, lastUpdated, children }) {
       <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8 lg:gap-12">
         {/* Sidebar — Table of Contents */}
         <aside className="hidden lg:block">
-          <div className="sticky top-[100px]">
+          <div>
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 On This Page

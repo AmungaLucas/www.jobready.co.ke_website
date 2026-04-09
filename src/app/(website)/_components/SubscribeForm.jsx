@@ -138,7 +138,7 @@ export default function SubscribeForm() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-5 text-center sticky top-24">
+    <div className="bg-white rounded-xl shadow-md p-5 text-center">
       {result === null ? (
         <>
           {/* Default: Subscribe form */}

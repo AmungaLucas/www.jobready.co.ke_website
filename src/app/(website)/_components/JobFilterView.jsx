@@ -4,6 +4,7 @@ import { formatLocation, getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import AdPlaceholder from "./AdPlaceholder";
+import FilterSidebarWrapper from "./FilterSidebarWrapper";
 import { siteConfig } from "@/config/site-config";
 import { getJobHubs } from "@/config/hub-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX, FiArrowRight, FiZap } from "react-icons/fi";
@@ -571,9 +572,10 @@ export default async function JobFilterView({ searchParams, ...config }) {
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* ═══ LEFT SIDEBAR — Filters ═══ */}
+          {/* ═══ LEFT SIDEBAR — Filters (toggleable + mobile drawer) ═══ */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="lg:sticky lg:top-16 space-y-5">
+            <FilterSidebarWrapper>
+            <div className="space-y-5">
 
               {/* Filter Header */}
               <div className="flex items-center justify-between">
@@ -684,6 +686,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
                 </div>
               </div>
             </div>
+            </FilterSidebarWrapper>
           </aside>
 
           {/* ═══ RIGHT COLUMN — Job Listings ═══ */}
@@ -927,7 +930,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
 
           {/* ═══ RIGHT SIDEBAR — CTAs (xl only) ═══ */}
           <aside className="hidden xl:block w-64 flex-shrink-0">
-            <div className="sticky top-16 space-y-5">
+            <div className="space-y-5">
               {/* CV Writing CTA */}
               <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                 <div className="text-center">
