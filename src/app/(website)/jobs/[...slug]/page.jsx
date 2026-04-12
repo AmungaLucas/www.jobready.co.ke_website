@@ -85,7 +85,7 @@ async function getJob(slug) {
 // METADATA — handles both detail and combo pages
 // ════════════════════════════════════════════════════════════
 export async function generateMetadata({ params, searchParams }) {
-  const segments = await params.slug;
+  const { slug: segments } = await params;
   const urlPath = `/jobs/${segments.join("/")}`;
 
   // Multi-segment → combo filter page
@@ -132,7 +132,8 @@ export async function generateMetadata({ params, searchParams }) {
 // PAGE COMPONENT — routes to detail or combo filter view
 // ════════════════════════════════════════════════════════════
 export default async function JobCatchAllPage({ params, searchParams }) {
-  const segments = await params.slug;
+  const { slug: segments } = await params;
+  const resolvedSearchParams = await searchParams;
 
   // ── MULTI-SEGMENT → combo filter page ──────────────────
   if (segments.length >= 2) {
@@ -170,7 +171,7 @@ export default async function JobCatchAllPage({ params, searchParams }) {
     }
 
     // Pass additional filters via searchParams merge
-    const mergedParams = { ...searchParams };
+    const mergedParams = { ...resolvedSearchParams };
     if (filters.county && filterKey !== "isRemote") {
       mergedParams.location = filters.county;
     }

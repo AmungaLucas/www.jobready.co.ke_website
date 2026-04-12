@@ -150,7 +150,7 @@ async function getFilteredOpportunities(filters, searchParams) {
 // METADATA
 // ════════════════════════════════════════════════════════════
 export async function generateMetadata({ params, searchParams }) {
-  const segments = await params.slug;
+  const { slug: segments } = await params;
   const urlPath = `/opportunities/${segments.join("/")}`;
 
   // Multi-segment → combo filter
@@ -191,7 +191,8 @@ export async function generateMetadata({ params, searchParams }) {
 // PAGE COMPONENT
 // ════════════════════════════════════════════════════════════
 export default async function OpportunityCatchAllPage({ params, searchParams }) {
-  const segments = await params.slug;
+  const { slug: segments } = await params;
+  const resolvedSearchParams = await searchParams;
 
   // ── MULTI-SEGMENT → combo filter page ──────────────────
   if (segments.length >= 2) {
@@ -211,7 +212,7 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
     let page = 1;
     let perPage = 12;
     try {
-      const result = await getFilteredOpportunities(filters, searchParams);
+      const result = await getFilteredOpportunities(filters, resolvedSearchParams);
       opportunities = result.opportunities;
       total = result.total;
       page = result.page;
