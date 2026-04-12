@@ -102,7 +102,19 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
     if (labels.location) titleParts.push(`in ${labels.location}`);
     const pageTitle = `${titleParts.join(" ")} — JobNet.co.ke`;
 
-    const { companies, total, page, perPage } = await getFilteredOrganizations(filters, searchParams);
+    let companies = [];
+    let total = 0;
+    let page = 1;
+    let perPage = 12;
+    try {
+      const result = await getFilteredOrganizations(filters, searchParams);
+      companies = result.companies;
+      total = result.total;
+      page = result.page;
+      perPage = result.perPage;
+    } catch (err) {
+      console.error("[OrganizationCatchAllPage] Combo filter error:", err.message);
+    }
     const totalPages = Math.ceil(total / perPage);
 
     const breadcrumbItems = [

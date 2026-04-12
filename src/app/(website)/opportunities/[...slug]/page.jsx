@@ -206,7 +206,19 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
     if (labels.location) titleParts.push(`in ${labels.location}`);
     const pageTitle = `${titleParts.join(" ")} — ${siteConfig.companyLegalName}`;
 
-    const { opportunities, total, page, perPage } = await getFilteredOpportunities(filters, searchParams);
+    let opportunities = [];
+    let total = 0;
+    let page = 1;
+    let perPage = 12;
+    try {
+      const result = await getFilteredOpportunities(filters, searchParams);
+      opportunities = result.opportunities;
+      total = result.total;
+      page = result.page;
+      perPage = result.perPage;
+    } catch (err) {
+      console.error("[OpportunityCatchAllPage] Combo filter error:", err.message);
+    }
     const totalPages = Math.ceil(total / perPage);
     const typeColor = OPP_TYPE_COLORS[filters.opportunityType] || { bg: "bg-gray-100", text: "text-gray-700" };
     const typeDisplay = OPP_TYPE_DISPLAY[filters.opportunityType] || filters.opportunityType?.replace(/_/g, " ");

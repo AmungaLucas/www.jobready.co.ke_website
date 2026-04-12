@@ -1,89 +1,51 @@
 "use client";
 
-export default function WebsiteError({
-  error,
-  reset,
-}) {
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "system-ui, sans-serif",
-        padding: "2rem",
-        background: "#f9fafb",
-      }}
-    >
-      <div style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            background: "#fef2f2",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 1rem",
-          }}
-        >
-          <span style={{ fontSize: 28 }}>⚠️</span>
-        </div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 8 }}>
-          Something went wrong
-        </h2>
-        <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 16 }}>
-          An error occurred while loading this page.
-        </p>
+import Link from "next/link";
 
-        {/* Show actual error details for debugging */}
-        <div
-          style={{
-            background: "#1f2937",
-            borderRadius: 8,
-            padding: 16,
-            marginBottom: 16,
-            textAlign: "left",
-            overflow: "auto",
-            maxHeight: 300,
-          }}
-        >
-          <p style={{ color: "#f87171", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-            Error Details:
-          </p>
-          <p style={{ color: "#fca5a5", fontSize: 12, fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-            {error?.message || "Unknown error"}
+export default function WebsiteError({ error, reset }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <span className="text-2xl">&#9888;&#65039;</span>
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-gray-900">Something went wrong</h2>
+          <p className="text-gray-500">
+            An unexpected error occurred while loading this page.
+            Please try again or go back to the homepage.
           </p>
           {error?.digest && (
-            <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 8 }}>
-              Digest: {error.digest}
-            </p>
-          )}
-          {error?.stack && (
-            <pre style={{ color: "#9ca3af", fontSize: 10, marginTop: 8, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-              {error.stack}
-            </pre>
+            <p className="text-xs text-gray-400 font-mono">Error ID: {error.digest}</p>
           )}
         </div>
-
-        <button
-          onClick={reset}
-          style={{
-            background: "#5B21B6",
-            color: "white",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 24px",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Try Again
-        </button>
+        {process.env.NODE_ENV === "development" && error?.message && (
+          <div className="bg-gray-800 rounded-lg p-4 text-left overflow-auto max-h-48">
+            <p className="text-red-400 text-xs font-semibold mb-2">Error Details:</p>
+            <p className="text-red-300 text-xs font-mono whitespace-pre-wrap break-words">
+              {error.message}
+            </p>
+            {error?.stack && (
+              <pre className="text-gray-500 text-[10px] mt-2 whitespace-pre-wrap break-words">
+                {error.stack}
+              </pre>
+            )}
+          </div>
+        )}
+        <div className="flex gap-3 justify-center">
+          <Link
+            href="/"
+            className="px-5 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Go Home
+          </Link>
+          <button
+            onClick={reset}
+            className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     </div>
   );
