@@ -76,6 +76,6 @@ export default function robots() {
       },
     ],
     // Point to sitemap index which references all sub-sitemaps
-    sitemap: `${siteConfig.url}/sitemap.xml`,
+    sitemap: `${siteConfig.url}/sitemap-index.xml`,
   };
 }

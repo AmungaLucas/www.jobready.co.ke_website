@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getInitials, buildLocation } from "@/lib/normalize";
 import { generateMeta, generateOrganizationJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseOrganizationFilters, generateOrgComboTitle, generateOrgComboDescription } from "@/lib/filter-parser";
+import { sanitizeHtml } from "@/lib/sanitize";
 import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import ShareStrip from "../../_components/ShareStrip";
@@ -317,7 +318,7 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
               <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">About {company.name}</h2>
                 {hasHtmlDescription ? (
-                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: company.description }} />
+                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(company.description) }} />
                 ) : (
                   <div className="prose prose-sm max-w-none text-gray-700">
                     {company.description.split(/\n{2,}/).filter(Boolean).map((para, i) => (

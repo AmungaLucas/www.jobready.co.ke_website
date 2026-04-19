@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseOpportunityFilters, generateOppComboTitle, generateOppComboDescription } from "@/lib/filter-parser";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { siteConfig } from "@/config/site-config";
 
 // ─── Client Components ──────────────────────────────────
@@ -423,12 +424,12 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
               <h2 className="text-xl font-bold mb-3 text-gray-900">Description</h2>
               <div
                 className="prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-h3:text-lg prose-h3:font-bold prose-h3:mt-6 prose-h3:mb-2 prose-ul:my-3 prose-li:my-1"
-                dangerouslySetInnerHTML={{ __html: hasDescription ? opp.description : (opp.excerpt || "<p>No description provided.</p>") }}
+                dangerouslySetInnerHTML={{ __html: hasDescription ? sanitizeHtml(opp.description) : (opp.excerpt || "<p>No description provided.</p>") }}
               />
               {opp.howToApply && (
                 <div className="mt-6 pt-4 border-t border-gray-200" id="how-to-apply">
                   <h3 className="font-semibold text-gray-800 text-lg mb-2">How to Apply</h3>
-                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: opp.howToApply }} />
+                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(opp.howToApply) }} />
                 </div>
               )}
             </div>

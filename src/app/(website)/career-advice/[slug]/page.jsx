@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatDate, formatReadingTime } from "@/lib/format";
 import { generateMeta, generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 // ─── Client Components ──────────────────────────────────
 import OptimizedImage from "@/components/OptimizedImage";
@@ -268,7 +269,7 @@ export default async function ArticleDetailPage({ params }) {
                 /<[a-z][\s\S]*>/i.test(article.content) ? (
                   <div
                     className="prose prose-sm md:prose-base max-w-none text-gray-700 prose-headings:text-gray-900 prose-a:text-teal-600"
-                    dangerouslySetInnerHTML={{ __html: article.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
                   />
                 ) : (
                   <div className="prose prose-sm md:prose-base max-w-none text-gray-700">

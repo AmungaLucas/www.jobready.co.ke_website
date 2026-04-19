@@ -5,6 +5,7 @@ import { formatDate, formatCurrency, formatJobType, formatExperienceLevel } from
 import { formatLocation } from "@/lib/normalize";
 import { generateMeta, generateJobJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseJobFilters, generateJobComboTitle, generateJobComboDescription } from "@/lib/filter-parser";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 // ─── Client Components ──────────────────────────────────
 import BookmarkButton from "../../_components/BookmarkButton";
@@ -364,7 +365,7 @@ export default async function JobCatchAllPage({ params, searchParams }) {
               <h2 className="text-xl font-bold mb-3 text-gray-900">Job Description</h2>
               <div
                 className="prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-h3:text-lg prose-h3:font-bold prose-h3:mt-6 prose-h3:mb-2 prose-ul:my-3 prose-li:my-1"
-                dangerouslySetInnerHTML={{ __html: hasDescription ? job.description : "<p>No description provided.</p>" }}
+                dangerouslySetInnerHTML={{ __html: hasDescription ? sanitizeHtml(job.description) : "<p>No description provided.</p>" }}
               />
 
               {job.howToApply && (
@@ -372,7 +373,7 @@ export default async function JobCatchAllPage({ params, searchParams }) {
                   <h3 className="font-semibold text-gray-800 text-lg mb-2">How to Apply</h3>
                   <div
                     className="prose prose-sm max-w-none text-gray-700"
-                    dangerouslySetInnerHTML={{ __html: job.howToApply }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(job.howToApply) }}
                   />
                 </div>
               )}
