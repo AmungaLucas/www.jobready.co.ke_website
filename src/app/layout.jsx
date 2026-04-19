@@ -5,16 +5,16 @@ import { siteConfig } from "@/config/site-config";
 
 export const metadata = {
   title: {
-    template: "%s | JobNet Kenya",
-    default: "JobNet Kenya",
+    template: `%s | ${siteConfig.companyName}`,
+    default: siteConfig.companyName,
   },
-  description: "JobNet Kenya — Find jobs, internships, scholarships & government opportunities in Kenya.",
-  authors: [{ name: "JobNet Kenya" }],
+  description: `${siteConfig.companyName} — Find jobs, internships, scholarships & government opportunities in Kenya.`,
+  authors: [{ name: siteConfig.companyName }],
   openGraph: {
     type: "website",
     locale: "en_KE",
     url: siteConfig.url,
-    siteName: "JobNet Kenya",
+    siteName: siteConfig.companyName,
   },
   robots: {
     index: true,
