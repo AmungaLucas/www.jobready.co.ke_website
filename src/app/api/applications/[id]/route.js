@@ -59,7 +59,7 @@ export async function PUT(request, { params }) {
 
     if (
       !currentUser ||
-      (currentUser.role !== "ADMIN" && application.job.company.id !== session.user.id)
+      (currentUser.role !== "ADMIN" && application.job.company.userId !== session.user.id)
     ) {
       return NextResponse.json(
         { error: "You do not have permission to update this application" },

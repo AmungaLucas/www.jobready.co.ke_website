@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import SubscribeForm from "./SubscribeForm";
+import OptimizedImage from "@/components/OptimizedImage";
 
 const placeholderArticles = [
   {
@@ -42,9 +43,11 @@ export default function CareerBlog() {
                   key={article.title}
                   className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <img
+                  <OptimizedImage
                     src={article.image}
                     alt={article.title}
+                    width={400}
+                    height={160}
                     className="w-full h-40 object-cover"
                   />
                   <div className="p-4">

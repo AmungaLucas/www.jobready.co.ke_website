@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { userIdRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/company/logo
@@ -18,6 +19,15 @@ export async function POST(request) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 10 uploads per hour
+    const { allowed } = await userIdRateLimit(session.user.id, "upload", 10, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many upload attempts. Please try again later." },
+        { status: 429 }
       );
     }
 

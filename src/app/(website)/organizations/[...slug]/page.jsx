@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getInitials, buildLocation } from "@/lib/normalize";
 import { generateMeta, generateOrganizationJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseOrganizationFilters, generateOrgComboTitle, generateOrgComboDescription } from "@/lib/filter-parser";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import ShareStrip from "../../_components/ShareStrip";
 
@@ -62,10 +63,25 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseOrganizationFilters(segments);
     if (parsed) {
+      // Check if this combo has actual results — noindex empty pages
+      let noindex = false;
+      try {
+        const where = { isActive: true };
+        if (parsed.filters.organizationType) where.organizationType = parsed.filters.organizationType;
+        if (parsed.filters.county) where.county = parsed.filters.county;
+        if (parsed.filters.country && !parsed.filters.county) where.country = parsed.filters.country;
+
+        const count = await db.company.count({ where });
+        noindex = count === 0;
+      } catch {
+        // On error, allow indexing (safer default)
+      }
+
       return generateMeta({
         title: generateOrgComboTitle(parsed.labels),
         description: generateOrgComboDescription(parsed.labels),
         path: urlPath,
+        noindex,
       });
     }
   }
@@ -171,9 +187,13 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
                 <Link key={company.id} href={`/organizations/${company.slug}`} className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                   <div className="p-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold overflow-hidden shrink-0" style={{ backgroundColor: company.logoColor || "#5B21B6" }}>
-                        {company.logo ? <img src={company.logo} alt="" className="w-full h-full object-cover" /> : getInitials(company.name)}
-                      </div>
+                      <AvatarImage
+                        src={company.logo}
+                        name={company.name}
+                        color={company.logoColor || "#5B21B6"}
+                        size="lg"
+                        rounded="xl"
+                      />
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 truncate">{company.name}</h3>
                         {company.industry && <p className="text-xs text-gray-500 truncate">{company.industry}</p>}
@@ -274,9 +294,13 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
           <div className="md:col-span-2">
             <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white text-xl font-bold overflow-hidden shrink-0" style={{ backgroundColor: company.logoColor || "#5B21B6" }}>
-                  {company.logo ? <img src={company.logo} alt="" className="w-full h-full object-cover" /> : getInitials(company.name)}
-                </div>
+                <AvatarImage
+                  src={company.logo}
+                  name={company.name}
+                  color={company.logoColor || "#5B21B6"}
+                  size="xl"
+                  rounded="xl"
+                />
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
@@ -312,9 +336,13 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
                 <div className="space-y-3">
                   {jobs.map((job) => (
                     <Link key={job.id} href={`/jobs/${job.slug}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors no-underline group">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: job.company?.logoColor || "#5B21B6" }}>
-                        {job.company?.logo ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" /> : getInitials(job.company?.name)}
-                      </div>
+                      <AvatarImage
+                        src={job.company?.logo}
+                        name={job.company?.name}
+                        color={job.company?.logoColor || "#5B21B6"}
+                        size="md"
+                        rounded="lg"
+                      />
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 truncate">{job.title}</h3>
                         <p className="text-xs text-gray-500">{[job.county, job.town].filter(Boolean).join(", ")}</p>

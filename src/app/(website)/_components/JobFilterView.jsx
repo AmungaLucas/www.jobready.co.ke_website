@@ -8,6 +8,7 @@ import FilterSidebarWrapper from "./FilterSidebarWrapper";
 import { siteConfig } from "@/config/site-config";
 import { getJobHubs } from "@/config/hub-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX, FiArrowRight, FiZap } from "react-icons/fi";
+import OptimizedImage from "@/components/OptimizedImage";
 
 // ─── Related Filter Links (internal linking for SEO) ────────────
 const TOP_LOCATIONS = [
@@ -743,7 +744,7 @@ export default async function JobFilterView({ searchParams, ...config }) {
                               style={{ backgroundColor: logoColor }}
                             >
                               {company?.logo ? (
-                                <img src={company.logo} alt={company.name} className="w-12 h-12 rounded-xl object-cover" />
+                                <OptimizedImage src={company.logo} alt={company.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover" />
                               ) : (
                                 <span className="text-base">{initials}</span>
                               )}

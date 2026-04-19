@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { initiateSTKPush, formatMpesaPhone } from "@/lib/mpesa";
+import { userIdRateLimit, ipRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/payments/stk-push
@@ -17,6 +18,25 @@ export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || null;
+
+    // Rate limit: 5 STK Push attempts per 15 minutes per user (or per IP if unauthenticated)
+    if (userId) {
+      const { allowed } = await userIdRateLimit(userId, "stk-push", 5, 15 * 60 * 1000);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Too many payment requests. Please try again later." },
+          { status: 429 }
+        );
+      }
+    } else {
+      const { allowed } = await ipRateLimit(request, "stk-push", 5, 15 * 60 * 1000);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Too many payment requests. Please try again later." },
+          { status: 429 }
+        );
+      }
+    }
 
     const body = await request.json();
     const { orderId, phoneNumber, amount } = body;

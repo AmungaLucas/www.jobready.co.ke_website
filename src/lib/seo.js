@@ -23,6 +23,7 @@ export function generateMeta({
   ogType = "website",
   publishedTime,
   modifiedTime,
+  noindex = false,
 } = {}) {
   const url = `${SITE_URL}${path}`;
   const fullTitle = title ? `${title} | JobReady Kenya` : siteConfig.name;
@@ -59,8 +60,9 @@ export function generateMeta({
       images: [image],
     },
     robots: {
-      index: true,
+      index: !noindex,
       follow: true,
+      googleBot: noindex ? "noindex, follow" : undefined,
     },
   };
 

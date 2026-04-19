@@ -33,6 +33,7 @@ import {
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 import FilterSidebarWrapper from "../_components/FilterSidebarWrapper";
 
@@ -611,20 +612,13 @@ export default async function JobsPage({ searchParams }) {
                         <div className="p-4 md:p-5">
                           <div className="flex items-start gap-4">
                             {/* Company Logo */}
-                            <div
-                              className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                              style={{ backgroundColor: logoColor }}
-                            >
-                              {company?.logo ? (
-                                <img
-                                  src={company.logo}
-                                  alt={company.name}
-                                  className="w-12 h-12 rounded-xl object-cover"
-                                />
-                              ) : (
-                                <span className="text-base">{initials}</span>
-                              )}
-                            </div>
+                            <AvatarImage
+                              src={company?.logo}
+                              name={company?.name}
+                              color={logoColor}
+                              size="lg"
+                              rounded="xl"
+                            />
 
                             {/* Main Content */}
                             <div className="flex-1 min-w-0">

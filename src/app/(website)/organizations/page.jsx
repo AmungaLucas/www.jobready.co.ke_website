@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiFilter, FiX, FiTrendingUp } from "react-icons/fi";
@@ -293,9 +294,13 @@ export default async function OrganizationsPage({ searchParams }) {
                 {companies.map((c) => (
                   <Link key={c.id} href={`/organizations/${c.slug}`} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md hover:border-teal-200 transition-all no-underline group">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold overflow-hidden shrink-0" style={{ backgroundColor: c.logoColor || "#5B21B6" }}>
-                        {c.logo ? <img src={c.logo} alt="" className="w-full h-full object-cover" /> : getInitials(c.name)}
-                      </div>
+                      <AvatarImage
+                        src={c.logo}
+                        name={c.name}
+                        color={c.logoColor || "#5B21B6"}
+                        size="lg"
+                        rounded="xl"
+                      />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
                           <h3 className="font-semibold text-gray-900 text-sm truncate group-hover:text-teal-600">{c.name}</h3>

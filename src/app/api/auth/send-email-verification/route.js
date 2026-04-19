@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendEmail, emailLinkVerificationTemplate } from "@/lib/email";
 import { getServerSession } from "next-auth";
@@ -81,8 +82,8 @@ export async function POST(request) {
       );
     }
 
-    // Generate 6-digit code
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    // Generate 6-digit code (cryptographically secure)
+    const code = crypto.randomInt(100000, 999999).toString();
 
     // Store OTP — reuse the phone field for the email address
     await db.otp.create({
@@ -113,10 +114,11 @@ export async function POST(request) {
         `[Send Email Verification] Failed to send email to ${normalizedEmail}:`,
         result.error
       );
-      return NextResponse.json(
-        { error: "Failed to send verification email. Please try again.", debug: result.error },
-        { status: 500 }
-      );
+      const errResponse = { error: "Failed to send verification email. Please try again." };
+      if (process.env.NODE_ENV === "development") {
+        errResponse.debug = result.error;
+      }
+      return NextResponse.json(errResponse, { status: 500 });
     }
 
     console.log(

@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import { formatDate, formatCurrency, formatJobType, formatExperienceLevel } from "@/lib/format";
 import { formatLocation, getInitials } from "@/lib/normalize";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 
 // ─── Constants ──────────────────────────────────────────
 const TABS = [
@@ -648,16 +649,12 @@ function JobCard({ job }) {
   return (
     <Link href={`/jobs/${job.slug}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md hover:border-teal-200 transition-all">
       <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden"
-          style={{ backgroundColor: job.company?.logoColor || "#1a56db" }}
-        >
-          {job.company?.logo ? (
-            <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
-          ) : (
-            getInitials(job.company?.name)
-          )}
-        </div>
+        <AvatarImage
+          src={job.company?.logo}
+          name={job.company?.name}
+          color={job.company?.logoColor || "#1a56db"}
+          size="md"
+        />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-gray-900 text-sm truncate">{job.title}</h4>
           <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
@@ -705,16 +702,12 @@ function OppCard({ opp }) {
   return (
     <Link href={`/opportunities/${opp.slug}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md hover:border-purple-200 transition-all">
       <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden"
-          style={{ backgroundColor: opp.company?.logoColor || "#7c3aed" }}
-        >
-          {opp.company?.logo ? (
-            <img src={opp.company.logo} alt="" className="w-full h-full object-cover" />
-          ) : (
-            getInitials(opp.company?.name)
-          )}
-        </div>
+        <AvatarImage
+          src={opp.company?.logo}
+          name={opp.company?.name}
+          color={opp.company?.logoColor || "#7c3aed"}
+          size="md"
+        />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-gray-900 text-sm truncate">{opp.title}</h4>
           <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
@@ -742,16 +735,12 @@ function CompanyCard({ company }) {
   return (
     <Link href={`/organizations/${company.slug}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md hover:border-blue-200 transition-all">
       <div className="flex items-center gap-3">
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden"
-          style={{ backgroundColor: company.logoColor || "#1a56db" }}
-        >
-          {company.logo ? (
-            <img src={company.logo} alt="" className="w-full h-full object-cover" />
-          ) : (
-            getInitials(company.name)
-          )}
-        </div>
+        <AvatarImage
+          src={company.logo}
+          name={company.name}
+          color={company.logoColor || "#1a56db"}
+          size="lg"
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <h4 className="font-semibold text-gray-900 text-sm truncate">{company.name}</h4>
@@ -773,8 +762,8 @@ function ArticleCard({ article }) {
   return (
     <Link href={`/career-advice/${article.slug}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-amber-200 transition-all">
       {article.featuredImage && (
-        <div className="aspect-video bg-gray-200 overflow-hidden">
-          <img src={article.featuredImage} alt="" className="w-full h-full object-cover" />
+        <div className="aspect-video bg-gray-200 overflow-hidden relative">
+          <OptimizedImage src={article.featuredImage} alt="" fill className="object-cover" />
         </div>
       )}
       <div className="p-4">

@@ -4,6 +4,7 @@ import { getInitials } from "@/lib/normalize";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import AdPlaceholder from "./AdPlaceholder";
+import OptimizedImage from "@/components/OptimizedImage";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiClock, FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";
 
@@ -252,7 +253,7 @@ export default async function OpportunityFilterView({
                             style={{ backgroundColor: opp.company.logoColor || "#7c3aed" }}
                           >
                             {opp.company.logo ? (
-                              <img src={opp.company.logo} alt="" className="w-full h-full object-cover" />
+                              <OptimizedImage src={opp.company.logo} alt="" fill className="object-cover" />
                             ) : (
                               getInitials(opp.company.name)
                             )}

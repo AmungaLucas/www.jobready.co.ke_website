@@ -92,10 +92,31 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseJobFilters(segments);
     if (parsed) {
+      // Check if this combo has actual results — noindex empty pages
+      let noindex = false;
+      try {
+        const where = {
+          status: "PUBLISHED",
+          isActive: true,
+        };
+        if (parsed.filters.category) where.categories = { string_contains: `"${parsed.filters.category}"` };
+        if (parsed.filters.employmentType) where.employmentType = parsed.filters.employmentType;
+        if (parsed.filters.experienceLevel) where.experienceLevel = parsed.filters.experienceLevel;
+        if (parsed.filters.isRemote) where.isRemote = true;
+        if (parsed.filters.county) where.county = parsed.filters.county;
+        if (parsed.filters.country) where.country = parsed.filters.country;
+
+        const count = await db.job.count({ where });
+        noindex = count === 0;
+      } catch {
+        // On error, allow indexing (safer default)
+      }
+
       return generateMeta({
         title: generateJobComboTitle(parsed.labels),
         description: generateJobComboDescription(parsed.labels),
         path: urlPath,
+        noindex,
       });
     }
   }

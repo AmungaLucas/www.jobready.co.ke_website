@@ -311,14 +311,12 @@ export async function POST(request) {
       );
     }
 
-    // Include error details for debugging
+    // Include error details only in development
     const errMsg = error.message || error.code || JSON.stringify(error) || "unknown";
-    const devMsg = process.env.NODE_ENV === "development"
-      ? ` (${errMsg})`
-      : "";
-    return NextResponse.json(
-      { error: `Failed to verify email. Please try again.${devMsg}`, debug: errMsg },
-      { status: 500 }
-    );
+    const response = { error: "Failed to verify email. Please try again." };
+    if (process.env.NODE_ENV === "development") {
+      response.debug = errMsg;
+    }
+    return NextResponse.json(response, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiClock, FiFileText } from "react-icons/fi";
 import { formatRelativeDate } from "@/lib/format";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function FeaturedJobs({ featuredJobs }) {
   const largeJob = featuredJobs?.[0];
@@ -31,10 +32,13 @@ export default function FeaturedJobs({ featuredJobs }) {
                   <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
                     <div className="relative">
                       {largeJob.featuredImage ? (
-                        <img
+                        <OptimizedImage
                           src={largeJob.featuredImage}
                           alt={largeJob.title}
+                          width={600}
+                          height={224}
                           className="w-full h-56 object-cover"
+                          priority
                         />
                       ) : (
                         <div className="w-full h-56 bg-gradient-to-br from-purple-100 to-teal-50" />
@@ -78,9 +82,11 @@ export default function FeaturedJobs({ featuredJobs }) {
                   >
                     <div className="relative">
                       {job.featuredImage ? (
-                        <img
+                        <OptimizedImage
                           src={job.featuredImage}
                           alt={job.title}
+                          width={400}
+                          height={112}
                           className="w-full h-28 object-cover"
                         />
                       ) : (

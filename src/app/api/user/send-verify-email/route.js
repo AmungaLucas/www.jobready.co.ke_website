@@ -101,10 +101,11 @@ export async function POST(request) {
         `[Send Verify Email] Failed to send email to ${email}:`,
         result.error
       );
-      return NextResponse.json(
-        { error: "Failed to send verification email. Please try again.", debug: result.error },
-        { status: 500 }
-      );
+      const errResponse = { error: "Failed to send verification email. Please try again." };
+      if (process.env.NODE_ENV === "development") {
+        errResponse.debug = result.error;
+      }
+      return NextResponse.json(errResponse, { status: 500 });
     }
 
     console.log(
@@ -114,7 +115,6 @@ export async function POST(request) {
     return NextResponse.json({
       message: "Verification code sent to your email",
       email,
-      debug: result.messageId,
     });
   } catch (error) {
     console.error("[Send Verify Email API] Error:", error);

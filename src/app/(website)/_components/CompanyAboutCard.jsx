@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiBuilding } from "react-icons/fi";
 import { getInitials } from "@/lib/normalize";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function CompanyAboutCard({ company }) {
   if (!company) return null;
@@ -12,10 +13,12 @@ export default function CompanyAboutCard({ company }) {
       <h3 className="text-lg font-bold mb-3 text-gray-900">About {name}</h3>
       <div className="flex items-center gap-3 mb-3">
         {logo ? (
-          <img
+          <OptimizedImage
             src={logo}
             alt={name}
-            className="w-12 h-12 rounded-full object-cover bg-gray-100"
+            size="xl"
+            rounded="full"
+            className="bg-gray-100"
           />
         ) : (
           <div

@@ -279,24 +279,12 @@ function LoginForm() {
       // Profile complete — create a fresh session with updated data
       // and redirect via native form submit (proven reliable redirect).
       if (data.user?.id) {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "/api/auth/phone-session";
-
-        const addField = (name, value) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = name;
-          input.value = value;
-          form.appendChild(input);
-        };
-
-        addField("userId", data.user.id);
-        addField("callbackUrl", callbackUrl || "/dashboard");
-
-        document.body.appendChild(form);
-        form.submit();
-        return; // browser is navigating away
+        // Note: phone-session for profile completion requires a valid session grant token.
+        // Since the user is already authenticated (session exists), we use fetch to
+        // refresh the session data instead of creating a new one via phone-session.
+        await refresh();
+        window.location.href = callbackUrl || "/dashboard";
+        return;
       }
 
       // Fallback if no user id returned
@@ -508,12 +496,12 @@ function LoginForm() {
         //   verify-otp creates user → complete-profile needs session →
         //   phone-session creates session → but phone-session only called
         //   when isComplete (chicken-and-egg).
-        if (data.user) {
+        if (data.user && data.sessionGrantToken) {
           try {
             const sessionRes = await fetch("/api/auth/phone-session", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId: data.user.id }),
+              body: JSON.stringify({ userId: data.user.id, sessionGrantToken: data.sessionGrantToken }),
             });
             if (sessionRes.ok) {
               await refresh();
@@ -534,7 +522,7 @@ function LoginForm() {
       // Profile complete — submit a native form to phone-session.
       // The server sets the cookie AND returns a 307 redirect.
       // The browser follows the redirect natively — zero React interference.
-      if (data.user) {
+      if (data.user && data.sessionGrantToken) {
         const form = document.createElement("form");
         form.method = "POST";
         form.action = "/api/auth/phone-session";
@@ -548,6 +536,7 @@ function LoginForm() {
         };
 
         addField("userId", data.user.id);
+        addField("sessionGrantToken", data.sessionGrantToken);
         addField("callbackUrl", callbackUrl || "/dashboard");
 
         document.body.appendChild(form);
@@ -555,7 +544,7 @@ function LoginForm() {
         return; // browser is navigating away — nothing else to do
       }
 
-      // No user returned (unexpected) — show error
+      // No user or token returned (unexpected) — show error
       setOtpError("Verification succeeded but no session could be created. Please try again.");
     } catch (err) {
       setOtpError("Verification failed. Please check your connection.");

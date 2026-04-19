@@ -7,6 +7,7 @@ import { parseOpportunityFilters, generateOppComboTitle, generateOppComboDescrip
 import { siteConfig } from "@/config/site-config";
 
 // ─── Client Components ──────────────────────────────────
+import OptimizedImage from "@/components/OptimizedImage";
 import ShareStrip from "../../_components/ShareStrip";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import CompanyAboutCard from "../../_components/CompanyAboutCard";
@@ -157,10 +158,38 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseOpportunityFilters(segments);
     if (parsed) {
+      // Check if this combo has actual results — noindex empty pages
+      let noindex = false;
+      try {
+        const where = {
+          isActive: true,
+          status: "PUBLISHED",
+          publishedAt: { not: null },
+        };
+        if (parsed.filters.opportunityType) where.opportunityType = parsed.filters.opportunityType;
+        if (parsed.filters.county) {
+          where.OR = [
+            { description: { contains: parsed.filters.county } },
+            { title: { contains: parsed.filters.county } },
+          ];
+        } else if (parsed.filters.country) {
+          where.OR = [
+            { description: { contains: parsed.filters.country } },
+            { title: { contains: parsed.filters.country } },
+          ];
+        }
+
+        const count = await db.opportunity.count({ where });
+        noindex = count === 0;
+      } catch {
+        // On error, allow indexing (safer default)
+      }
+
       return generateMeta({
         title: generateOppComboTitle(parsed.labels),
         description: generateOppComboDescription(parsed.labels),
         path: urlPath,
+        noindex,
       });
     }
   }
@@ -277,8 +306,8 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
                 return (
                   <Link key={opp.id} href={`/opportunities/${opp.slug}`} className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                     {opp.featuredImage ? (
-                      <div className="h-40 bg-gray-100">
-                        <img src={opp.featuredImage} alt="" className="w-full h-full object-cover" />
+                      <div className="h-40 bg-gray-100 relative">
+                        <OptimizedImage src={opp.featuredImage} alt="" fill className="object-cover" />
                       </div>
                     ) : (
                       <div className="h-24 bg-gradient-to-r from-teal-500 to-blue-500" />

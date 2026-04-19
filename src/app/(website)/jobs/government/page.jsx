@@ -3,6 +3,7 @@ import { formatDate, formatCurrency, formatJobType, formatExperienceLevel, forma
 import { formatLocation, getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiTrendingUp, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX } from "react-icons/fi";
@@ -323,16 +324,13 @@ export default async function GovernmentJobsPage({ searchParams }) {
                         className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-5 flex flex-col no-underline border border-transparent hover:border-teal-100"
                       >
                         <div className="flex items-start gap-3 mb-3">
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                            style={{ backgroundColor: logoColor }}
-                          >
-                            {company?.logo ? (
-                              <img src={company.logo} alt={company.name} className="w-10 h-10 rounded-lg object-cover" />
-                            ) : (
-                              initials
-                            )}
-                          </div>
+                          <AvatarImage
+                            src={company?.logo}
+                            name={company?.name}
+                            color={logoColor}
+                            size="md"
+                            rounded="lg"
+                          />
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-gray-900 text-sm leading-snug group-hover:text-teal-600 transition-colors line-clamp-2">
                               {job.title}

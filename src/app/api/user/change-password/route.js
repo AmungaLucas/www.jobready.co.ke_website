@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { userIdRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/user/change-password
@@ -17,6 +18,16 @@ export async function POST(request) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 5 attempts per 15 minutes
+    const { allowed, retryAfterMs } = await userIdRateLimit(session.user.id, "change-password", 5, 15 * 60 * 1000);
+    if (!allowed) {
+      const retryMinutes = Math.ceil(retryAfterMs / 60000);
+      return NextResponse.json(
+        { error: `Too many password change attempts. Please try again in ${retryMinutes} minute${retryMinutes > 1 ? "s" : ""}.` },
+        { status: 429 }
       );
     }
 

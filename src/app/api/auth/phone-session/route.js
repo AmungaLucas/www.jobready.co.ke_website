@@ -8,6 +8,10 @@ import { encode } from "next-auth/jwt";
  *
  * Creates a NextAuth JWT session for a phone-verified user.
  *
+ * IMPORTANT: This endpoint requires a `sessionGrantToken` that is only
+ * issued by /api/auth/verify-otp after successful OTP verification.
+ * This prevents session creation by anyone who merely knows a userId.
+ *
  * Two modes of operation:
  *   1. JSON request  → returns JSON + session cookie (no redirect).
  *      Used by the login page to create a session before showing the
@@ -21,6 +25,7 @@ export async function POST(request) {
     // Accept both JSON body and form-data (native form submission)
     let userId;
     let callbackUrl;
+    let sessionGrantToken;
     const isJson =
       (request.headers.get("content-type") || "").includes("application/json");
 
@@ -28,24 +33,61 @@ export async function POST(request) {
       const body = await request.json();
       userId = body.userId;
       callbackUrl = body.callbackUrl;
+      sessionGrantToken = body.sessionGrantToken;
     } else {
       const formData = await request.formData();
       userId = formData.get("userId");
       callbackUrl = formData.get("callbackUrl");
+      sessionGrantToken = formData.get("sessionGrantToken");
     }
 
-    // --- Validate userId ---
-    if (!userId) {
+    // --- Validate required fields ---
+    if (!userId || !sessionGrantToken) {
       if (!isJson) {
         return NextResponse.redirect(
           new URL("/login?error=phone_session", request.url)
         );
       }
       return NextResponse.json(
-        { error: "User ID is required" },
+        { error: "User ID and session grant token are required" },
         { status: 400 }
       );
     }
+
+    // --- Verify the session grant token ---
+    // This token was issued by verify-otp after successful OTP verification.
+    // It proves the caller actually completed the OTP flow.
+    const grantRecord = await db.otp.findFirst({
+      where: {
+        code: sessionGrantToken,
+        purpose: "session_grant",
+        verified: false,
+        expiresAt: { gte: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!grantRecord) {
+      console.warn(
+        "[Phone Session] Rejected: invalid or expired session grant token for userId:",
+        userId
+      );
+      if (!isJson) {
+        return NextResponse.redirect(
+          new URL("/login?error=phone_session", request.url)
+        );
+      }
+      return NextResponse.json(
+        { error: "Invalid or expired session token. Please verify your phone number again." },
+        { status: 401 }
+      );
+    }
+
+    // Consume the token (one-time use)
+    await db.otp.update({
+      where: { id: grantRecord.id },
+      data: { verified: true },
+    });
 
     // --- Fetch user from DB ---
     const user = await db.user.findUnique({
@@ -98,7 +140,14 @@ export async function POST(request) {
     });
 
     // --- Build response ---
-    const redirectUrl = callbackUrl || "/dashboard";
+    // Validate callbackUrl to prevent open redirect attacks
+    let redirectUrl = "/dashboard";
+    if (callbackUrl) {
+      if (callbackUrl.startsWith("/")) {
+        redirectUrl = callbackUrl;
+      }
+      // Absolute URLs are rejected — only relative paths allowed
+    }
 
     let response;
 

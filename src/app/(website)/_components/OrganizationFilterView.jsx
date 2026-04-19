@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
 import AdPlaceholder from "./AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
+import OptimizedImage from "@/components/OptimizedImage";
 
 const PER_PAGE = 20;
 
@@ -160,10 +161,11 @@ export default async function OrganizationFilterView({
                         }}
                       >
                         {c.logo ? (
-                          <img
+                          <OptimizedImage
                             src={c.logo}
                             alt=""
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         ) : (
                           getInitials(c.name)

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import OptimizedImage from "@/components/OptimizedImage";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
@@ -201,10 +202,11 @@ export default function CompanyProfileForm() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <Avatar className="size-20 rounded-xl">
               {form.logo ? (
-                <img
+                <OptimizedImage
                   src={form.logo}
                   alt={form.name}
-                  className="object-cover size-full rounded-xl"
+                  fill
+                  className="object-cover rounded-xl"
                 />
               ) : (
                 <AvatarFallback className="rounded-xl bg-green-600 text-white text-xl font-bold">

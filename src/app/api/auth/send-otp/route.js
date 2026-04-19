@@ -3,9 +3,19 @@ import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendOTP } from "@/lib/sms";
 import { normalizePhone } from "@/lib/auth-identity";
+import { ipRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request) {
   try {
+    // Global IP rate limit: 10 OTP requests per hour per IP
+    const { allowed } = await ipRateLimit(request, "send-otp", 10, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many OTP requests from your device. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { phone } = body;
 

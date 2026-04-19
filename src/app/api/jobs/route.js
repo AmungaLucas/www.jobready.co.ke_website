@@ -219,13 +219,21 @@ export async function POST(request) {
     // Verify company exists and is active
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, userId: true },
     });
 
     if (!company) {
       return NextResponse.json(
         { error: "Company not found" },
         { status: 400 }
+      );
+    }
+
+    // Verify company ownership (ADMIN can bypass)
+    if (company.userId !== session.user.id && user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "You do not own this company and cannot create jobs for it" },
+        { status: 403 }
       );
     }
 

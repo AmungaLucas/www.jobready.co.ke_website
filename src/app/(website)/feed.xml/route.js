@@ -5,35 +5,29 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = siteConfig.url;
 
-// ─── Opportunity type → hub slug mapping ───────────────────
-const typeToHubSlug = {
-  SCHOLARSHIP: "scholarships",
-  GRANT: "grants",
-  FELLOWSHIP: "fellowships",
-  BURSARY: "bursaries",
-  COMPETITION: "competitions",
-  CONFERENCE: "conferences",
-  VOLUNTEER: "volunteer",
-  APPRENTICESHIP: "apprenticeships",
-};
-
 // ─── GET /feed.xml ────────────────────────────────────────
-// RSS 2.0 feed of latest jobs + opportunities
+// RSS 2.0 feed of latest jobs, opportunities, AND blog articles
 export async function GET() {
   try {
-    const [jobs, opportunities] = await Promise.allSettled([
-      // Latest 50 published jobs
+    const [jobs, opportunities, articles] = await Promise.allSettled([
+      // Latest 30 published jobs
       db.job.findMany({
-        where: { status: "PUBLISHED" },
-        include: {
+        where: { status: "PUBLISHED", isActive: true },
+        select: {
+          title: true,
+          slug: true,
+          employmentType: true,
+          excerpt: true,
+          createdAt: true,
+          county: true,
           company: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" },
-        take: 50,
+        take: 30,
       }),
       // Latest 20 published opportunities
       db.opportunity.findMany({
-        where: { isPublished: true, publishedAt: { not: null } },
+        where: { status: "PUBLISHED", isActive: true, publishedAt: { not: null } },
         select: {
           title: true,
           slug: true,
@@ -45,50 +39,80 @@ export async function GET() {
         orderBy: { publishedAt: "desc" },
         take: 20,
       }),
+      // Latest 10 published blog articles
+      db.blogArticle.findMany({
+        where: { isPublished: true, publishedAt: { not: null } },
+        select: {
+          title: true,
+          slug: true,
+          excerpt: true,
+          publishedAt: true,
+          featuredImage: true,
+          category: { select: { name: true } },
+          author: { select: { name: true } },
+        },
+        orderBy: { publishedAt: "desc" },
+        take: 10,
+      }),
     ]);
 
     const jobsData = jobs.status === "fulfilled" ? jobs.value : [];
     const oppsData = opportunities.status === "fulfilled" ? opportunities.value : [];
+    const articlesData = articles.status === "fulfilled" ? articles.value : [];
 
     const jobItems = jobsData
       .map(
         (job) => `
     <item>
       <title><![CDATA[${job.title} at ${job.company?.name || "Confidential"}]]></title>
-      <link>${SITE_URL}/job/${job.slug}</link>
-      <guid isPermaLink="true">${SITE_URL}/job/${job.slug}</guid>
-      <category>${job.employmentType || "Job"}</category>
-      <description><![CDATA[${job.description ? job.description.substring(0, 500) : ""}]]></description>
+      <link>${SITE_URL}/jobs/${job.slug}</link>
+      <guid isPermaLink="true">${SITE_URL}/jobs/${job.slug}</guid>
+      <category>${job.employmentType || "Job"}${job.county ? `, ${job.county}` : ""}</category>
+      <description><![CDATA[${job.excerpt || (job.description ? job.description.replace(/<[^>]*>/g, "").substring(0, 500) : "")}]]></description>
       <pubDate>${job.createdAt?.toUTCString()}</pubDate>
     </item>`
       )
       .join("");
 
     const oppItems = oppsData
-      .map((opp) => {
-        const hubSlug = typeToHubSlug[opp.opportunityType] || "scholarships";
-        return `
+      .map(
+        (opp) => `
     <item>
       <title><![CDATA[${opp.title}${opp.company?.name ? ` — ${opp.company.name}` : ""}]]></title>
-      <link>${SITE_URL}/opportunities/${hubSlug}/${opp.slug}</link>
-      <guid isPermaLink="true">${SITE_URL}/opportunities/${hubSlug}/${opp.slug}</guid>
-      <category>${opp.opportunityType || "Opportunity"}</category>
+      <link>${SITE_URL}/opportunities/${opp.slug}</link>
+      <guid isPermaLink="true">${SITE_URL}/opportunities/${opp.slug}</guid>
+      <category>${opp.opportunityType?.replace(/_/g, " ") || "Opportunity"}</category>
       <description><![CDATA[${opp.excerpt || ""}]]></description>
       <pubDate>${opp.publishedAt?.toUTCString()}</pubDate>
-    </item>`;
-      })
+    </item>`
+      )
+      .join("");
+
+    const articleItems = articlesData
+      .map(
+        (article) => `
+    <item>
+      <title><![CDATA[${article.title}]]></title>
+      <link>${SITE_URL}/career-advice/${article.slug}</link>
+      <guid isPermaLink="true">${SITE_URL}/career-advice/${article.slug}</guid>
+      <category>${article.category?.name || "Career Advice"}</category>
+      <author>${article.author?.name || "JobReady Kenya"}</author>
+      <description><![CDATA[${article.excerpt || ""}]]></description>
+      <pubDate>${article.publishedAt?.toUTCString()}</pubDate>
+    </item>`
+      )
       .join("");
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>JobReady Kenya — Latest Jobs &amp; Opportunities</title>
+    <title>JobReady Kenya — Latest Jobs, Opportunities &amp; Career Advice</title>
     <link>${SITE_URL}</link>
-    <description>Kenya's #1 job board. Latest jobs, internships, scholarships, and career opportunities updated daily.</description>
+    <description>Kenya's #1 job board. Latest jobs, internships, scholarships, career advice, and opportunities updated daily.</description>
     <language>en-ke</language>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <generator>JobReady.co.ke</generator>${jobItems}${oppItems}
+    <generator>JobReady.co.ke</generator>${jobItems}${oppItems}${articleItems}
   </channel>
 </rss>`;
 

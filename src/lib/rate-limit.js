@@ -1,124 +1,245 @@
 /**
- * Simple in-memory rate limiter for Next.js API routes.
+ * Rate Limiting Utilities for API Routes
  *
- * No external dependencies — uses a Map with automatic cleanup.
- * For production with multiple server instances, consider using
- * @upstash/ratelimit (Redis-backed) instead.
+ * Provides two strategies:
  *
- * Usage:
- *   import { rateLimit } from "@/lib/rate-limit";
- *   const limited = rateLimit({ max: 5, windowMs: 60_000 }); // 5 per minute
- *   const { success, remaining, resetAt } = limited(identifier);
- *   if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+ * 1. `userIdRateLimit(session, key, limit, windowMs)` — Per-user rate limit
+ *    Uses the Otp table to track request timestamps (no Redis needed).
+ *    Good for authenticated endpoints like change-password, file uploads.
+ *
+ * 2. `ipRateLimit(request, key, limit, windowMs)` — Per-IP rate limit
+ *    Also uses the Otp table. Good for unauthenticated endpoints like send-otp.
+ *
+ * Both return { allowed: boolean, retryAfterMs: number }.
  */
 
-const store = new Map();
-let cleanupTimer = null;
+import { db } from "./db";
 
 /**
- * Create a rate limiter instance
- * @param {Object} options
- * @param {number} options.max - Max requests in the window
- * @param {number} options.windowMs - Window duration in milliseconds
- * @returns {{ (identifier: string): { success: boolean, remaining: number, resetAt: number } }}
+ * Check per-user rate limit.
+ * Stores a "rate_limit" purpose record in the Otp table with a JSON payload.
+ *
+ * @param {string} userId — the user's ID
+ * @param {string} key — unique key for this rate limit (e.g. "change-password")
+ * @param {number} limit — max requests in window
+ * @param {number} windowMs — window in milliseconds (e.g. 15 * 60 * 1000 for 15 min)
+ * @returns {{ allowed: boolean, retryAfterMs: number }}
  */
-export function rateLimit({ max, windowMs }) {
-  return function check(identifier) {
-    const now = Date.now();
+export async function userIdRateLimit(userId, key, limit, windowMs) {
+  const rateKey = `rate:${key}`;
+  const windowStart = new Date(Date.now() - windowMs);
 
-    // Get or create bucket
-    let bucket = store.get(identifier);
+  // Clean up old records for this key (fire-and-forget)
+  db.otp
+    .deleteMany({
+      where: {
+        phone: userId,
+        purpose: rateKey,
+        createdAt: { lt: windowStart },
+      },
+    })
+    .catch(() => {});
 
-    // Reset if window expired or doesn't exist
-    if (!bucket || now > bucket.resetAt) {
-      bucket = {
-        count: 0,
-        resetAt: now + windowMs,
-      };
-      store.set(identifier, bucket);
-    }
+  // Count recent records
+  const count = await db.otp.count({
+    where: {
+      phone: userId,
+      purpose: rateKey,
+      createdAt: { gte: windowStart },
+    },
+  });
 
-    // Increment
-    bucket.count += 1;
+  if (count >= limit) {
+    // Find the oldest record to calculate retry-after
+    const oldest = await db.otp.findFirst({
+      where: {
+        phone: userId,
+        purpose: rateKey,
+        createdAt: { gte: windowStart },
+      },
+      orderBy: { createdAt: "asc" },
+    });
 
-    const remaining = Math.max(0, max - bucket.count);
-    const success = bucket.count <= max;
+    const retryAfterMs = oldest
+      ? windowMs - (Date.now() - oldest.createdAt.getTime())
+      : windowMs;
 
-    // Schedule cleanup of expired entries (run once)
-    scheduleCleanup(windowMs);
+    return { allowed: false, retryAfterMs: Math.max(retryAfterMs, 1000) };
+  }
+
+  // Record this request
+  await db.otp.create({
+    data: {
+      phone: userId,
+      code: "1",
+      purpose: rateKey,
+      verified: true, // mark as consumed so OTP cleanup doesn't target it
+      expiresAt: new Date(Date.now() + windowMs),
+    },
+  });
+
+  return { allowed: true, retryAfterMs: 0 };
+}
+
+/**
+ * Check per-IP rate limit.
+ * Uses the Otp table with the IP as the "phone" field.
+ *
+ * @param {Request} request — Next.js Request object
+ * @param {string} key — unique key for this rate limit
+ * @param {number} limit — max requests in window
+ * @param {number} windowMs — window in milliseconds
+ * @returns {{ allowed: boolean, retryAfterMs: number }}
+ */
+export async function ipRateLimit(request, key, limit, windowMs) {
+  const ip = getClientIp(request);
+  if (!ip) {
+    // If we can't determine IP, allow the request (don't block legitimate traffic)
+    return { allowed: true, retryAfterMs: 0 };
+  }
+
+  const rateKey = `ip_rate:${key}`;
+  const windowStart = new Date(Date.now() - windowMs);
+
+  // Clean up old records
+  db.otp
+    .deleteMany({
+      where: {
+        phone: ip,
+        purpose: rateKey,
+        createdAt: { lt: windowStart },
+      },
+    })
+    .catch(() => {});
+
+  const count = await db.otp.count({
+    where: {
+      phone: ip,
+      purpose: rateKey,
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (count >= limit) {
+    const oldest = await db.otp.findFirst({
+      where: {
+        phone: ip,
+        purpose: rateKey,
+        createdAt: { gte: windowStart },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const retryAfterMs = oldest
+      ? windowMs - (Date.now() - oldest.createdAt.getTime())
+      : windowMs;
+
+    return { allowed: false, retryAfterMs: Math.max(retryAfterMs, 1000) };
+  }
+
+  await db.otp.create({
+    data: {
+      phone: ip,
+      code: "1",
+      purpose: rateKey,
+      verified: true,
+      expiresAt: new Date(Date.now() + windowMs),
+    },
+  });
+
+  return { allowed: true, retryAfterMs: 0 };
+}
+
+/**
+ * Track failed OTP attempts. After MAX_FAILED_ATTEMPTS, invalidate all OTPs
+ * for that identifier.
+ *
+ * @param {string} identifier — phone number or email
+ * @param {string} purpose — OTP purpose (e.g. "auth", "email_link", "email_verify")
+ * @param {number} maxAttempts — max failed attempts before lockout (default: 5)
+ * @returns {{ allowed: boolean, attemptsRemaining: number, lockedUntil: Date|null }}
+ */
+export async function checkOtpAttempts(identifier, purpose, maxAttempts = 5) {
+  const failKey = `otp_fail:${purpose}`;
+
+  // Count recent failures
+  const windowStart = new Date(Date.now() - 30 * 60 * 1000); // 30 min window
+  const failures = await db.otp.count({
+    where: {
+      phone: identifier,
+      purpose: failKey,
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (failures >= maxAttempts) {
+    // Lock out for 30 minutes
+    const oldest = await db.otp.findFirst({
+      where: {
+        phone: identifier,
+        purpose: failKey,
+        createdAt: { gte: windowStart },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const lockedUntil = oldest
+      ? new Date(oldest.createdAt.getTime() + 30 * 60 * 1000)
+      : new Date(Date.now() + 30 * 60 * 1000);
 
     return {
-      success,
-      remaining,
-      resetAt: bucket.resetAt,
-      limit: max,
+      allowed: false,
+      attemptsRemaining: 0,
+      lockedUntil,
     };
+  }
+
+  return {
+    allowed: true,
+    attemptsRemaining: maxAttempts - failures,
+    lockedUntil: null,
   };
 }
 
 /**
- * Rate limit presets for common endpoints
+ * Record a failed OTP attempt.
+ * @param {string} identifier — phone or email
+ * @param {string} purpose — OTP purpose
  */
-export const presets = {
-  // Auth endpoints — stricter (prevent brute force)
-  register: rateLimit({ max: 5, windowMs: 60_000 }),       // 5 per minute
-  forgotPassword: rateLimit({ max: 3, windowMs: 60_000 }),  // 3 per minute
-  resetPassword: rateLimit({ max: 3, windowMs: 60_000 }),   // 3 per minute
-  login: rateLimit({ max: 10, windowMs: 60_000 }),          // 10 per minute
-
-  // Form submissions
-  contact: rateLimit({ max: 3, windowMs: 60_000 }),         // 3 per minute
-  newsletter: rateLimit({ max: 5, windowMs: 60_000 }),      // 5 per minute
-
-  // Job actions (authenticated but still rate-limited)
-  applyJob: rateLimit({ max: 10, windowMs: 60_000 }),       // 10 per minute
-  sendOtp: rateLimit({ max: 1, windowMs: 60_000 }),         // 1 per minute (handled in route)
-};
+export async function recordOtpFailure(identifier, purpose) {
+  const failKey = `otp_fail:${purpose}`;
+  await db.otp.create({
+    data: {
+      phone: identifier,
+      code: "FAIL",
+      purpose: failKey,
+      verified: true,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    },
+  });
+}
 
 /**
- * Extract client IP from request
- * Works behind proxies (Vercel, Cloudflare, Nginx, Caddy)
+ * Clear failed OTP attempts after a successful verification.
+ * @param {string} identifier — phone or email
+ * @param {string} purpose — OTP purpose
+ */
+export async function clearOtpFailures(identifier, purpose) {
+  const failKey = `otp_fail:${purpose}`;
+  await db.otp.deleteMany({
+    where: { phone: identifier, purpose: failKey },
+  });
+}
+
+/**
+ * Extract client IP from request headers.
+ * @param {Request} request
+ * @returns {string|null}
  */
 export function getClientIp(request) {
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
+  if (forwarded) return forwarded.split(",")[0].trim();
   const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp;
-  return "unknown";
-}
-
-/**
- * Standard 429 rate limit response
- */
-export function rateLimitResponse(limit, resetAt) {
-  const secondsUntilReset = Math.ceil((resetAt - Date.now()) / 1000);
-  return {
-    status: 429,
-    headers: {
-      "Retry-After": String(secondsUntilReset),
-    },
-    body: {
-      error: "Too many requests. Please slow down and try again.",
-      retryAfter: secondsUntilReset,
-      limit,
-    },
-  };
-}
-
-// ─── Cleanup ────────────────────────────────────────────────────────
-
-function scheduleCleanup(windowMs) {
-  if (cleanupTimer) return;
-  // Run cleanup after 2x the largest window (safe margin)
-  cleanupTimer = setTimeout(() => {
-    const now = Date.now();
-    for (const [key, bucket] of store) {
-      if (now > bucket.resetAt) {
-        store.delete(key);
-      }
-    }
-    cleanupTimer = null;
-  }, windowMs * 2);
+  if (realIp) return realIp.trim();
+  return null;
 }

@@ -13,6 +13,7 @@ import {
   FiShield,
   FiAlertCircle,
 } from "react-icons/fi";
+import OptimizedImage from "@/components/OptimizedImage";
 import AuthCard from "../_components/AuthCard";
 import InputField from "../_components/InputField";
 import PasswordStrength from "../_components/PasswordStrength";
@@ -508,17 +509,15 @@ export default function OnboardingPage() {
       {/* Show user info */}
       <div className="mb-5 p-3 bg-gray-50 border border-gray-100 rounded-xl">
         <div className="flex items-center gap-3">
-          {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-[#1a56db] flex items-center justify-center text-white font-semibold text-sm">
-              {(user?.name || "?")[0].toUpperCase()}
-            </div>
-          )}
+          <OptimizedImage
+            src={user?.avatar}
+            alt=""
+            width={40}
+            height={40}
+            initials={user?.name}
+            initialsColor="#1a56db"
+            className="rounded-full object-cover"
+          />
           <div className="min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
               {user?.name}

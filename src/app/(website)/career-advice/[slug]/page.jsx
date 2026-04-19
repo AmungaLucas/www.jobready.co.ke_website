@@ -5,9 +5,29 @@ import { formatDate, formatReadingTime } from "@/lib/format";
 import { generateMeta, generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 // ─── Client Components ──────────────────────────────────
+import OptimizedImage from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import ShareStrip from "../../_components/ShareStrip";
 import SubscribeForm from "../../_components/SubscribeForm";
+
+// ─── Static Generation ───────────────────────────────────
+// Pre-render published article pages at build time for faster TTFB.
+// ISR (revalidate) ensures new articles appear within 1 hour.
+export async function generateStaticParams() {
+  try {
+    const articles = await db.blogArticle.findMany({
+      where: { isPublished: true, publishedAt: { not: null } },
+      select: { slug: true },
+      take: 500,
+    });
+    return articles.map((a) => ({ slug: a.slug }));
+  } catch {
+    return [];
+  }
+}
+
+// Revalidate pre-rendered pages every hour so new articles appear
+export const revalidate = 3600;
 
 // ─── Data Fetching ──────────────────────────────────────
 async function getArticle(slug) {
@@ -197,22 +217,15 @@ export default async function ArticleDetailPage({ params }) {
                 {/* Author Avatar + Name */}
                 {author && (
                   <div className="flex items-center gap-2">
-                    {author.avatar ? (
-                      <img
-                        src={author.avatar}
-                        alt={author.name}
-                        className="w-9 h-9 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm flex-shrink-0">
-                        {author.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </div>
-                    )}
+                    <OptimizedImage
+                      src={author.avatar}
+                      alt={author.name}
+                      width={36}
+                      height={36}
+                      initials={author.name}
+                      initialsColor="#0d9488"
+                      className="rounded-full object-cover"
+                    />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{author.name}</p>
                       {author.title && (
@@ -235,12 +248,16 @@ export default async function ArticleDetailPage({ params }) {
 
             {/* ─── Featured Image ─── */}
             {article.featuredImage && (
-              <div className="rounded-xl overflow-hidden mb-6 bg-white shadow-sm">
-                <img
+              <div className="rounded-xl overflow-hidden mb-6 bg-white shadow-sm relative">
+                <OptimizedImage
                   src={article.featuredImage}
                   alt={article.title}
-                  className="w-full max-h-[420px] object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 667px"
+                  priority
                 />
+                <div className="h-[420px]" />
               </div>
             )}
 
@@ -320,22 +337,15 @@ export default async function ArticleDetailPage({ params }) {
             {author && (
               <div className="bg-white rounded-xl shadow-sm p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  {author.avatar ? (
-                    <img
-                      src={author.avatar}
-                      alt={author.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm flex-shrink-0">
-                      {author.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </div>
-                  )}
+                  <OptimizedImage
+                    src={author.avatar}
+                    alt={author.name}
+                    width={48}
+                    height={48}
+                    initials={author.name}
+                    initialsColor="#0d9488"
+                    className="rounded-full object-cover"
+                  />
                   <div>
                     <h3 className="font-bold text-gray-900">{author.name}</h3>
                     {author.title && (
@@ -402,11 +412,12 @@ export default async function ArticleDetailPage({ params }) {
                         className="group flex gap-3"
                       >
                         {related.featuredImage && (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                            <img
+                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 relative">
+                            <OptimizedImage
                               src={related.featuredImage}
                               alt={related.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
                             />
                           </div>
                         )}

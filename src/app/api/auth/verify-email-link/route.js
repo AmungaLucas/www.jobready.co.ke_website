@@ -273,9 +273,11 @@ export async function POST(request) {
     return response;
   } catch (error) {
     console.error("[Verify Email Link API] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to link accounts. Please try again.", debug: error.message, code: error.code },
-      { status: 500 }
-    );
+    const response = { error: "Failed to link accounts. Please try again." };
+    if (process.env.NODE_ENV === "development") {
+      response.debug = error.message;
+      response.code = error.code;
+    }
+    return NextResponse.json(response, { status: 500 });
   }
 }

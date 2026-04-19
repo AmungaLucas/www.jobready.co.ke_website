@@ -5,6 +5,7 @@ import { formatDate, formatRelativeDate } from "@/lib/format";
 import { getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
+import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiClock, FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";
@@ -253,16 +254,12 @@ export default async function BursariesPage({ searchParams }) {
                       {/* Company */}
                       {opp.company && (
                         <div className="flex items-center gap-2 mb-2">
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 overflow-hidden"
-                            style={{ backgroundColor: opp.company.logoColor || "#7c3aed" }}
-                          >
-                            {opp.company.logo ? (
-                              <img src={opp.company.logo} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              getInitials(opp.company.name)
-                            )}
-                          </div>
+                          <AvatarImage
+                            src={opp.company.logo}
+                            name={opp.company.name}
+                            color={opp.company.logoColor || "#7c3aed"}
+                            size="xs"
+                          />
                           <span className="text-sm text-gray-600 font-medium truncate">{opp.company.name}</span>
                         </div>
                       )}

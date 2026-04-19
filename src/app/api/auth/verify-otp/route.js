@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import {
@@ -9,6 +10,7 @@ import {
   getMissingProfileFields,
   cleanupOrphanedGhosts,
 } from "@/lib/auth-identity";
+import { checkOtpAttempts, recordOtpFailure, clearOtpFailures } from "@/lib/rate-limit";
 
 export async function POST(request) {
   try {
@@ -44,6 +46,15 @@ export async function POST(request) {
       );
     }
 
+    // --- Check OTP attempt lockout (5 fails → 30 min lockout) ---
+    const otpCheck = await checkOtpAttempts(normalizedPhone, "auth", 5);
+    if (!otpCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many failed attempts. Please wait 30 minutes before trying again." },
+        { status: 429 }
+      );
+    }
+
     // --- Find the OTP record from the Otp table ---
     const now = new Date();
     const otpRecord = await db.otp.findFirst({
@@ -58,6 +69,7 @@ export async function POST(request) {
     });
 
     if (!otpRecord) {
+      await recordOtpFailure(normalizedPhone, "auth");
       return NextResponse.json(
         { error: "No valid OTP found for this phone number. Please request a new one." },
         { status: 404 }
@@ -69,6 +81,9 @@ export async function POST(request) {
       where: { id: otpRecord.id },
       data: { verified: true },
     });
+
+    // Clear failed attempt counter on success
+    await clearOtpFailures(normalizedPhone, "auth");
 
     // --- Validate optional profile fields ---
     let normalizedEmail = null;
@@ -127,7 +142,23 @@ export async function POST(request) {
     // --- Check missing profile fields ---
     const missingFields = getMissingProfileFields(user);
 
-    // --- Return success with user info + missing fields ---
+    // --- Generate a one-time session grant token ---
+    // This token must be passed to /api/auth/phone-session to prove
+    // that OTP was actually verified. Prevents session creation by
+    // anyone who merely knows a userId.
+    const sessionGrantToken = crypto.randomBytes(32).toString("hex");
+
+    await db.otp.create({
+      data: {
+        phone: user.phone || user.email || user.id,
+        code: sessionGrantToken,
+        purpose: "session_grant",
+        verified: false,
+        expiresAt: new Date(Date.now() + 60 * 1000), // 60 seconds only
+      },
+    });
+
+    // --- Return success with user info + missing fields + session grant token ---
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     return NextResponse.json(
@@ -139,6 +170,7 @@ export async function POST(request) {
         created,
         linkedOrders: created ? undefined : undefined,
         missingFields,
+        sessionGrantToken,
       },
       { status: 200 }
     );

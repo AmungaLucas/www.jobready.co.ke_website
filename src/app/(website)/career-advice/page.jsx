@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatDate, formatReadingTime } from "@/lib/format";
+import { siteConfig } from "@/config/site-config";
 import { generateMeta, generateCollectionPageJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 // ─── Client Components ──────────────────────────────────
 import SubscribeForm from "../_components/SubscribeForm";
+import OptimizedImage from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 
 // ─── Constants ──────────────────────────────────────────
@@ -54,13 +56,47 @@ async function getArticles(page = 1) {
 }
 
 // ─── Metadata ───────────────────────────────────────────
-export async function generateMetadata() {
-  return generateMeta({
-    title: "Career Advice & Job Search Tips",
-    description:
-      "Expert career advice, CV writing tips, interview preparation guides, and job search strategies for Kenyan job seekers. Stay ahead with JobReady Kenya.",
-    path: "/career-advice",
-  });
+export async function generateMetadata({ searchParams }) {
+  const params = await searchParams;
+  const currentPage = Math.max(1, parseInt(params.page, 10) || 1);
+
+  // Fetch total count to determine if prev/next links are needed
+  let totalPages = 1;
+  try {
+    const total = await db.blogArticle.count({
+      where: { isPublished: true, publishedAt: { not: null } },
+    });
+    totalPages = Math.ceil(total / PER_PAGE);
+  } catch {}
+
+  const alternates = {
+    canonical: currentPage === 1
+      ? `${siteConfig.url}/career-advice`
+      : `${siteConfig.url}/career-advice?page=${currentPage}`,
+  };
+
+  // Add prev/next links for paginated pages (SEO best practice)
+  if (currentPage > 1) {
+    alternates.prev = currentPage === 2
+      ? `${siteConfig.url}/career-advice`
+      : `${siteConfig.url}/career-advice?page=${currentPage - 1}`;
+  }
+  if (currentPage < totalPages) {
+    alternates.next = `${siteConfig.url}/career-advice?page=${currentPage + 1}`;
+  }
+
+  return {
+    ...generateMeta({
+      title: currentPage === 1
+        ? "Career Advice & Job Search Tips"
+        : `Career Advice — Page ${currentPage}`,
+      description:
+        "Expert career advice, CV writing tips, interview preparation guides, and job search strategies for Kenyan job seekers. Stay ahead with JobReady Kenya.",
+      path: currentPage === 1 ? "/career-advice" : `/career-advice?page=${currentPage}`,
+      noindex: currentPage > 10, // Don't index very deep pagination pages
+    }),
+    alternates,
+  };
 }
 
 // ─── Page Component ─────────────────────────────────────
@@ -147,11 +183,13 @@ export default async function CareerAdviceListingPage({ searchParams }) {
               >
                 <div className="grid md:grid-cols-2">
                   {featuredArticle.featuredImage && (
-                    <div className="aspect-video md:aspect-auto md:h-full overflow-hidden">
-                      <img
+                    <div className="aspect-video md:aspect-auto md:h-full overflow-hidden relative">
+                      <OptimizedImage
                         src={featuredArticle.featuredImage}
                         alt={featuredArticle.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        priority
                       />
                     </div>
                   )}
@@ -205,11 +243,12 @@ export default async function CareerAdviceListingPage({ searchParams }) {
                     className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
                   >
                     {article.featuredImage && (
-                      <div className="aspect-video overflow-hidden">
-                        <img
+                      <div className="aspect-video overflow-hidden relative">
+                        <OptimizedImage
                           src={article.featuredImage}
                           alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     )}

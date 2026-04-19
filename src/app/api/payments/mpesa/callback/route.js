@@ -25,6 +25,34 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 /**
+ * Safaricom Daraja publishes these IP addresses for STK Push callbacks.
+ * Only requests from these IPs should be processed as legitimate.
+ * Reference: https://developer.safaricom.co.ke
+ */
+const SAFARICOM_CALLBACK_IPS = [
+  "196.201.214.200",
+  "196.201.213.114",
+  "196.201.214.206",
+  "196.201.213.113",
+  "196.201.214.207",
+  "196.201.213.110",
+];
+
+/**
+ * Extract the client IP address from request headers.
+ * Works behind reverse proxies (Caddy, Nginx, Cloudflare) that set X-Forwarded-For.
+ */
+function getClientIp(request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+  return null;
+}
+
+/**
  * Safaricom callback result codes:
  *   0 — Success (payment completed)
  *   1 — Insufficient funds
@@ -53,9 +81,30 @@ function extractCallbackItem(metadata, itemName) {
 
 export async function POST(request) {
   try {
+    // ── 0. Verify the request originated from Safaricom ──
+    const clientIp = getClientIp(request);
+
+    if (process.env.NODE_ENV === "production" && clientIp) {
+      if (!SAFARICOM_CALLBACK_IPS.includes(clientIp)) {
+        console.error(
+          "[M-Pesa Callback] REJECTED: IP not in Safaricom allowlist:",
+          clientIp
+        );
+        return NextResponse.json(
+          { ResultCode: 1, ResultDesc: "Unauthorized source" },
+          { status: 403 }
+        );
+      }
+    } else if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "[M-Pesa Callback] WARNING: Could not determine client IP. " +
+        "Ensure your reverse proxy forwards X-Forwarded-For."
+      );
+    }
+
     const body = await request.json();
 
-    console.log("[M-Pesa Callback] Received:", JSON.stringify(body, null, 2));
+    console.log("[M-Pesa Callback] Received from IP:", clientIp, JSON.stringify(body, null, 2));
 
     // Safaricom wraps the callback in a "Body" property:
     // { Body: { stkCallback: { ... } } }
@@ -471,19 +520,4 @@ export async function POST(request) {
       ResultDesc: "Accepted — logged error",
     });
   }
-}
-
-/**
- * GET /api/payments/mpesa/callback
- * Health check endpoint — Safaricom or monitoring can use this.
- */
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    service: "M-Pesa Daraja Callback Handler",
-    shortcode: process.env.NEXT_PUBLIC_MPESA_SHORTCODE || "174379",
-    environment: process.env.MPESA_ENV || "sandbox",
-    callbackUrl: process.env.MPESA_CALLBACK_URL || "not configured",
-    timestamp: new Date().toISOString(),
-  });
 }
