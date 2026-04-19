@@ -159,8 +159,8 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseOpportunityFilters(segments);
     if (parsed) {
-      // Check if this combo has actual results — noindex empty pages
-      let noindex = false;
+      // Check if this combo has actual results
+      let hasResults = true;
       try {
         const where = {
           isActive: true,
@@ -181,16 +181,16 @@ export async function generateMetadata({ params, searchParams }) {
         }
 
         const count = await db.opportunity.count({ where });
-        noindex = count === 0;
+        hasResults = count > 0;
       } catch {
-        // On error, allow indexing (safer default)
+        // On error, assume results exist (safer default)
       }
 
       return generateMeta({
         title: generateOppComboTitle(parsed.labels),
         description: generateOppComboDescription(parsed.labels),
         path: urlPath,
-        noindex,
+        noindex: !hasResults,
       });
     }
   }
@@ -228,6 +228,32 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
   if (segments.length >= 2) {
     const parsed = parseOpportunityFilters(segments);
     if (!parsed) notFound();
+
+    // Check if this combo has actual results — 404 empty combos to save crawl budget
+    try {
+      const where = {
+        isActive: true,
+        status: "PUBLISHED",
+        publishedAt: { not: null },
+      };
+      const { filters } = parsed;
+      if (filters.opportunityType) where.opportunityType = filters.opportunityType;
+      if (filters.county) {
+        where.OR = [
+          { description: { contains: filters.county } },
+          { title: { contains: filters.county } },
+        ];
+      } else if (filters.country) {
+        where.OR = [
+          { description: { contains: filters.country } },
+          { title: { contains: filters.country } },
+        ];
+      }
+      const count = await db.opportunity.count({ where });
+      if (count === 0) notFound();
+    } catch {
+      // On error, render the page normally (safer default)
+    }
 
     const { filters, labels } = parsed;
     const urlPath = `/opportunities/${segments.join("/")}`;

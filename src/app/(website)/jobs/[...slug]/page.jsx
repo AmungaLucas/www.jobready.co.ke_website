@@ -93,8 +93,8 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseJobFilters(segments);
     if (parsed) {
-      // Check if this combo has actual results — noindex empty pages
-      let noindex = false;
+      // Check if this combo has actual results
+      let hasResults = true;
       try {
         const where = {
           status: "PUBLISHED",
@@ -108,16 +108,16 @@ export async function generateMetadata({ params, searchParams }) {
         if (parsed.filters.country) where.country = parsed.filters.country;
 
         const count = await db.job.count({ where });
-        noindex = count === 0;
+        hasResults = count > 0;
       } catch {
-        // On error, allow indexing (safer default)
+        // On error, assume results exist (safer default)
       }
 
       return generateMeta({
         title: generateJobComboTitle(parsed.labels),
         description: generateJobComboDescription(parsed.labels),
         path: urlPath,
-        noindex,
+        noindex: !hasResults,
       });
     }
   }
@@ -162,6 +162,22 @@ export default async function JobCatchAllPage({ params, searchParams }) {
     const parsed = parseJobFilters(segments);
 
     if (!parsed) notFound();
+
+    // Check if this combo has actual results — 404 empty combos to save crawl budget
+    try {
+      const where = { status: "PUBLISHED", isActive: true };
+      const { filters } = parsed;
+      if (filters.category) where.categories = { string_contains: `"${filters.category}"` };
+      if (filters.employmentType) where.employmentType = filters.employmentType;
+      if (filters.experienceLevel) where.experienceLevel = filters.experienceLevel;
+      if (filters.isRemote) where.isRemote = true;
+      if (filters.county) where.county = filters.county;
+      if (filters.country) where.country = filters.country;
+      const count = await db.job.count({ where });
+      if (count === 0) notFound();
+    } catch {
+      // On error, render the page normally (safer default)
+    }
 
     const { filters, labels } = parsed;
     const urlPath = `/jobs/${segments.join("/")}`;

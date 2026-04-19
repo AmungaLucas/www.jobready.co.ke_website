@@ -64,8 +64,8 @@ export async function generateMetadata({ params, searchParams }) {
   if (segments.length >= 2) {
     const parsed = parseOrganizationFilters(segments);
     if (parsed) {
-      // Check if this combo has actual results — noindex empty pages
-      let noindex = false;
+      // Check if this combo has actual results
+      let hasResults = true;
       try {
         const where = { isActive: true };
         if (parsed.filters.organizationType) where.organizationType = parsed.filters.organizationType;
@@ -73,16 +73,16 @@ export async function generateMetadata({ params, searchParams }) {
         if (parsed.filters.country && !parsed.filters.county) where.country = parsed.filters.country;
 
         const count = await db.company.count({ where });
-        noindex = count === 0;
+        hasResults = count > 0;
       } catch {
-        // On error, allow indexing (safer default)
+        // On error, assume results exist (safer default)
       }
 
       return generateMeta({
         title: generateOrgComboTitle(parsed.labels),
         description: generateOrgComboDescription(parsed.labels),
         path: urlPath,
-        noindex,
+        noindex: !hasResults,
       });
     }
   }
@@ -112,13 +112,26 @@ export default async function OrganizationCatchAllPage({ params, searchParams })
     const parsed = parseOrganizationFilters(segments);
     if (!parsed) notFound();
 
+    // Check if this combo has actual results — 404 empty combos to save crawl budget
+    try {
+      const where = { isActive: true };
+      const { filters } = parsed;
+      if (filters.organizationType) where.organizationType = filters.organizationType;
+      if (filters.county) where.county = filters.county;
+      if (filters.country && !filters.county) where.country = filters.country;
+      const count = await db.company.count({ where });
+      if (count === 0) notFound();
+    } catch {
+      // On error, render the page normally (safer default)
+    }
+
     const { filters, labels } = parsed;
     const urlPath = `/organizations/${segments.join("/")}`;
 
     const titleParts = [];
     if (labels.type) titleParts.push(labels.type);
     if (labels.location) titleParts.push(`in ${labels.location}`);
-    const pageTitle = `${titleParts.join(" ")} — JobNet.co.ke`;
+    const pageTitle = `${titleParts.join(" ")} — ${siteConfig.companyLegalName}`;
 
     let companies = [];
     let total = 0;
