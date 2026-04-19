@@ -74,8 +74,14 @@ export async function GET() {
     .map((rule) => {
       const { userAgent, allow, disallow } = rule;
       const lines = [`User-agent: ${userAgent}`];
-      if (allow) allow.forEach((path) => lines.push(`Allow: ${path}`));
-      if (disallow) disallow.forEach((path) => lines.push(`Disallow: ${path}`));
+      if (allow) {
+        const allowPaths = Array.isArray(allow) ? allow : [allow];
+        allowPaths.forEach((path) => lines.push(`Allow: ${path}`));
+      }
+      if (disallow) {
+        const disallowPaths = Array.isArray(disallow) ? disallow : [disallow];
+        disallowPaths.forEach((path) => lines.push(`Disallow: ${path}`));
+      }
       lines.push("", "");
       return lines.join("\n");
     })

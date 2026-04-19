@@ -243,3 +243,112 @@ export function getClientIp(request) {
   if (realIp) return realIp.trim();
   return null;
 }
+
+// ─── Legacy compat: presets & rateLimitResponse ─────────────────
+// These are used by contact, register, forgot-password, newsletter,
+// and jobs/[slug]/apply routes. They wrap the DB-based rate limiter
+// so we get persistence across serverless invocations.
+
+/**
+ * Raw rate-limit check by identifier (IP or userId:IP).
+ * Returns { success, remaining, resetAt } matching the old presets API.
+ */
+async function _checkByIdentifier(identifier, key, limit, windowMs) {
+  const rateKey = `preset:${key}`;
+  const windowStart = new Date(Date.now() - windowMs);
+
+  // Clean up old records (fire-and-forget)
+  db.otp
+    .deleteMany({
+      where: {
+        phone: identifier,
+        purpose: rateKey,
+        createdAt: { lt: windowStart },
+      },
+    })
+    .catch(() => {});
+
+  const count = await db.otp.count({
+    where: {
+      phone: identifier,
+      purpose: rateKey,
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (count >= limit) {
+    const oldest = await db.otp.findFirst({
+      where: {
+        phone: identifier,
+        purpose: rateKey,
+        createdAt: { gte: windowStart },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const resetAt = oldest
+      ? new Date(oldest.createdAt.getTime() + windowMs)
+      : new Date(Date.now() + windowMs);
+
+    return { success: false, remaining: 0, resetAt };
+  }
+
+  // Record this request
+  await db.otp.create({
+    data: {
+      phone: identifier,
+      code: "1",
+      purpose: rateKey,
+      verified: true,
+      expiresAt: new Date(Date.now() + windowMs),
+    },
+  });
+
+  return { success: true, remaining: limit - count - 1, resetAt: null };
+}
+
+const ONE_MINUTE = 60 * 1000;
+
+/**
+ * Rate-limit presets matching the original API.
+ * Each method takes an identifier (IP or userId:IP) and returns
+ * { success: boolean, remaining: number, resetAt: Date|null }.
+ */
+export const presets = {
+  /** 3 submissions per minute (contact form) */
+  contact: (ip) => _checkByIdentifier(ip, "contact", 3, ONE_MINUTE),
+  /** 5 registrations per minute */
+  register: (ip) => _checkByIdentifier(ip, "register", 5, ONE_MINUTE),
+  /** 3 password-reset attempts per minute */
+  forgotPassword: (ip) => _checkByIdentifier(ip, "forgot_password", 3, ONE_MINUTE),
+  /** 5 newsletter actions per minute */
+  newsletter: (ip) => _checkByIdentifier(ip, "newsletter", 5, ONE_MINUTE),
+  /** 10 job applications per minute */
+  applyJob: (key) => _checkByIdentifier(key, "apply_job", 10, ONE_MINUTE),
+};
+
+/**
+ * Build a 429 Too Many Requests response object.
+ * @param {number} limit — the limit that was exceeded
+ * @param {Date} resetAt — when the window resets
+ * @returns {{ body: object, status: number, headers: HeadersInit }}
+ */
+export function rateLimitResponse(limit, resetAt) {
+  const retryAfter = resetAt
+    ? Math.max(1, Math.ceil((resetAt.getTime() - Date.now()) / 1000))
+    : 60;
+
+  return {
+    body: {
+      error: "Too many requests",
+      message: `Rate limit exceeded. You can try again in ${retryAfter} second${retryAfter > 1 ? "s" : ""}.`,
+      retryAfter,
+      limit,
+    },
+    status: 429,
+    headers: {
+      "Retry-After": String(retryAfter),
+      "X-RateLimit-Limit": String(limit),
+    },
+  };
+}

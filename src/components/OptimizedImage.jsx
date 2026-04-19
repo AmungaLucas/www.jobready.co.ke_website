@@ -80,11 +80,12 @@ function imageProxyLoader({ src, width, quality }) {
   }
 
   // External URLs — route through /api/image proxy
-  const proxyUrl = new URL("/api/image", window.location.origin);
-  proxyUrl.searchParams.set("url", src);
-  proxyUrl.searchParams.set("w", String(width));
-  proxyUrl.searchParams.set("q", String(quality || 80));
-  return proxyUrl.toString();
+  const params = new URLSearchParams({
+    url: src,
+    w: String(width),
+    q: String(quality || 80),
+  });
+  return `/api/image?${params.toString()}`;
 }
 
 export default function OptimizedImage({
