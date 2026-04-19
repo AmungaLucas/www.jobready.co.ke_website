@@ -2,7 +2,7 @@ import { siteConfig } from "@/config/site-config";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export const revalidate = 600;
+export const dynamic = 'force-dynamic';
 
 const SITE_URL = siteConfig.url;
 const BATCH_SIZE = 5000;
@@ -14,8 +14,8 @@ const BATCH_SIZE = 5000;
 // ───────────────────────────────────────────────────────────
 
 export async function GET(request, { params }) {
-  const { page } = await params;
-  const pageNumber = parseInt(page, 10);
+  const rawPage = (await params)?.page;
+  const pageNumber = parseInt(rawPage, 10);
 
   if (!pageNumber || pageNumber < 1) notFound();
 
