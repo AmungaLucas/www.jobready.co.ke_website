@@ -36,6 +36,7 @@ const publicPrefixes = [
   "/logo",
   "/robots",
   "/sitemap",
+  "/feed",
   "/manifest",
 ];
 

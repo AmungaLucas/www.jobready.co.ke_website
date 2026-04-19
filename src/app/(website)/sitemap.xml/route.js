@@ -4,23 +4,29 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = siteConfig.url;
 
-// ─── SITEMAP INDEX ─────────────────────────────────────────
-// This replaces the monolithic sitemap with focused sub-sitemaps
-// so Google can prioritize crawling high-value pages first.
-// ───────────────────────────────────────────────────────────
-
+/**
+ * GET /sitemap.xml — Sitemap Index
+ *
+ * Serves the sitemap index that references all sub-sitemaps.
+ * This is the URL submitted to Google Search Console.
+ *
+ * Sub-sitemaps (all inside this same route group):
+ *   /sitemap-static.xml       — Static pages + hub landing pages
+ *   /sitemap-jobs.xml          — Individual job detail pages
+ *   /sitemap-opportunities.xml — Individual opportunity pages
+ *   /sitemap-companies.xml     — Company profile pages
+ *   /sitemap-articles.xml      — Blog article pages
+ *   /sitemap-filters.xml       — Filter combo pages with results
+ */
 export async function GET() {
   const today = new Date().toISOString().split("T")[0];
 
   const sitemaps = [
-    // Highest priority — static pages and hub landing pages
     { loc: `${SITE_URL}/sitemap-static.xml`, lastmod: today },
-    // Dynamic content — individual job/opportunity/company/article pages
     { loc: `${SITE_URL}/sitemap-jobs.xml`, lastmod: today },
     { loc: `${SITE_URL}/sitemap-opportunities.xml`, lastmod: today },
     { loc: `${SITE_URL}/sitemap-companies.xml`, lastmod: today },
     { loc: `${SITE_URL}/sitemap-articles.xml`, lastmod: today },
-    // Filter landing pages — only high-value combinations
     { loc: `${SITE_URL}/sitemap-filters.xml`, lastmod: today },
   ];
 
