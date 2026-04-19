@@ -56,21 +56,31 @@ export async function GET(request) {
       },
     });
 
+    const cacheHeaders = {
+      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
+    };
+
     if (!existing) {
-      return NextResponse.json({
-        subscribed: false,
-        active: false,
-        type: null,
-      });
+      return NextResponse.json(
+        {
+          subscribed: false,
+          active: false,
+          type: null,
+        },
+        cacheHeaders
+      );
     }
 
-    return NextResponse.json({
-      subscribed: true,
-      active: existing.isActive,
-      type: existing.type,
-      subscribedAt: existing.subscribedAt,
-      unsubscribedAt: existing.unsubscribedAt,
-    });
+    return NextResponse.json(
+      {
+        subscribed: true,
+        active: existing.isActive,
+        type: existing.type,
+        subscribedAt: existing.subscribedAt,
+        unsubscribedAt: existing.unsubscribedAt,
+      },
+      cacheHeaders
+    );
   } catch (error) {
     console.error("[GET /api/newsletter] Error:", error);
     return NextResponse.json(

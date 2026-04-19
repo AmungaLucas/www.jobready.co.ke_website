@@ -7,7 +7,7 @@ import AdPlaceholder from "../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiFilter, FiX, FiTrendingUp } from "react-icons/fi";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 const ORG_TYPES = [
   { value: "PRIVATE", label: "Private Sector" },

@@ -84,12 +84,17 @@ export async function GET(request) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
-      opportunities,
-      total,
-      page,
-      totalPages,
-    });
+    return NextResponse.json(
+      {
+        opportunities,
+        total,
+        page,
+        totalPages,
+      },
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/opportunities] Error:", error);
     return NextResponse.json(

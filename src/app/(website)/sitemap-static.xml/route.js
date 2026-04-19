@@ -1,7 +1,7 @@
 import { siteConfig } from "@/config/site-config";
 import { getJobHubs, getOpportunityHubs } from "@/config/hub-config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 const SITE_URL = siteConfig.url;
 

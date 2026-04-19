@@ -37,7 +37,7 @@ import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 import FilterSidebarWrapper from "../_components/FilterSidebarWrapper";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 const PER_PAGE = 20;
 

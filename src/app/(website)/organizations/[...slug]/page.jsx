@@ -9,7 +9,7 @@ import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import ShareStrip from "../../_components/ShareStrip";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 // ════════════════════════════════════════════════════════════
 // COMBO FILTER — fetches organizations with combined filters

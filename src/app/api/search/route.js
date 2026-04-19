@@ -285,14 +285,19 @@ export async function GET(request) {
       results.companies.total +
       results.articles.total;
 
-    return NextResponse.json({
-      query: q,
-      type,
-      page,
-      limit,
-      overallTotal,
-      results,
-    });
+    return NextResponse.json(
+      {
+        query: q,
+        type,
+        page,
+        limit,
+        overallTotal,
+        results,
+      },
+      {
+        headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/search] Error:", error);
     return NextResponse.json(

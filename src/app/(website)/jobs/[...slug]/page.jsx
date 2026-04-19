@@ -17,7 +17,7 @@ import CVWritingCTA from "../../_components/CVWritingCTA";
 import CVServiceStrip from "../../_components/CVServiceStrip";
 import JobFilterView from "../../_components/JobFilterView";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 // ════════════════════════════════════════════════════════════
 // JOB DETAIL DATA FETCHING (unchanged from original)

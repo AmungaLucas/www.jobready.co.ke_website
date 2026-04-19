@@ -43,7 +43,7 @@ const OPP_TYPE_COLORS = {
   APPRENTICESHIP: { bg: "bg-fuchsia-100", text: "text-fuchsia-800" },
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 // ════════════════════════════════════════════════════════════
 // OPPORTUNITY DETAIL (unchanged)

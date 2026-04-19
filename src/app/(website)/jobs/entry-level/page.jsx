@@ -8,7 +8,7 @@ import AdPlaceholder from "../../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiTrendingUp, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX } from "react-icons/fi";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 const PER_PAGE = 20;
 const PAGE_TITLE = "Entry Level Jobs in Kenya";

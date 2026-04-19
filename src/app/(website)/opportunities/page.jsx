@@ -1,7 +1,8 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { cache } from "react";
 import { formatDate, formatRelativeDate } from "@/lib/format";
 import { getInitials } from "@/lib/normalize";
 import {
@@ -13,6 +14,16 @@ import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiClock, FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";
+
+const getPublishedOpportunityCount = cache(async () => {
+  try {
+    return await db.opportunity.count({
+      where: { status: "PUBLISHED", isActive: true },
+    });
+  } catch {
+    return 0;
+  }
+});
 
 // ─── Constants ──────────────────────────────────────────
 
@@ -124,7 +135,7 @@ export async function generateMetadata({ searchParams }) {
   const type = (sp.type || "").trim().toUpperCase();
 
   const where = buildWhereClause(sp);
-  const total = await db.opportunity.count({ where });
+  const total = await getPublishedOpportunityCount();
 
   let title = "Opportunities";
   let description = "Browse scholarships, grants, internships, fellowships and more on JobReady Kenya.";
@@ -176,7 +187,7 @@ async function getOpportunities(searchParams) {
         },
       },
     }),
-    db.opportunity.count({ where }),
+    getPublishedOpportunityCount(),
   ]);
 
   const totalPages = Math.ceil(total / PER_PAGE);

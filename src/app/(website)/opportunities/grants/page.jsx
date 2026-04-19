@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 import { db } from "@/lib/db";
 import { formatDate, formatRelativeDate } from "@/lib/format";

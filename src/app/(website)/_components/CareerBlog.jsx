@@ -3,31 +3,15 @@ import { FiArrowRight } from "react-icons/fi";
 import SubscribeForm from "./SubscribeForm";
 import OptimizedImage from "@/components/OptimizedImage";
 
-const placeholderArticles = [
-  {
-    title: "How to Write a CV That Gets Interviews – Expert Tips for 2026",
-    excerpt:
-      "Learn the secrets of ATS-friendly CVs, formatting tricks, and how to stand out from hundreds of applicants with a professional document.",
-    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=200&fit=crop",
-    href: "/career-advice",
-  },
-  {
-    title: "Top 10 Interview Questions in Kenya 2026",
-    excerpt:
-      "Prepare with confidence — most asked questions by Kenyan employers and how to answer them effectively to land the job.",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=200&fit=crop",
-    href: "/career-advice",
-  },
-  {
-    title: "Government Internships – Application Guide",
-    excerpt:
-      "Step-by-step guide to landing internships in national and county governments — deadlines, requirements, and insider tips.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop",
-    href: "/career-advice",
-  },
-];
+/**
+ * CareerBlog — Shows the 3 most recent articles from the database.
+ *
+ * @param {{ articles: Array<{ title: string; slug: string; excerpt?: string; featuredImage?: string; category?: { name: string; color: string } }> }} props
+ */
+export default function CareerBlog({ articles = [] }) {
+  // If no articles from DB, show nothing (don't show hardcoded placeholders)
+  if (articles.length === 0) return null;
 
-export default function CareerBlog() {
   return (
     <section className="py-8 md:py-12">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -38,36 +22,49 @@ export default function CareerBlog() {
               Career Advice &amp; News
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {placeholderArticles.map((article) => (
-                <div
-                  key={article.title}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              {articles.map((article) => (
+                <Link
+                  key={article.slug || article.title}
+                  href={`/career-advice/${article.slug}`}
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow group"
                 >
-                  <OptimizedImage
-                    src={article.image}
-                    alt={article.title}
-                    width={400}
-                    height={160}
-                    className="w-full h-40 object-cover"
-                  />
+                  {article.featuredImage && (
+                    <OptimizedImage
+                      src={article.featuredImage}
+                      alt={article.title}
+                      width={400}
+                      height={160}
+                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  )}
                   <div className="p-4">
+                    {article.category && (
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-2"
+                        style={{
+                          backgroundColor: `${article.category.color}20`,
+                          color: article.category.color,
+                        }}
+                      >
+                        {article.category.name}
+                      </span>
+                    )}
                     <h3
                       className="font-bold line-clamp-2"
                       style={{ color: "#1E293B", fontSize: "0.95rem" }}
                     >
                       {article.title}
                     </h3>
-                    <p className="text-gray-500 text-xs mt-1 line-clamp-3">
-                      {article.excerpt}
-                    </p>
-                    <Link
-                      href={article.href}
-                      className="inline-block mt-3 text-xs font-medium text-teal-600 hover:text-purple-700 transition-colors"
-                    >
+                    {(article.excerpt || article.description) && (
+                      <p className="text-gray-500 text-xs mt-1 line-clamp-3">
+                        {article.excerpt || article.description}
+                      </p>
+                    )}
+                    <span className="inline-block mt-3 text-xs font-medium text-teal-600 group-hover:text-purple-700 transition-colors">
                       Read More <FiArrowRight className="w-3 h-3 inline" />
-                    </Link>
+                    </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             <div className="mt-5 text-right">

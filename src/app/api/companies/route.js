@@ -86,17 +86,22 @@ export async function GET(request) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
-      companies,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
+    return NextResponse.json(
+      {
+        companies,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
       },
-    });
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/companies] Error:", error);
     return NextResponse.json(

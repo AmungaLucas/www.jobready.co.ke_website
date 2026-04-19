@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { siteConfig } from "@/config/site-config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 const SITE_URL = siteConfig.url;
 

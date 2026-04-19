@@ -45,6 +45,16 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
 
+  // Tree-shake heavy icon/utility libraries to only import used members
+  experimental: {
+    optimizePackageImports: [
+      "react-icons",
+      "lucide-react",
+      "date-fns",
+      "framer-motion",
+    ],
+  },
+
   // Security headers for all routes
   async headers() {
     return [

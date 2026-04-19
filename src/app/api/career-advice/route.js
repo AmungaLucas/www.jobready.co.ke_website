@@ -53,12 +53,17 @@ export async function GET(request) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
-      articles,
-      total,
-      page,
-      totalPages,
-    });
+    return NextResponse.json(
+      {
+        articles,
+        total,
+        page,
+        totalPages,
+      },
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/career-advice] Error:", error);
     return NextResponse.json(

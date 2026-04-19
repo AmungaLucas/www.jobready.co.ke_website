@@ -139,15 +139,20 @@ export async function GET(request) {
       },
     });
 
-    return NextResponse.json({
-      jobs,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    return NextResponse.json(
+      {
+        jobs,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    });
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/jobs] Error:", error);
     return NextResponse.json(

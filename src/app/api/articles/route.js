@@ -126,15 +126,20 @@ export async function GET(request) {
       tags: article.tags.map((at) => at.tag),
     }));
 
-    return NextResponse.json({
-      articles: normalizedArticles,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    return NextResponse.json(
+      {
+        articles: normalizedArticles,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    });
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      }
+    );
   } catch (error) {
     console.error("[GET /api/articles] Error:", error);
     return NextResponse.json(
