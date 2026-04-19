@@ -40,12 +40,21 @@ const publicPrefixes = [
   "/manifest",
 ];
 
+// Routes that should be blocked from search engines via X-Robots-Tag header
+const noIndexPrefixes = ["/dashboard", "/api", "/login", "/register", "/forgot-password", "/reset-password", "/set-password", "/onboarding", "/verify-email", "/verify-phone"];
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+  const response = NextResponse.next();
+
+  // Add X-Robots-Tag header for dashboard/auth/API routes (faster than meta tags)
+  if (noIndexPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix + "/"))) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
 
   // Allow routes with public prefixes
   if (publicPrefixes.some((prefix) => pathname.startsWith(prefix))) {
-    return NextResponse.next();
+    return response;
   }
 
   // Allow static files and assets
@@ -56,7 +65,7 @@ export async function middleware(request) {
     pathname.startsWith("/uploads") ||
     pathname.startsWith("/static")
   ) {
-    return NextResponse.next();
+    return response;
   }
 
   try {
@@ -97,14 +106,14 @@ export async function middleware(request) {
       }
 
       // User is authenticated, allow access
-      return NextResponse.next();
+      return response;
     }
   } catch (error) {
     console.error("[Middleware Error]", error);
   }
 
   // For any other routes, allow by default
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

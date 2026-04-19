@@ -274,6 +274,7 @@ model Job {
   tags                Json?                            // ["tag1", "tag2"]
   metaTitle           String?   @map("meta_title")
   metaDescription     String?   @map("meta_description")
+  noIndex             Boolean   @default(false) @map("no_index")  // Manually de-index specific jobs
 
   // Analytics counters
   viewCount           Int       @default(0) @map("view_count")       // NEW: Page views (powers "Trending Now")

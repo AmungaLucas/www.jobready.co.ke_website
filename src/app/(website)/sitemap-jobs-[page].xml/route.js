@@ -33,7 +33,7 @@ export async function GET(request, { params }) {
     const skip = (pageNumber - 1) * BATCH_SIZE;
     const jobs = await db.job.findMany({
       where: { status: "PUBLISHED", isActive: true },
-      select: { slug: true, updatedAt: true },
+      select: { slug: true, updatedAt: true, createdAt: true, isFeatured: true },
       orderBy: { updatedAt: "desc" },
       skip,
       take: BATCH_SIZE,
@@ -46,15 +46,21 @@ export async function GET(request, { params }) {
       return true;
     });
 
+    const now = new Date();
+    const sevenDaysAgo = new Date(now - 7 * 86400000);
+    const ninetyDaysAgo = new Date(now - 90 * 86400000);
     const urls = unique
-      .map(
-        (j) => `  <url>
+      .map((j) => {
+        const isRecent = new Date(j.createdAt) >= sevenDaysAgo;
+        const isOld = new Date(j.createdAt) < ninetyDaysAgo;
+        const priority = j.isFeatured || isRecent ? 0.8 : isOld ? 0.5 : 0.7;
+        return `  <url>
     <loc>${SITE_URL}/jobs/${j.slug}</loc>
     <lastmod>${new Date(j.updatedAt).toISOString()}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>`
-      )
+    <priority>${priority}</priority>
+  </url>`;
+      })
       .join("\n");
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>

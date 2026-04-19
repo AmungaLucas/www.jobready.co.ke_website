@@ -11,18 +11,18 @@ const SITE_URL = siteConfig.url;
 // ───────────────────────────────────────────────────────────
 
 const staticPages = [
-  { url: "/", priority: 1.0, changeFrequency: "daily" },
-  { url: "/jobs", priority: 0.9, changeFrequency: "daily" },
-  { url: "/opportunities", priority: 0.9, changeFrequency: "daily" },
-  { url: "/organizations", priority: 0.8, changeFrequency: "weekly" },
-  { url: "/career-advice", priority: 0.8, changeFrequency: "weekly" },
-  { url: "/cv-services", priority: 0.9, changeFrequency: "monthly" },
-  { url: "/search", priority: 0.7, changeFrequency: "daily" },
-  { url: "/about", priority: 0.5, changeFrequency: "monthly" },
-  { url: "/contact", priority: 0.5, changeFrequency: "yearly" },
-  { url: "/privacy", priority: 0.3, changeFrequency: "yearly" },
-  { url: "/terms", priority: 0.3, changeFrequency: "yearly" },
-  { url: "/cookies", priority: 0.3, changeFrequency: "yearly" },
+  { url: "/", priority: 1.0, changeFrequency: "daily", lastmod: null }, // content changes daily
+  { url: "/jobs", priority: 0.9, changeFrequency: "daily", lastmod: null },
+  { url: "/opportunities", priority: 0.9, changeFrequency: "daily", lastmod: null },
+  { url: "/organizations", priority: 0.8, changeFrequency: "weekly", lastmod: null },
+  { url: "/career-advice", priority: 0.8, changeFrequency: "weekly", lastmod: null },
+  { url: "/cv-services", priority: 0.9, changeFrequency: "monthly", lastmod: "2026-04-01" },
+  { url: "/search", priority: 0.7, changeFrequency: "daily", lastmod: null },
+  { url: "/about", priority: 0.5, changeFrequency: "monthly", lastmod: "2026-01-15" },
+  { url: "/contact", priority: 0.5, changeFrequency: "yearly", lastmod: "2026-01-15" },
+  { url: "/privacy", priority: 0.3, changeFrequency: "yearly", lastmod: "2026-01-15" },
+  { url: "/terms", priority: 0.3, changeFrequency: "yearly", lastmod: "2026-01-15" },
+  { url: "/cookies", priority: 0.3, changeFrequency: "yearly", lastmod: "2026-01-15" },
 ];
 
 // Hub landing pages — high-intent, curated category pages
@@ -125,11 +125,12 @@ export async function GET() {
     ...curatedFilterPages,
   ];
 
+  const today = new Date().toISOString();
   const urls = allPages
     .map(
       (page) => `  <url>
     <loc>${SITE_URL}${page.url}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${page.lastmod || today}</lastmod>
     <changefreq>${page.changeFrequency}</changefreq>
     <priority>${page.priority}</priority>
   </url>`

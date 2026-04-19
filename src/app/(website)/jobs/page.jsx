@@ -180,6 +180,7 @@ async function fetchJobs(searchParams) {
 export async function generateMetadata({ searchParams }) {
   const params = await searchParams;
   const { q, type, location, experienceLevel } = params;
+  const currentPage = Math.max(1, parseInt(params.page, 10) || 1);
 
   const filters = [];
   if (type) filters.push(formatJobType(type));
@@ -188,7 +189,9 @@ export async function generateMetadata({ searchParams }) {
   if (q) filters.push(`"${q}"`);
 
   const filterSuffix = filters.length > 0 ? ` — ${filters.join(", ")}` : "";
-  const title = `Jobs in Kenya${filterSuffix}`;
+  const title = currentPage === 1
+    ? `Jobs in Kenya${filterSuffix}`
+    : `Jobs in Kenya${filterSuffix} — Page ${currentPage}`;
 
   const description = q
     ? `Search results for "${q}" — ${filters.join(", ")} jobs. Browse and apply for the latest opportunities on JobReady Kenya.`
@@ -204,7 +207,27 @@ export async function generateMetadata({ searchParams }) {
   const pathString = pathParams.toString();
   const path = `/jobs${pathString ? `?${pathString}` : ""}`;
 
-  return generateMeta({ title, description, path });
+  // Build prev/next pagination links
+  let totalPages = 1;
+  try {
+    const total = await db.job.count({
+      where: { status: "PUBLISHED", isActive: true },
+    });
+    totalPages = Math.ceil(total / PER_PAGE);
+  } catch {}
+
+  const alternates = { canonical: currentPage === 1 ? path : `${path}&page=${currentPage}` };
+  if (currentPage > 1) {
+    alternates.prev = currentPage === 2 ? path : `${path}&page=${currentPage - 1}`;
+  }
+  if (currentPage < totalPages) {
+    alternates.next = `${path}&page=${currentPage + 1}`;
+  }
+
+  return {
+    ...generateMeta({ title, description, path, noindex: currentPage > 20 }),
+    alternates,
+  };
 }
 
 // ─── Helper: Build search params URL ───────────────────────────────────────────

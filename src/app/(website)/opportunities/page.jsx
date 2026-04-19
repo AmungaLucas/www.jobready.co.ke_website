@@ -133,9 +133,9 @@ export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const q = (sp.q || "").trim();
   const type = (sp.type || "").trim().toUpperCase();
+  const currentPage = Math.max(1, parseInt(sp.page, 10) || 1);
 
   const where = buildWhereClause(sp);
-  const total = await getPublishedOpportunityCount();
 
   let title = "Opportunities";
   let description = "Browse scholarships, grants, internships, fellowships and more on JobReady Kenya.";
@@ -151,13 +151,36 @@ export async function generateMetadata({ searchParams }) {
     description = `Search results for "${q}" in opportunities. ${description}`;
   }
 
+  if (currentPage > 1) title = `${title} — Page ${currentPage}`;
+
   const basePath = type ? `/opportunities?type=${type.toLowerCase()}` : "/opportunities";
 
-  return generateMeta({
-    title,
-    description,
-    path: basePath,
-  });
+  // Build prev/next pagination links
+  let totalPages = 1;
+  try {
+    const total = await db.opportunity.count({
+      where: { isActive: true, status: "PUBLISHED", publishedAt: { not: null } },
+    });
+    totalPages = Math.ceil(total / PER_PAGE);
+  } catch {}
+
+  const alternates = { canonical: currentPage === 1 ? basePath : `${basePath}&page=${currentPage}` };
+  if (currentPage > 1) {
+    alternates.prev = currentPage === 2 ? basePath : `${basePath}&page=${currentPage - 1}`;
+  }
+  if (currentPage < totalPages) {
+    alternates.next = `${basePath}&page=${currentPage + 1}`;
+  }
+
+  return {
+    ...generateMeta({
+      title,
+      description,
+      path: currentPage === 1 ? basePath : `${basePath}&page=${currentPage}`,
+      noindex: currentPage > 20,
+    }),
+    alternates,
+  };
 }
 
 // ─── Data Fetching ──────────────────────────────────────

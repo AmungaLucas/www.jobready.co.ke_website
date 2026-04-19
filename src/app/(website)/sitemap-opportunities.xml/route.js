@@ -29,7 +29,7 @@ export async function GET() {
           isActive: true,
           publishedAt: { not: null },
         },
-        select: { slug: true, updatedAt: true },
+        select: { slug: true, updatedAt: true, publishedAt: true, isFeatured: true },
         orderBy: { updatedAt: "desc" },
       });
 
@@ -40,15 +40,21 @@ export async function GET() {
         return true;
       });
 
+      const now = new Date();
+      const sevenDaysAgo = new Date(now - 7 * 86400000);
+      const ninetyDaysAgo = new Date(now - 90 * 86400000);
       const urls = unique
-        .map(
-          (o) => `  <url>
+        .map((o) => {
+          const isRecent = o.publishedAt && new Date(o.publishedAt) >= sevenDaysAgo;
+          const isOld = o.publishedAt && new Date(o.publishedAt) < ninetyDaysAgo;
+          const priority = o.isFeatured || isRecent ? 0.8 : isOld ? 0.5 : 0.7;
+          return `  <url>
     <loc>${SITE_URL}/opportunities/${o.slug}</loc>
     <lastmod>${new Date(o.updatedAt).toISOString()}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>`
-        )
+    <priority>${priority}</priority>
+  </url>`;
+        })
         .join("\n");
 
       const xml = `<?xml version="1.0" encoding="UTF-8"?>

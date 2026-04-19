@@ -127,7 +127,14 @@ export async function generateMetadata({ params, searchParams }) {
   try {
     const job = await db.job.findUnique({
       where: { slug },
-      include: { company: { select: { name: true, county: true } } },
+      select: {
+        title: true, slug: true, employmentType: true, experienceLevel: true,
+        county: true, town: true, country: true, isRemote: true,
+        salaryMin: true, salaryMax: true, salaryPeriod: true,
+        positions: true, publishedAt: true, updatedAt: true,
+        noIndex: true,
+        company: { select: { name: true, county: true } },
+      },
     });
 
     if (!job) return { title: "Job Not Found | JobReady Kenya" };
@@ -144,6 +151,7 @@ export async function generateMetadata({ params, searchParams }) {
       ogType: "article",
       publishedTime: job.publishedAt?.toISOString(),
       modifiedTime: job.updatedAt?.toISOString(),
+      noindex: job.noIndex === true,
     });
   } catch {
     return { title: "Job Not Found | JobReady Kenya" };
