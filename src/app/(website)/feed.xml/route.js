@@ -5,6 +5,20 @@ export const revalidate = 600;
 
 const SITE_URL = siteConfig.url;
 
+/**
+ * Escape text for safe inclusion in XML elements (not CDATA).
+ * Handles &, <, >, ", ' — the five XML entity references.
+ */
+function escapeXml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 // ─── GET /feed.xml ────────────────────────────────────────
 // RSS 2.0 feed of latest jobs, opportunities, AND blog articles
 export async function GET() {
@@ -65,10 +79,10 @@ export async function GET() {
         (job) => `
     <item>
       <title><![CDATA[${job.title} at ${job.company?.name || "Confidential"}]]></title>
-      <link>${SITE_URL}/jobs/${job.slug}</link>
-      <guid isPermaLink="true">${SITE_URL}/jobs/${job.slug}</guid>
-      <category>${job.employmentType || "Job"}${job.county ? `, ${job.county}` : ""}</category>
-      <description><![CDATA[${job.excerpt || (job.description ? job.description.replace(/<[^>]*>/g, "").substring(0, 500) : "")}]]></description>
+      <link>${SITE_URL}/jobs/${escapeXml(job.slug)}</link>
+      <guid isPermaLink="true">${SITE_URL}/jobs/${escapeXml(job.slug)}</guid>
+      <category>${escapeXml(job.employmentType || "Job")}${job.county ? `, ${escapeXml(job.county)}` : ""}</category>
+      <description><![CDATA[${job.excerpt || ""}]]></description>
       <pubDate>${job.createdAt?.toUTCString()}</pubDate>
     </item>`
       )
@@ -79,9 +93,9 @@ export async function GET() {
         (opp) => `
     <item>
       <title><![CDATA[${opp.title}${opp.company?.name ? ` — ${opp.company.name}` : ""}]]></title>
-      <link>${SITE_URL}/opportunities/${opp.slug}</link>
-      <guid isPermaLink="true">${SITE_URL}/opportunities/${opp.slug}</guid>
-      <category>${opp.opportunityType?.replace(/_/g, " ") || "Opportunity"}</category>
+      <link>${SITE_URL}/opportunities/${escapeXml(opp.slug)}</link>
+      <guid isPermaLink="true">${SITE_URL}/opportunities/${escapeXml(opp.slug)}</guid>
+      <category>${escapeXml(opp.opportunityType?.replace(/_/g, " ") || "Opportunity")}</category>
       <description><![CDATA[${opp.excerpt || ""}]]></description>
       <pubDate>${opp.publishedAt?.toUTCString()}</pubDate>
     </item>`
@@ -93,10 +107,10 @@ export async function GET() {
         (article) => `
     <item>
       <title><![CDATA[${article.title}]]></title>
-      <link>${SITE_URL}/career-advice/${article.slug}</link>
-      <guid isPermaLink="true">${SITE_URL}/career-advice/${article.slug}</guid>
-      <category>${article.category?.name || "Career Advice"}</category>
-      <author>${article.author?.name || "JobReady Kenya"}</author>
+      <link>${SITE_URL}/career-advice/${escapeXml(article.slug)}</link>
+      <guid isPermaLink="true">${SITE_URL}/career-advice/${escapeXml(article.slug)}</guid>
+      <category>${escapeXml(article.category?.name || "Career Advice")}</category>
+      <author>${escapeXml(article.author?.name || "JobReady Kenya")}</author>
       <description><![CDATA[${article.excerpt || ""}]]></description>
       <pubDate>${article.publishedAt?.toUTCString()}</pubDate>
     </item>`
