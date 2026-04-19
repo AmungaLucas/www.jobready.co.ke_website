@@ -10,7 +10,7 @@ import { getInitials } from "@/lib/normalize";
  *   - 35 raw <img> tags across the app meant zero image optimization
  *   - next/image requires hosts in next.config.ts remotePatterns
  *   - This component routes ALL external images through /api/image proxy
- *   - So next/image only ever sees jobnet.co.ke as the source
+ *   - So next/image only ever sees the site's own domain as the source
  *   - Full optimization: WebP/AVIF, responsive srcset, lazy loading, blur
  *
  * USAGE:

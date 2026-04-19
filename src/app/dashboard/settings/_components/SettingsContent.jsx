@@ -47,6 +47,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/useSession";
+import { siteConfig } from "@/config/site-config";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
@@ -198,7 +199,7 @@ function AccountSettings() {
     );
   }
 
-  const isPlaceholder = user.email?.startsWith("phone_") || user.email?.includes("@jobready.co.ke");
+  const isPlaceholder = user.email?.startsWith("phone_") || user.email?.includes(`@${siteConfig.emailDomain}`);
 
   // ── Name save ──
   const handleSave = async () => {

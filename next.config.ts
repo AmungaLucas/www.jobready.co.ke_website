@@ -57,6 +57,8 @@ const nextConfig: NextConfig = {
 
   // Security headers for all routes
   async headers() {
+    const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN || "jobnet.co.ke";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${siteDomain}`;
     return [
       {
         source: "/(.*)",
@@ -69,7 +71,7 @@ const nextConfig: NextConfig = {
           ...securityHeaders,
           {
             key: "Access-Control-Allow-Origin",
-            value: process.env.MPESA_CALLBACK_URL || "https://jobnet.co.ke",
+            value: process.env.MPESA_CALLBACK_URL || siteUrl,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -89,16 +91,12 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   // All external images now go through /api/image proxy → next/image only sees our own domain.
-  // No need to whitelist external hosts in remotePatterns anymore!
+  // Domain is read from NEXT_PUBLIC_SITE_DOMAIN to support one-click domain switching.
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "jobnet.co.ke",
-      },
-      {
-        protocol: "https",
-        hostname: "jobready.co.ke",
+        hostname: process.env.NEXT_PUBLIC_SITE_DOMAIN || "jobnet.co.ke",
       },
     ],
     formats: ["image/avif", "image/webp"],

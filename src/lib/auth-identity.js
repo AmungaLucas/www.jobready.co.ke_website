@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { siteConfig } from "@/config/site-config";
 
 // ============================================================
 // auth-identity.js — Simplified Identity Resolution
@@ -16,8 +17,8 @@ import { db } from "@/lib/db";
 // All significant actions are logged with [AuthIdentity] prefix.
 // ============================================================
 
-// Read email domain from env (same as siteConfig.emailDomain)
-const PLACEHOLDER_DOMAIN = process.env.NEXT_PUBLIC_EMAIL_DOMAIN || "jobready.co.ke";
+// Read email domain from siteConfig (env-driven: NEXT_PUBLIC_EMAIL_DOMAIN)
+const PLACEHOLDER_DOMAIN = siteConfig.emailDomain;
 
 // ---------------------------------------------------------------------------
 // 1. normalizePhone(phone)
@@ -142,7 +143,7 @@ export async function findUserByIdentifier({ email, phone, googleId }) {
 
 /**
  * Create a new user with the given fields.
- * For phone-only users: email is auto-generated as phone_254XXX@jobready.co.ke.
+ * For phone-only users: email is auto-generated using PLACEHOLDER_DOMAIN.
  * Returns the created user.
  * Throws if email or phone already exists (P2002).
  */
@@ -407,7 +408,7 @@ export async function migrateExistingGoogleUsers() {
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true if email looks like auto-generated: phone_XXX@jobready.co.ke
+ * Returns true if email looks like auto-generated (placeholder domain).
  */
 export function isPlaceholderEmail(email) {
   if (!email) return false;
@@ -422,7 +423,7 @@ export function isPlaceholderEmail(email) {
 // ---------------------------------------------------------------------------
 
 /**
- * Generate: phone_2547XXXXXXXX@jobready.co.ke
+ * Generate placeholder email: phone_2547XXXXXXXX@PLACEHOLDER_DOMAIN
  */
 export function placeholderEmail(phone) {
   return `phone_${phone}@${PLACEHOLDER_DOMAIN}`;

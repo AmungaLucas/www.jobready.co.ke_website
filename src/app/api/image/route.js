@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 
 /**
  * Image Proxy API Route
  *
- * Fetches external images and serves them through jobnet.co.ke's own domain.
+ * Fetches external images and serves them through the site's own domain.
  * This lets us use next/image optimization on ANY external image without
  * adding each host to next.config.js remotePatterns.
  *
@@ -84,7 +85,7 @@ export async function GET(request) {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": "JobNetBot/1.0 (Image Proxy; +https://jobnet.co.ke)",
+        "User-Agent": `JobNetBot/1.0 (Image Proxy; +${siteConfig.url})`,
         Accept: "image/*",
         // Pass width/quality for CDNs that support on-the-fly resizing
         ...(w ? { "X-Image-Width": w } : {}),

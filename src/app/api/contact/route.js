@@ -9,7 +9,7 @@ import { siteConfig } from "@/config/site-config";
  * Body: { name, email, subject, message }
  *
  * - Rate limited: 3 submissions per minute per IP
- * - Sends notification email to support@jobready.co.ke
+ * - Sends notification email to siteConfig.email.support
  * - Validates all required fields
  */
 export async function POST(request) {

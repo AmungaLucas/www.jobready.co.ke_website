@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { siteConfig } from "@/config/site-config";
 import { X, Mail, Lock, Smartphone, AlertCircle } from "lucide-react";
 
 /**
@@ -43,7 +44,7 @@ export default function DashboardBanner() {
       !user.emailVerified ||
       !user.phone ||
       (user.phone && !user.phoneVerified) ||
-      user.email?.includes("@jobready.co.ke");
+      user.email?.includes(`@${siteConfig.emailDomain}`);
 
     setVisible(needsAttention);
   }, [status, session]);
@@ -59,7 +60,7 @@ export default function DashboardBanner() {
   const banners = [];
 
   // Email not verified (real email, not placeholder)
-  if (user && !user.emailVerified && user.email && !user.email.includes("@jobready.co.ke") && !user.email.startsWith("phone_")) {
+  if (user && !user.emailVerified && user.email && !user.email.includes(`@${siteConfig.emailDomain}`) && !user.email.startsWith("phone_")) {
     banners.push({
       id: "email-verify",
       icon: Mail,
@@ -71,7 +72,7 @@ export default function DashboardBanner() {
   }
 
   // Placeholder email (phone-only user)
-  if (user && user.email && (user.email.startsWith("phone_") || user.email.includes("@jobready.co.ke"))) {
+  if (user && user.email && (user.email.startsWith("phone_") || user.email.includes(`@${siteConfig.emailDomain}`))) {
     banners.push({
       id: "add-email",
       icon: Mail,

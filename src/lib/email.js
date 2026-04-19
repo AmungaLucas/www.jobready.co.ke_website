@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site-config";
 /**
  * Email service utility for JobReady.co.ke
  *
- * Uses Nodemailer with SMTP transport via mail.jobready.co.ke.
+ * Uses Nodemailer with SMTP transport via the configured SMTP_HOST.
  * Supports contextual sender addresses (noreply, payments, cv, support).
  * Falls back gracefully in development if SMTP is not configured.
  */
@@ -53,7 +53,7 @@ function getTransporterLegacy() {
  * @param {string} options.subject - Email subject
  * @param {string} options.html - HTML body
  * @param {string} [options.text] - Plain text fallback
- * @param {string} [options.from] - Override sender (default: noreply@jobready.co.ke)
+ * @param {string} [options.from] - Override sender (default: noreply from siteConfig)
  * @param {string} [options.replyTo] - Reply-to address
  * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
