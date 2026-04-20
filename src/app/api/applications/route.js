@@ -53,8 +53,8 @@ export async function GET(request) {
       conditions.push({ userId: session.user.id });
     } else if (user.role === "EMPLOYER") {
       // Employers see applications to their company's jobs
-      const company = await db.company.findUnique({
-        where: { userId: session.user.id },
+      const company = await db.company.findFirst({
+        where: { createdBy: session.user.id },
         select: { id: true },
       });
 

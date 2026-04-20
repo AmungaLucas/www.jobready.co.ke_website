@@ -148,7 +148,7 @@ export async function PUT(request, { params }) {
       where: { slug },
       include: {
         company: {
-          select: { id: true, userId: true },
+          select: { id: true, createdBy: true },
         },
       },
     });
@@ -168,7 +168,7 @@ export async function PUT(request, { params }) {
 
     if (
       !currentUser ||
-      (currentUser.role !== "ADMIN" && existingJob.company.userId !== session.user.id)
+      (currentUser.role !== "ADMIN" && existingJob.company.createdBy !== session.user.id)
     ) {
       return NextResponse.json(
         { error: "You do not have permission to update this job" },
@@ -411,7 +411,7 @@ export async function DELETE(request, { params }) {
       where: { slug },
       include: {
         company: {
-          select: { id: true, userId: true },
+          select: { id: true, createdBy: true },
         },
       },
     });
@@ -431,7 +431,7 @@ export async function DELETE(request, { params }) {
 
     if (
       !currentUser ||
-      (currentUser.role !== "ADMIN" && existingJob.company.userId !== session.user.id)
+      (currentUser.role !== "ADMIN" && existingJob.company.createdBy !== session.user.id)
     ) {
       return NextResponse.json(
         { error: "You do not have permission to delete this job" },

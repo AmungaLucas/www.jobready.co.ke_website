@@ -92,13 +92,13 @@ export async function generateMetadata({ params, searchParams }) {
   const slug = segments[0];
   try {
     const company = await db.company.findUnique({ where: { slug }, select: { name: true, industry: true, county: true } });
-    if (!company) return { title: `Company Not Found | ${siteConfig.companyName}` };
+    if (!company) return { title: "Company Not Found" };
     return generateMeta({
       title: `${company.name} — Jobs & Company Profile`,
       description: `View open positions at ${company.name}${company.industry ? ` in ${company.industry}` : ""} on ${siteConfig.companyName}.`,
       path: `/organizations/${slug}`,
     });
-  } catch { return { title: `Company Not Found | ${siteConfig.companyName}` }; }
+  } catch { return { title: "Company Not Found" }; }
 }
 
 // ════════════════════════════════════════════════════════════

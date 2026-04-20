@@ -26,11 +26,15 @@ export function generateMeta({
   noindex = false,
 } = {}) {
   const url = `${SITE_URL}${path}`;
-  const fullTitle = title ? `${title} | ${siteConfig.companyName}` : siteConfig.name;
+  // Root layout's title.template already appends "| BrandName" to <title>,
+  // so we only pass the raw page title here.  OG/Twitter titles bypass the
+  // template, so they get the full branded string.
+  const pageTitle = title || siteConfig.name;
+  const brandedTitle = title ? `${title} | ${siteConfig.companyName}` : siteConfig.name;
   const image = ogImage || siteConfig.seo.ogImage;
 
   const meta = {
-    title: fullTitle,
+    title: pageTitle,
     description: description || siteConfig.description,
     metadataBase: new URL(SITE_URL),
     alternates: {
@@ -41,7 +45,7 @@ export function generateMeta({
       locale: "en_KE",
       url,
       siteName: siteConfig.name,
-      title: fullTitle,
+      title: brandedTitle,
       description: description || siteConfig.description,
       images: [
         {
@@ -55,7 +59,7 @@ export function generateMeta({
     twitter: {
       card: "summary_large_image",
       site: siteConfig.seo.twitterHandle,
-      title: fullTitle,
+      title: brandedTitle,
       description: description || siteConfig.description,
       images: [image],
     },

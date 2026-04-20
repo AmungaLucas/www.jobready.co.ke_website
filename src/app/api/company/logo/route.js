@@ -84,7 +84,7 @@ export async function POST(request) {
 
     // Find the company linked to this user
     const company = await db.company.findFirst({
-      where: { userId: session.user.id },
+      where: { createdBy: session.user.id },
     });
 
     if (company) {

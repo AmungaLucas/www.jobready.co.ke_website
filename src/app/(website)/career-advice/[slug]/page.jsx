@@ -111,7 +111,7 @@ export async function generateMetadata({ params }) {
     });
 
     if (!article || !article.isPublished) {
-      return { title: `Article Not Found | ${siteConfig.companyName}` };
+      return { title: "Article Not Found" };
     }
 
     return generateMeta({
@@ -124,7 +124,7 @@ export async function generateMetadata({ params }) {
       modifiedTime: article.updatedAt?.toISOString(),
     });
   } catch {
-    return { title: `Article Not Found | ${siteConfig.companyName}` };
+    return { title: "Article Not Found" };
   }
 }
 

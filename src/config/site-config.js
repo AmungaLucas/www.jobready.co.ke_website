@@ -42,6 +42,7 @@ export const siteConfig = {
   name: COMPANY_NAME,
   shortName: BRAND_SHORT,
   brandName: BRAND_NAME,
+  companyName: COMPANY_NAME,
   companyLegalName: COMPANY_NAME,
 
   // ─── DOMAIN (change NEXT_PUBLIC_SITE_DOMAIN in .env.local to switch everywhere) ───

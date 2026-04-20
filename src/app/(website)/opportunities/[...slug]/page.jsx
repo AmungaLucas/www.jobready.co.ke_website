@@ -219,7 +219,7 @@ export async function generateMetadata({ params, searchParams }) {
       where: { slug },
       include: { company: { select: { name: true } } },
     });
-    if (!opp) return { title: `Opportunity Not Found | ${siteConfig.companyName}` };
+    if (!opp) return { title: "Opportunity Not Found" };
     const typeDisplay = OPP_TYPE_DISPLAY[opp.opportunityType] || opp.opportunityType?.replace(/_/g, " ") || "Opportunity";
     return generateMeta({
       title: `${opp.title} — ${typeDisplay}`,
@@ -230,7 +230,7 @@ export async function generateMetadata({ params, searchParams }) {
       modifiedTime: opp.updatedAt?.toISOString(),
     });
   } catch {
-    return { title: `Opportunity Not Found | ${siteConfig.companyName}` };
+    return { title: "Opportunity Not Found" };
   }
 }
 

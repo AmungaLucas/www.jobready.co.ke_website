@@ -182,7 +182,7 @@ export async function generateMetadata({ params, searchParams }) {
       },
     });
 
-    if (!job) return { title: `Job Not Found | ${siteConfig.companyName}` };
+    if (!job) return { title: "Job Not Found" };
 
     const location = formatLocation(job);
     const salary = job.salaryMin
@@ -199,7 +199,7 @@ export async function generateMetadata({ params, searchParams }) {
       noindex: job.noIndex === true,
     });
   } catch {
-    return { title: `Job Not Found | ${siteConfig.companyName}` };
+    return { title: "Job Not Found" };
   }
 }
 
