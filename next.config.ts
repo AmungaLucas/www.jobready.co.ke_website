@@ -31,7 +31,7 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src https://www.google.com https://accounts.google.com; connect-src 'self' https://*.googleapis.com https://api.mpesa.com https://sandbox.safaricom.co.ke;",
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src https://www.google.com https://accounts.google.com; connect-src 'self' https://*.googleapis.com https://api.mpesa.com https://sandbox.safaricom.co.ke;",
   },
   {
     key: "X-Request-ID",

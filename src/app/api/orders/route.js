@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/slug";
 import { normalizePhone } from "@/lib/auth-identity";
+import { ipRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/orders
@@ -20,6 +21,15 @@ import { normalizePhone } from "@/lib/auth-identity";
  */
 export async function POST(request) {
   try {
+    // --- Rate limiting: 5 orders per minute per IP ---
+    const { allowed } = await ipRateLimit(request, "create-order", 5, 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many order requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     // Get optional session
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || null;
@@ -39,6 +49,9 @@ export async function POST(request) {
     }
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "At least one item is required" }, { status: 400 });
+    }
+    if (items.length > 10) {
+      return NextResponse.json({ error: "Maximum 10 items per order" }, { status: 400 });
     }
 
     // ── Look up service tiers and calculate total ──

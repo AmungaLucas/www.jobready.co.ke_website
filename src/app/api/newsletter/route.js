@@ -14,16 +14,16 @@ const VALID_TYPES = [
 /**
  * GET /api/newsletter?email=xxx
  * Check if an email is already subscribed. No auth required.
- * Rate limited: 30 checks per minute per IP
+ * Rate limited: 5 checks per minute per IP
  *
  * Returns: { subscribed: boolean, active: boolean, type: string | null }
  */
 export async function GET(request) {
   try {
     const ip = getClientIp(request);
-    const { success, resetAt } = presets.newsletter(ip);
+    const { success, resetAt } = await presets.newsletter(ip);
     if (!success) {
-      const resp = rateLimitResponse(30, resetAt);
+      const resp = rateLimitResponse(5, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
     }
 
@@ -110,7 +110,7 @@ export async function POST(request) {
   try {
     // --- Rate limiting ---
     const ip = getClientIp(request);
-    const { success, resetAt } = presets.newsletter(ip);
+    const { success, resetAt } = await presets.newsletter(ip);
     if (!success) {
       const resp = rateLimitResponse(5, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });

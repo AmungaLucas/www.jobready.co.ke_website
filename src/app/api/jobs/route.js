@@ -250,16 +250,16 @@ export async function POST(request) {
     }
 
     // Validate required fields
-    if (!title || typeof title !== "string" || title.trim().length < 3) {
+    if (!title || typeof title !== "string" || title.trim().length < 3 || title.length > 200) {
       return NextResponse.json(
-        { error: "Job title is required (minimum 3 characters)" },
+        { error: "Job title is required (3-200 characters)" },
         { status: 400 }
       );
     }
 
-    if (!description || typeof description !== "string" || description.trim().length < 20) {
+    if (!description || typeof description !== "string" || description.trim().length < 20 || description.length > 50000) {
       return NextResponse.json(
-        { error: "Job description is required (minimum 20 characters)" },
+        { error: "Job description is required (20-50000 characters)" },
         { status: 400 }
       );
     }

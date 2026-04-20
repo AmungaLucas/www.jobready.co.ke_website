@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { siteConfig } from "@/config/site-config";
+import { ipRateLimit } from "@/lib/rate-limit";
 
 /**
  * Image Proxy API Route
@@ -43,6 +44,12 @@ const CACHE_STALE = 365 * 24 * 60 * 60; // stale-while-revalidate: 1 year
 const PRIVATE_IP_REGEX = /^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|169\.254\.)/;
 
 export async function GET(request) {
+  // --- Rate limiting: 60 image requests per minute per IP ---
+  const { allowed } = await ipRateLimit(request, "image-proxy", 60, 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many image requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
 
   const url = searchParams.get("url");
@@ -66,15 +73,10 @@ export async function GET(request) {
     return NextResponse.json({ error: "Only HTTPS URLs allowed" }, { status: 400 });
   }
 
-  // Block private/internal IPs
+  // Block private/internal IPs (including IPv6 loopback)
   const hostname = parsedUrl.hostname.replace(/^\[|\]$/g, ""); // remove IPv6 brackets
-  if (PRIVATE_IP_REGEX.test(hostname)) {
+  if (PRIVATE_IP_REGEX.test(hostname) || hostname === "::1" || hostname === "[::1]" || hostname === "localhost") {
     return NextResponse.json({ error: "Private/internal IPs not allowed" }, { status: 400 });
-  }
-
-  // Only allow http(s) protocols
-  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-    return NextResponse.json({ error: "Only HTTP(S) protocols allowed" }, { status: 400 });
   }
 
   try {

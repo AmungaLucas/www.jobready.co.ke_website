@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { ipRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request) {
   try {
+    // --- Rate limiting: 5 password reset attempts per minute per IP ---
+    const { allowed } = await ipRateLimit(request, "reset-password", 5, 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many password reset attempts. Please try again in a minute." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { token, newPassword } = body;
 

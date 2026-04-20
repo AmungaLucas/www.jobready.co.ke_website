@@ -71,7 +71,8 @@ export async function POST(request) {
     });
 
     // --- Send OTP via SMS ---
-    console.log(`[Send OTP] Phone: ${normalizedPhone}, OTP: ${otp}, Expires: ${otpExpiry.toISOString()}`);
+    // SECURITY: Never log the OTP code itself — only log the phone and timestamp
+    console.log(`[Send OTP] Phone: ${normalizedPhone}, Expires: ${otpExpiry.toISOString()}`);
 
     const smsResult = await sendOTP(normalizedPhone, otp);
 

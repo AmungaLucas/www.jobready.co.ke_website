@@ -17,7 +17,7 @@ export async function POST(request) {
   try {
     // --- Rate limiting ---
     const ip = getClientIp(request);
-    const { success, remaining, resetAt } = presets.register(ip);
+    const { success, remaining, resetAt } = await presets.register(ip);
     if (!success) {
       const resp = rateLimitResponse(5, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
@@ -26,9 +26,9 @@ export async function POST(request) {
     const { name, email, phone, password } = body;
 
     // --- Validation ---
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
+    if (!name || typeof name !== "string" || name.trim().length < 2 || name.length > 100) {
       return NextResponse.json(
-        { error: "Name must be at least 2 characters" },
+        { error: "Name must be between 2 and 100 characters" },
         { status: 400 }
       );
     }
@@ -51,9 +51,9 @@ export async function POST(request) {
       }
     }
 
-    if (!password || typeof password !== "string" || password.length < 8) {
+    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
+        { error: "Password must be between 8 and 128 characters" },
         { status: 400 }
       );
     }

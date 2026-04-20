@@ -16,7 +16,7 @@ export async function POST(request) {
   try {
     // --- Rate limiting ---
     const ip = getClientIp(request);
-    const { success, resetAt } = presets.contact(ip);
+    const { success, resetAt } = await presets.contact(ip);
     if (!success) {
       const resp = rateLimitResponse(3, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });

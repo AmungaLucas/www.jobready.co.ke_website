@@ -112,7 +112,7 @@ export async function POST(request, { params }) {
 
     // --- Rate limiting (per authenticated user + IP) ---
     const ip = getClientIp(request);
-    const { success: rateOk, resetAt } = presets.applyJob(`${session.user.id}:${ip}`);
+    const { success: rateOk, resetAt } = await presets.applyJob(`${session.user.id}:${ip}`);
     if (!rateOk) {
       const resp = rateLimitResponse(10, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
@@ -183,6 +183,12 @@ export async function POST(request, { params }) {
       if (typeof coverLetter !== "string") {
         return NextResponse.json(
           { error: "Cover letter must be text" },
+          { status: 400 }
+        );
+      }
+      if (coverLetter.length > 10000) {
+        return NextResponse.json(
+          { error: "Cover letter must be under 10000 characters" },
           { status: 400 }
         );
       }

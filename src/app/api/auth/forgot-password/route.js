@@ -9,7 +9,7 @@ export async function POST(request) {
   try {
     // --- Rate limiting ---
     const ip = getClientIp(request);
-    const { success, resetAt } = presets.forgotPassword(ip);
+    const { success, resetAt } = await presets.forgotPassword(ip);
     if (!success) {
       const resp = rateLimitResponse(3, resetAt);
       return NextResponse.json(resp.body, { status: resp.status, headers: resp.headers });
@@ -81,7 +81,6 @@ export async function POST(request) {
     });
 
     // --- Send password reset email ---
-    const { siteConfig } = await import("@/config/site-config");
     const resetUrl = `${process.env.NEXTAUTH_URL || siteConfig.url}/auth/reset-password?token=${resetToken}`;
 
     await sendEmail({

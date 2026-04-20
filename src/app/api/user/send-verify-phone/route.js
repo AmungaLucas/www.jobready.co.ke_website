@@ -126,8 +126,9 @@ export async function POST(request) {
     });
 
     // Send OTP via SMS
+    // SECURITY: Never log the OTP code itself
     console.log(
-      `[Send Verify Phone] Phone: ${normalizedPhone}, OTP: ${otp}, User: ${session.user.id}`
+      `[Send Verify Phone] Phone: ${normalizedPhone}, User: ${session.user.id}`
     );
 
     const smsResult = await sendOTP(normalizedPhone, otp);

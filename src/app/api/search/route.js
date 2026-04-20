@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ipRateLimit } from "@/lib/rate-limit";
 
 // ─── Value mapping: Title Case display → UPPER_SNAKE_CASE (DB canonical) ─────────
 // The DB now stores UPPER_SNAKE_CASE values. This helper normalises incoming
@@ -38,6 +39,15 @@ function mapEmploymentType(val) {
  */
 export async function GET(request) {
   try {
+    // --- Rate limiting: 30 searches per minute per IP ---
+    const { allowed } = await ipRateLimit(request, "search", 30, 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many search requests. Please try again in a minute." },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = request.nextUrl;
     const q = (searchParams.get("q") || "").trim();
 

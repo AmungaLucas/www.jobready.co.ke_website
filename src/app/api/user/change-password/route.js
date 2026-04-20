@@ -41,9 +41,9 @@ export async function POST(request) {
       );
     }
 
-    if (newPassword.length < 8) {
+    if (newPassword.length < 8 || newPassword.length > 128) {
       return NextResponse.json(
-        { error: "New password must be at least 8 characters" },
+        { error: "New password must be between 8 and 128 characters" },
         { status: 400 }
       );
     }
