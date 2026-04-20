@@ -104,16 +104,21 @@ export function generateJobJsonLd(job) {
     "@type": "JobPosting",
     title: job.title,
     description: job.description,
-    datePosted: job.createdAt
-      ? new Date(job.createdAt).toISOString()
-      : new Date().toISOString(),
+    datePosted: job.publishedAt
+      ? new Date(job.publishedAt).toISOString()
+      : job.createdAt
+        ? new Date(job.createdAt).toISOString()
+        : new Date().toISOString(),
     url: `${SITE_URL}/jobs/${job.slug}`,
     employmentType: mapEmploymentType(job.employmentType),
     hiringOrganization: {
       "@type": "Organization",
       name: company.name || siteConfig.name,
       sameAs: socialUrls,
-      logo,
+      logo: {
+        "@type": "ImageObject",
+        url: logo,
+      },
     },
     jobLocation: {
       "@type": "Place",
@@ -161,10 +166,11 @@ export function generateJobJsonLd(job) {
     };
   }
 
-  // Deadline
-  if (job.applicationDeadline) {
-    jsonLd.validThrough = new Date(job.applicationDeadline).toISOString();
-  }
+  // validThrough — GFJ required field; default 90 days from publish when no explicit deadline
+  const validThrough = job.applicationDeadline
+    ? new Date(job.applicationDeadline)
+    : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  jsonLd.validThrough = validThrough.toISOString();
 
   // Experience level
   if (job.experienceLevel) {
@@ -393,13 +399,9 @@ export function generateServiceJsonLd(service) {
         },
       })),
     }),
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "1250",
-      bestRating: "5",
-      worstRating: "1",
-    },
+    // NOTE: aggregateRating removed — must only be included when backed by a
+    // real review system. Google issues manual actions for fabricated ratings.
+    // Re-add here once a verified review/rating feature is implemented.
   };
 }
 

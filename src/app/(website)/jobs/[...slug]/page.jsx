@@ -24,8 +24,20 @@ export const revalidate = 300;
 // ════════════════════════════════════════════════════════════
 async function getJob(slug) {
   try {
-  const job = await db.job.findUnique({
-    where: { slug },
+  // Only fetch active, published jobs with valid deadline — expired/closed jobs return 404
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const job = await db.job.findFirst({
+    where: {
+      slug,
+      isActive: true,
+      status: "PUBLISHED",
+      OR: [
+        { applicationDeadline: null },
+        { applicationDeadline: { gte: today } },
+      ],
+    },
     include: {
       company: {
         select: {
@@ -46,10 +58,7 @@ async function getJob(slug) {
     data: { viewCount: { increment: 1 } },
   }).catch(() => {});
 
-  // Fetch similar jobs
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
+  // Fetch similar jobs (reuse `today` from above)
   const jobCategories = Array.isArray(job.categories) ? job.categories : [];
   const categoryFilter = jobCategories.length > 0
     ? { OR: jobCategories.map((cat) => ({ categories: { string_contains: `"${cat}"` } })) }
@@ -125,8 +134,18 @@ export async function generateMetadata({ params, searchParams }) {
   // Single segment → try job detail
   const slug = segments[0];
   try {
-    const job = await db.job.findUnique({
-      where: { slug },
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const job = await db.job.findFirst({
+      where: {
+        slug,
+        isActive: true,
+        status: "PUBLISHED",
+        OR: [
+          { applicationDeadline: null },
+          { applicationDeadline: { gte: today } },
+        ],
+      },
       select: {
         title: true, slug: true, employmentType: true, experienceLevel: true,
         county: true, town: true, country: true, isRemote: true,
