@@ -1,5 +1,5 @@
 import Script from "next/script";
-import { generateMeta, generateContactPageJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { generateMeta, generateContactPageJsonLd, generateLocalBusinessJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
 import ContactForm from "./_components/ContactForm";
 import {
@@ -18,6 +18,7 @@ export const metadata = generateMeta({
 });
 
 const contactPageJsonLd = generateContactPageJsonLd();
+const localBusinessJsonLd = generateLocalBusinessJsonLd();
 
 const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Home", href: "/" },
@@ -60,6 +61,11 @@ export default function ContactPage() {
         id="contact-page-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
+      />
+      <Script
+        id="local-business-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />
       <Script
         id="contact-breadcrumb-jsonld"

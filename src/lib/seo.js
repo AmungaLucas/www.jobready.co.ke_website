@@ -566,6 +566,68 @@ export function mergeJsonLd(...jsonLdObjects) {
   return jsonLdObjects.filter(Boolean);
 }
 
+/**
+ * Generate LocalBusiness JSON-LD for the contact page.
+ * Helps Google build a knowledge panel and local search features.
+ *
+ * @returns {Object} JSON-LD structure
+ */
+export function generateLocalBusinessJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": `${SITE_URL}/contact#localbusiness`,
+    name: siteConfig.name,
+    description: siteConfig.description,
+    url: SITE_URL,
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/logo.svg`,
+    },
+    image: `${SITE_URL}/og-default.png`,
+    telephone: siteConfig.whatsapp.display,
+    email: siteConfig.email.support,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Westlands",
+      addressLocality: "Nairobi",
+      addressRegion: "Nairobi County",
+      addressCountry: "KE",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: -1.2667,
+      longitude: 36.8,
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "08:00",
+        closes: "18:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "09:00",
+        closes: "13:00",
+      },
+    ],
+    sameAs: [
+      siteConfig.social.twitter,
+      siteConfig.social.facebook,
+      siteConfig.social.linkedin,
+      siteConfig.social.instagram,
+      siteConfig.social.tiktok,
+    ],
+    priceRange: "Free to browse",
+    areaServed: {
+      "@type": "Country",
+      name: "Kenya",
+    },
+  };
+}
+
 // ─── Internal Helpers ───────────────────────────────────────────
 
 /**

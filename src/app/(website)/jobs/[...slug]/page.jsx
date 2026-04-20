@@ -102,7 +102,15 @@ async function getJob(slug) {
     },
   });
 
-  return { job, similarJobs };
+  // Fetch recent career advice articles for cross-linking (S-11)
+  const recentArticles = await db.blogArticle.findMany({
+    where: { isPublished: true, publishedAt: { not: null } },
+    orderBy: { publishedAt: "desc" },
+    take: 3,
+    select: { title: true, slug: true, publishedAt: true },
+  }).catch(() => []);
+
+  return { job, similarJobs, recentArticles };
   } catch (error) {
     console.error("[getJob] DB error for slug:", slug, error.message);
     return null;
@@ -283,7 +291,7 @@ export default async function JobCatchAllPage({ params, searchParams }) {
 
   if (!data) notFound();
 
-  const { job, similarJobs } = data;
+  const { job, similarJobs, recentArticles } = data;
   const company = job.company;
   const location = formatLocation(job);
   const jobType = formatJobType(job.employmentType);
@@ -452,6 +460,30 @@ export default async function JobCatchAllPage({ params, searchParams }) {
             <AdPlaceholder height="250px" />
             <CompanyAboutCard company={company} />
             <RelatedJobsCard jobs={similarJobs} title="Related Jobs" type="job" />
+            {/* Career Advice cross-links — internal linking for SEO (S-11) */}
+            {recentArticles && recentArticles.length > 0 && (
+              <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl p-5 border border-blue-100">
+                <h3 className="font-bold text-gray-900 mb-3">Career Advice</h3>
+                <ul className="space-y-2.5">
+                  {recentArticles.map((article) => (
+                    <li key={article.slug}>
+                      <Link
+                        href={`/career-advice/${article.slug}`}
+                        className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug"
+                      >
+                        {article.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/career-advice"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800 transition-colors mt-3"
+                >
+                  More Career Advice →
+                </Link>
+              </div>
+            )}
             <CVWritingCTA />
             <AdPlaceholder height="200px" label="Sponsored" />
           </div>

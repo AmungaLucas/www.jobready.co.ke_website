@@ -42,13 +42,14 @@ const opportunityHubs = getOpportunityHubs().map((hub) => ({
 // These URLs still work (the dynamic route parses the slug), so we keep them
 // in the sitemap for Google to discover. Duplicates with hub pages are fine.
 const curatedFilterPages = [
-  // Job type filters (handled by [...slug] catch-all)
+  // Job type filters — excluding slugs already covered by hub pages (priority 0.8)
   { url: "/jobs/full-time", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/part-time", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/contract", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/internship", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/temporary", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/volunteer", priority: 0.6, changeFrequency: "daily" },
+  // NOTE: part-time, technology, finance-accounting, engineering, healthcare,
+  // consulting, creative-design, customer-service, human-resources are
+  // already covered by hub pages (priority 0.8).
   // Experience level filters
   { url: "/jobs/mid-level", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/senior", priority: 0.6, changeFrequency: "daily" },
@@ -56,27 +57,19 @@ const curatedFilterPages = [
   { url: "/jobs/manager", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/director", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/executive", priority: 0.6, changeFrequency: "daily" },
-  // Job category filters
-  { url: "/jobs/technology", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/finance-accounting", priority: 0.6, changeFrequency: "daily" },
+  // Job category filters — excluding slugs already covered by hub pages
   { url: "/jobs/marketing-communications", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/human-resources", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/engineering", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/healthcare", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/education-training", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/sales-business", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/consulting", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/government-public-sector", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/nonprofit", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/agriculture", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/creative-design", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/legal-compliance", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/logistics-supply-chain", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/hospitality-tourism", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/architecture-construction", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/science-research", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/operations-admin", priority: 0.6, changeFrequency: "daily" },
-  { url: "/jobs/customer-service", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/skilled-trades", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/media-publishing", priority: 0.6, changeFrequency: "daily" },
   { url: "/jobs/specialised-services", priority: 0.6, changeFrequency: "daily" },

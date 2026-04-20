@@ -402,6 +402,20 @@ export default async function ArticleDetailPage({ params }) {
             {/* Ad */}
             <AdPlaceholder height="250px" />
 
+            {/* Browse Jobs CTA — cross-links blog to job listings (S-11) */}
+            <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl p-5 border border-teal-100">
+              <h3 className="font-bold text-gray-900 mb-2">Looking for a job?</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Browse the latest opportunities on JobReady Kenya and apply today.
+              </p>
+              <Link
+                href="/jobs"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800 transition-colors"
+              >
+                Browse Jobs →
+              </Link>
+            </div>
+
             {/* Related Articles */}
             {relatedArticles.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm p-5">

@@ -22,6 +22,10 @@ export const metadata = {
   },
   metadataBase: new URL(siteConfig.url),
   alternates: {
+    canonical: siteConfig.url,
+    languages: {
+      "en-KE": siteConfig.url,
+    },
     types: {
       "application/rss+xml": `${siteConfig.url}/feed.xml`,
     },
