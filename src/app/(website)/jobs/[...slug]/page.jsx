@@ -6,6 +6,7 @@ import { formatLocation } from "@/lib/normalize";
 import { generateMeta, generateJobJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { parseJobFilters, generateJobComboTitle, generateJobComboDescription } from "@/lib/filter-parser";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { siteConfig } from "@/config/site-config";
 
 // ─── Client Components ──────────────────────────────────
 import BookmarkButton from "../../_components/BookmarkButton";
