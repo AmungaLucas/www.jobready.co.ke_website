@@ -12,9 +12,9 @@ function envOr(key, fallback) {
 // ─── Core brand & domain ────────────────────────────────────────────
 const SITE_DOMAIN = envOr("NEXT_PUBLIC_SITE_DOMAIN", "www.jobnet.co.ke");   // must match Vercel redirect target
 const EMAIL_DOMAIN = envOr("NEXT_PUBLIC_EMAIL_DOMAIN", "jobready.co.ke"); // email stays on jobready
-const BRAND_NAME = envOr("NEXT_PUBLIC_BRAND_NAME", "JobReady.co.ke");
-const BRAND_SHORT = envOr("NEXT_PUBLIC_BRAND_SHORT", "JobReady");
-const COMPANY_NAME = envOr("NEXT_PUBLIC_COMPANY_NAME", "JobReady Kenya");
+const BRAND_NAME = envOr("NEXT_PUBLIC_BRAND_NAME", "JobNet.co.ke");
+const BRAND_SHORT = envOr("NEXT_PUBLIC_BRAND_SHORT", "JobNet");
+const COMPANY_NAME = envOr("NEXT_PUBLIC_COMPANY_NAME", "JobNet Kenya");
 const SITE_URL = envOr("NEXT_PUBLIC_SITE_URL", `https://${SITE_DOMAIN}`);
 
 // ─── WhatsApp ───────────────────────────────────────────────────────

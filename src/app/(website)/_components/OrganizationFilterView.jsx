@@ -163,7 +163,7 @@ export default async function OrganizationFilterView({
                         {c.logo ? (
                           <OptimizedImage
                             src={c.logo}
-                            alt=""
+                            alt={`${c.name} logo`}
                             fill
                             className="object-cover"
                           />

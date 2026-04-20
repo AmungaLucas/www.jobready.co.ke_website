@@ -253,7 +253,7 @@ export default async function OpportunityFilterView({
                             style={{ backgroundColor: opp.company.logoColor || "#7c3aed" }}
                           >
                             {opp.company.logo ? (
-                              <OptimizedImage src={opp.company.logo} alt="" fill className="object-cover" />
+                              <OptimizedImage src={opp.company.logo} alt={`${opp.company.name} logo`} fill className="object-cover" />
                             ) : (
                               getInitials(opp.company.name)
                             )}

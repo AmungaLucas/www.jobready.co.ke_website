@@ -763,7 +763,7 @@ function ArticleCard({ article }) {
     <Link href={`/career-advice/${article.slug}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-amber-200 transition-all">
       {article.featuredImage && (
         <div className="aspect-video bg-gray-200 overflow-hidden relative">
-          <OptimizedImage src={article.featuredImage} alt="" fill className="object-cover" />
+          <OptimizedImage src={article.featuredImage} alt={article.title} fill className="object-cover" />
         </div>
       )}
       <div className="p-4">

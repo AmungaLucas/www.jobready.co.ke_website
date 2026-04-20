@@ -1,5 +1,6 @@
+import Script from "next/script";
 import { db } from "@/lib/db";
-import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { generateMeta, generateCollectionPageJsonLd, generateItemListJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
 import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
@@ -149,7 +150,33 @@ export default async function OrganizationsPage({ searchParams }) {
     return `/organizations?${qs}`;
   };
 
+  // JSON-LD structured data
+  const collectionJsonLd = generateCollectionPageJsonLd({
+    name: "Companies & Employers in Kenya",
+    description: "Browse top employers and companies hiring in Kenya. View company profiles and open positions.",
+    url: "/organizations",
+    totalItems: total,
+  });
+
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbs);
+
+  const itemListJsonLd = generateItemListJsonLd({
+    name: "Companies in Kenya",
+    url: "/organizations",
+    totalItems: total,
+    items: companies.map((c, i) => ({
+      position: i + 1,
+      name: c.name,
+      url: `/organizations/${c.slug}`,
+    })),
+  });
+
   return (
+    <>
+      {/* Structured Data */}
+      <Script id="org-collection-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
+      <Script id="org-itemlist-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <Script id="org-breadcrumb-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     <main className="py-8 md:py-12">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
         {/* Breadcrumb */}
@@ -369,5 +396,6 @@ export default async function OrganizationsPage({ searchParams }) {
         }}
       />
     </main>
+    </>
   );
 }

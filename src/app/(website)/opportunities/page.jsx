@@ -8,6 +8,7 @@ import { getInitials } from "@/lib/normalize";
 import {
   generateMeta,
   generateCollectionPageJsonLd,
+  generateItemListJsonLd,
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
 import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
@@ -249,6 +250,17 @@ export default async function OpportunitiesPage({ searchParams }) {
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(breadcrumbItems);
 
+  const itemListJsonLd = generateItemListJsonLd({
+    name: collectionName,
+    url: "/opportunities",
+    totalItems: total,
+    items: opportunities.map((opp, i) => ({
+      position: i + 1,
+      name: opp.title,
+      url: `/opportunities/${opp.slug}`,
+    })),
+  });
+
   // Build query string helper
   function buildQueryString(overrides = {}) {
     const params = new URLSearchParams();
@@ -268,6 +280,10 @@ export default async function OpportunitiesPage({ searchParams }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <script
         type="application/ld+json"

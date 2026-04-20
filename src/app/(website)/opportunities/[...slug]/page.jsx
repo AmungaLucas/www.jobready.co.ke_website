@@ -351,7 +351,7 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
                   <Link key={opp.id} href={`/opportunities/${opp.slug}`} className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                     {opp.featuredImage ? (
                       <div className="h-40 bg-gray-100 relative">
-                        <OptimizedImage src={opp.featuredImage} alt="" fill className="object-cover" />
+                        <OptimizedImage src={opp.featuredImage} alt={opp.title} fill className="object-cover" />
                       </div>
                     ) : (
                       <div className="h-24 bg-gradient-to-r from-teal-500 to-blue-500" />
