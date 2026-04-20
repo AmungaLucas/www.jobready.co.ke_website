@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { FiAlertCircle } from "react-icons/fi";
 
 export default function SocialLoginButtons({ mode = "login", callbackUrl, className = "" }) {
   const [loading, setLoading] = useState(false);

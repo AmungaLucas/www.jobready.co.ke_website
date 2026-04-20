@@ -41,8 +41,7 @@ import {
   CheckCircle2,
   Loader2,
   Send,
-  Plus,
-  Pencil,
+
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
@@ -52,13 +51,16 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 export default function SettingsContent() {
-  const [activeTab, setActiveTab] = useState("account");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === "undefined") return "account";
+    const hash = window.location.hash.replace("#", "");
+    return (hash === "phone" || hash === "email" || hash === "account") ? "account" : "account";
+  });
 
-  // Handle hash-based navigation (e.g. #phone, #email from banner)
+  // Handle hash-based scroll (e.g. #phone, #email from banner)
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
-    if (hash === "phone" || hash === "email" || hash === "account") {
-      setActiveTab("account");
+    if (hash === "phone" || hash === "email") {
       // Scroll to the relevant section after a brief delay for render
       setTimeout(() => {
         const el = document.getElementById(`settings-${hash}`);
@@ -159,8 +161,10 @@ function AccountSettings() {
     const hash = window.location.hash.replace("#", "");
     if (hash === "phone" && phoneSectionRef.current) {
       hashProcessed.current = true;
-      setTimeout(() => phoneSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
-      setPhoneStep("entering");
+      setTimeout(() => {
+        phoneSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        setPhoneStep("entering");
+      }, 200);
     }
     if (hash === "email" && emailSectionRef.current) {
       hashProcessed.current = true;

@@ -6,7 +6,6 @@ import Link from "next/link";
 import AdPlaceholder from "./AdPlaceholder";
 import FilterSidebarWrapper from "./FilterSidebarWrapper";
 import { siteConfig } from "@/config/site-config";
-import { getJobHubs } from "@/config/hub-config";
 import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX, FiArrowRight, FiZap } from "react-icons/fi";
 import OptimizedImage from "@/components/OptimizedImage";
 
@@ -61,7 +60,7 @@ function RelatedFilterLinks({ filterKey, filterValue }) {
 
   if (!showLocations && !showCategories && !showJobTypes && !showExpLevels) return null;
 
-  const currentBase = `/jobs/${(filterValue || "").toLowerCase()}`;
+  const _currentBase = `/jobs/${(filterValue || "").toLowerCase()}`;
 
   return (
     <div className="mt-10 border-t border-gray-200 pt-8">

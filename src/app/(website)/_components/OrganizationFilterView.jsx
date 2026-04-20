@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { getInitials } from "@/lib/normalize";
 import AdPlaceholder from "./AdPlaceholder";

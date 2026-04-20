@@ -120,7 +120,7 @@ async function getJob(slug) {
 // ════════════════════════════════════════════════════════════
 // METADATA — handles both detail and combo pages
 // ════════════════════════════════════════════════════════════
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params, _searchParams }) {
   const { slug: segments } = await params;
   const urlPath = `/jobs/${segments.join("/")}`;
 

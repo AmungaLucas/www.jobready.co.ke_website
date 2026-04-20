@@ -6,7 +6,7 @@ import { FiBookmark } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 export default function BookmarkButton({ jobId }) {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");

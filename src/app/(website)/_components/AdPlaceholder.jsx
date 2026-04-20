@@ -36,9 +36,8 @@ export default function AdPlaceholder({ height = "250px", label = "Advertisement
         adRef.current.appendChild(ins);
         
         try {
-          // eslint-disable-next-line no-undef
           (adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
+        } catch {
           // Ad push failed — placeholder already shown
         }
       }

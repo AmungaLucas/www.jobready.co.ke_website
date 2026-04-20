@@ -1,4 +1,3 @@
-import Link from "next/link";
 
 const companies = [
   { name: "Safaricom", color: "#00a254" },

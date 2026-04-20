@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { FiBuilding } from "react-icons/fi";
 import { getInitials } from "@/lib/normalize";
 import OptimizedImage from "@/components/OptimizedImage";
 

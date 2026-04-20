@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { siteConfig } from "@/config/site-config";
-import { X, Mail, Lock, Smartphone, AlertCircle } from "lucide-react";
+import { X, Mail, Smartphone } from "lucide-react";
 
 /**
  * DashboardBanner — Shows verification/setup prompts.
@@ -22,41 +22,26 @@ import { X, Mail, Lock, Smartphone, AlertCircle } from "lucide-react";
 export default function DashboardBanner() {
   const { data: session, status } = useSession();
   const [dismissed, setDismissed] = useState(false);
-  const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    if (status === "loading") return;
+  const user = session?.user;
 
-    // Check if already dismissed this session
-    const dismissedKey = "dashboard-banner-dismissed";
-    const wasDismissed = sessionStorage.getItem(dismissedKey);
-
-    if (wasDismissed) {
-      setDismissed(true);
-      return;
-    }
-
-    const user = session?.user;
-    if (!user) return;
-
-    // Show banner if any verification is needed
-    const needsAttention =
+  const visible = useMemo(() => {
+    if (status === "loading" || dismissed || !user) return false;
+    return (
       !user.emailVerified ||
       !user.phone ||
       (user.phone && !user.phoneVerified) ||
-      user.email?.includes(`@${siteConfig.emailDomain}`);
-
-    setVisible(needsAttention);
-  }, [status, session]);
+      user.email?.includes(`@${siteConfig.emailDomain}`)
+    );
+  }, [status, dismissed, user]);
 
   const handleDismiss = () => {
     setDismissed(true);
     sessionStorage.setItem("dashboard-banner-dismissed", "true");
   };
 
-  if (status === "loading" || dismissed || !visible) return null;
+  if (!visible) return null;
 
-  const user = session?.user;
   const banners = [];
 
   // Email not verified (real email, not placeholder)

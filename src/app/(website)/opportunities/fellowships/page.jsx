@@ -2,10 +2,9 @@ export const revalidate = 120;
 
 import { db } from "@/lib/db";
 import { formatDate, formatRelativeDate } from "@/lib/format";
-import { getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
-import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
+import { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
 import { FiSearch, FiClock, FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";

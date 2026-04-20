@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { X, Shield, Cookie } from "lucide-react";
+import { X, Cookie } from "lucide-react";
 
 /**
  * Cookie consent banner — ODPC / GDPR compliant
@@ -52,30 +52,20 @@ const categories = [
 ];
 
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return true;
+    }
+  });
+  const [mounted] = useState(() => typeof window !== "undefined");
   const [preferences, setPreferences] = useState(() => {
     const defaults = {};
-    categories.forEach((c) => {
-      defaults[c.id] = c.defaultValue;
-    });
+    categories.forEach((c) => { defaults[c.id] = c.defaultValue; });
     return defaults;
   });
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        setVisible(true);
-      }
-    } catch {
-      // localStorage not available (SSR or private browsing)
-      setVisible(true);
-    }
-  }, []);
-
   const saveConsent = (prefs) => {
     const consent = {
       preferences: prefs,

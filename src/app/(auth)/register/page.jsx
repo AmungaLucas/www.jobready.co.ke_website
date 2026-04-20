@@ -8,7 +8,6 @@ import { siteConfig } from "@/config/site-config";
 import {
   FiUser,
   FiMail,
-  FiPhone,
   FiLock,
   FiArrowRight,
   FiLoader,

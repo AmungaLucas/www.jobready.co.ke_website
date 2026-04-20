@@ -9,7 +9,6 @@ import Link from "next/link";
 import {
   FiMail,
   FiLock,
-  FiPhone,
   FiArrowRight,
   FiLoader,
   FiCheck,

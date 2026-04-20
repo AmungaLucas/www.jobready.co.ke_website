@@ -8,14 +8,11 @@ import {
   FiChevronRight,
   FiFilter,
   FiX,
-  FiTrendingUp,
   FiStar,
   FiDollarSign,
   FiCalendar,
   FiArrowRight,
   FiZap,
-  FiUsers,
-  FiAward,
 } from "react-icons/fi";
 import { db } from "@/lib/db";
 import {
@@ -33,7 +30,7 @@ import {
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
 import { siteConfig } from "@/config/site-config";
-import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
+import { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../_components/AdPlaceholder";
 import FilterSidebarWrapper from "../_components/FilterSidebarWrapper";
 
@@ -619,7 +616,7 @@ export default async function JobsPage({ searchParams }) {
                     const jobType = formatJobType(job.employmentType);
                     const expLevel = formatExperienceLevel(job.experienceLevel);
                     const company = job.company;
-                    const initials = getInitials(company?.name || "C");
+                    const _initials = getInitials(company?.name || "C");
                     const logoColor = company?.logoColor || "#5B21B6";
 
                     const salaryDisplay = job.salaryMin

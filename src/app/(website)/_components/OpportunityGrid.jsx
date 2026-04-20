@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi";
-import { HiAcademicCap, HiUserGroup, HiStar, HiCurrencyDollar, HiLightningBolt } from "react-icons/hi";
+import { HiAcademicCap, HiUserGroup, HiStar, HiCurrencyDollar } from "react-icons/hi";
 import { FiMonitor } from "react-icons/fi";
 
 // ─── The 9 opportunity types we showcase on the homepage ─────────

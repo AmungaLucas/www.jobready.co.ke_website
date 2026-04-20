@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FiLock, FiArrowLeft, FiLoader, FiCheck, FiAlertCircle } from "react-icons/fi";
 import AuthCard from "../_components/AuthCard";
@@ -9,7 +9,6 @@ import InputField from "../_components/InputField";
 import PasswordStrength from "../_components/PasswordStrength";
 
 function ResetPasswordForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 

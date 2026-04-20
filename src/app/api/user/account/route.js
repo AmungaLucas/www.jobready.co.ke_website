@@ -171,7 +171,7 @@ export async function DELETE(request) {
         );
       }
 
-      const bcrypt = require("bcryptjs");
+      const { default: bcrypt } = await import("bcryptjs");
       const isMatch = await bcrypt.compare(confirmPassword, user.passwordHash);
       if (!isMatch) {
         return NextResponse.json(

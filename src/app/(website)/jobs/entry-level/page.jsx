@@ -3,10 +3,10 @@ import { formatDate, formatCurrency, formatJobType, formatExperienceLevel, forma
 import { formatLocation, getInitials } from "@/lib/normalize";
 import { generateMeta, generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
-import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
+import { AvatarImage } from "@/components/OptimizedImage";
 import AdPlaceholder from "../../_components/AdPlaceholder";
 import { siteConfig } from "@/config/site-config";
-import { FiSearch, FiMapPin, FiClock, FiBriefcase, FiChevronLeft, FiChevronRight, FiTrendingUp, FiStar, FiDollarSign, FiCalendar, FiFilter, FiX } from "react-icons/fi";
+import { FiSearch, FiMapPin, FiClock, FiChevronLeft, FiChevronRight, FiTrendingUp, FiDollarSign, FiCalendar, FiFilter, FiX } from "react-icons/fi";
 
 export const revalidate = 120;
 
@@ -247,7 +247,7 @@ export default async function EntryLevelJobsPage({ searchParams }) {
                     const jobType = formatJobType(job.employmentType);
                     const expLevel = formatExperienceLevel(job.experienceLevel);
                     const company = job.company;
-                    const initials = getInitials(company?.name || "C");
+                    const _initials = getInitials(company?.name || "C");
                     const logoColor = company?.logoColor || "#0D9488";
                     const salaryDisplay = job.salaryMin
                       ? `${formatCurrency(job.salaryMin)}${job.salaryMax ? ` – ${formatCurrency(job.salaryMax)}` : ""}`

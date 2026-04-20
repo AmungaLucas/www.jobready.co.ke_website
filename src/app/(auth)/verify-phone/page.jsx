@@ -1,20 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   FiPhone,
   FiArrowRight,
   FiLoader,
   FiCheck,
-  FiAlertCircle,
 } from "react-icons/fi";
 import AuthCard from "../_components/AuthCard";
 import OtpInput from "../_components/OtpInput";
 
 function VerifyPhoneContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get("phone");
 

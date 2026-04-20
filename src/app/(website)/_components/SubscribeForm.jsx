@@ -123,7 +123,7 @@ export default function SubscribeForm() {
         setResult("error");
         setErrorMsg(data.error || "Something went wrong. Please try again.");
       }
-    } catch (err) {
+    } catch (_err) {
       setResult("error");
       setErrorMsg("Network error. Please check your connection and try again.");
     } finally {

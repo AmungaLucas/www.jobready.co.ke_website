@@ -168,7 +168,7 @@ async function getFilteredOpportunities(filters, searchParams) {
 // ════════════════════════════════════════════════════════════
 // METADATA
 // ════════════════════════════════════════════════════════════
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params, _searchParams }) {
   const { slug: segments } = await params;
   const urlPath = `/opportunities/${segments.join("/")}`;
 

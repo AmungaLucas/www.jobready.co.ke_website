@@ -11,7 +11,6 @@ import {
   FiArrowRight,
   FiStar,
 } from "react-icons/fi";
-import { formatRelativeDate, formatDate } from "@/lib/format";
 import AdSense from "@/components/AdSense";
 import { formatLocation } from "@/lib/normalize";
 
