@@ -138,8 +138,8 @@ export async function generateMetadata({ searchParams }) {
 
   const where = buildWhereClause(sp);
 
-  let title = "Opportunities";
-  let description = `Browse scholarships, grants, internships, fellowships and more on ${siteConfig.companyName}.`;
+  let title = "Scholarships, Grants & Fellowships in Kenya";
+  let description = `Browse 60+ scholarships, grants, fellowships, and career opportunities in Kenya. Updated daily. Apply now on ${siteConfig.companyName}.`;
 
   if (type && OPP_TYPE_DISPLAY[type]) {
     const typeDisplay = OPP_TYPE_DISPLAY[type];
