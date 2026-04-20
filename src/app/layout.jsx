@@ -21,6 +21,11 @@ export const metadata = {
     follow: true,
   },
   metadataBase: new URL(siteConfig.url),
+  alternates: {
+    types: {
+      "application/rss+xml": `${siteConfig.url}/feed.xml`,
+    },
+  },
 };
 
 export default function RootLayout({ children }) {

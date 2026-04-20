@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { db } from "@/lib/db";
-import { generateMeta, generateWebSiteJsonLd } from "@/lib/seo";
+import { generateMeta, generateWebSiteJsonLd, generateOrganizationJsonLd } from "@/lib/seo";
+import { siteConfig } from "@/config/site-config";
 import Script from "next/script";
 import HomeHero from "./_components/HomeHero";
 import DeadlineStrip from "./_components/DeadlineStrip";
@@ -371,6 +372,14 @@ async function BelowFoldContent() {
 export default async function HomePage() {
   const aboveFold = await fetchAboveFoldData();
   const jsonLd = generateWebSiteJsonLd();
+  const orgJsonLd = generateOrganizationJsonLd({
+    name: siteConfig.name,
+    url: siteConfig.url,
+    logo: `${siteConfig.url}/logo.svg`,
+    description: siteConfig.description,
+    county: "Nairobi",
+    socialLinks: Object.values(siteConfig.social).map((url) => ({ url })),
+  });
 
   return (
     <>
@@ -378,6 +387,11 @@ export default async function HomePage() {
         id="homepage-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Script
+        id="homepage-org-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
 
       {/* Above the fold — streams immediately */}

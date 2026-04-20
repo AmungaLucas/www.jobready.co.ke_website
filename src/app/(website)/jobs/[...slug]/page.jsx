@@ -20,7 +20,24 @@ import JobFilterView from "../../_components/JobFilterView";
 export const revalidate = 300;
 
 // ════════════════════════════════════════════════════════════
-// JOB DETAIL DATA FETCHING (unchanged from original)
+// PRE-RENDERING — tell Next.js which slugs to build at deploy
+// ════════════════════════════════════════════════════════════
+export async function generateStaticParams() {
+  try {
+    const jobs = await db.job.findMany({
+      where: { isActive: true, status: "PUBLISHED" },
+      select: { slug: true },
+      take: 5000,
+      orderBy: { createdAt: "desc" },
+    });
+    return jobs.map((j) => ({ slug: [j.slug] }));
+  } catch {
+    return [];
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// JOB DETAIL DATA FETCHING
 // ════════════════════════════════════════════════════════════
 async function getJob(slug) {
   try {

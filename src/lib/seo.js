@@ -172,7 +172,7 @@ export function generateJobJsonLd(job) {
     : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
   jsonLd.validThrough = validThrough.toISOString();
 
-  // Experience level
+  // Experience level → Google Jobs educationRequirements + experienceRequirements
   if (job.experienceLevel) {
     const qualMapping = {
       // Canonical UPPER_SNAKE_CASE values
@@ -197,7 +197,20 @@ export function generateJobJsonLd(job) {
       ENTRY: "No experience required",
       MID: "1-3 years experience",
     };
-    jsonLd.qualifications = qualMapping[job.experienceLevel] || "";
+    const qualText = qualMapping[job.experienceLevel] || "";
+
+    // Google Jobs: structured educationRequirements and experienceRequirements
+    // improve matching accuracy vs. a single qualifications string
+    jsonLd.experienceRequirements = {
+      "@type": "OccupationalExperienceRequirements",
+      monthsOfExperience: mapExperienceToMonths(job.experienceLevel),
+    };
+    jsonLd.educationRequirements = {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: mapExperienceToEducation(job.experienceLevel),
+    };
+    // Keep qualifications as a readable fallback
+    if (qualText) jsonLd.qualifications = qualText;
   }
 
   return jsonLd;
@@ -591,4 +604,36 @@ function parseEmployeeSize(size) {
     min: parseInt(match[0], 10) || undefined,
     max: parseInt(match[match.length - 1], 10) || undefined,
   };
+}
+
+/**
+ * Map experience level to approximate months of experience for Google Jobs.
+ */
+function mapExperienceToMonths(level) {
+  const mapping = {
+    ENTRY_LEVEL: 0, ENTRY: 0, "Entry Level": 0,
+    JUNIOR: 18, "Junior": 18, INTERNSHIP: 6,
+    MID_LEVEL: 36, MID: 36, "Mid Level": 36,
+    SENIOR: 60, "Senior": 60,
+    LEAD: 60, "Lead": 60,
+    MANAGER: 84, "Manager": 84,
+    DIRECTOR: 120, "Director": 120,
+    EXECUTIVE: 120, "Executive": 120,
+  };
+  return mapping[level] ?? 36; // default to 3 years
+}
+
+/**
+ * Map experience level to education credential category for Google Jobs.
+ */
+function mapExperienceToEducation(level) {
+  const highLevel = ["SENIOR", "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE"];
+  const midLevel = ["JUNIOR", "MID_LEVEL", "MID"];
+  if (highLevel.some((l) => level === l || level === l.replace("_", " "))) {
+    return "bachelor degree";
+  }
+  if (midLevel.some((l) => level === l || level === l.replace("_", " "))) {
+    return "diploma";
+  }
+  return "high school";
 }

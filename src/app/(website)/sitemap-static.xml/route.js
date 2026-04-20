@@ -17,7 +17,7 @@ const staticPages = [
   { url: "/organizations", priority: 0.8, changeFrequency: "weekly", lastmod: null },
   { url: "/career-advice", priority: 0.8, changeFrequency: "weekly", lastmod: null },
   { url: "/cv-services", priority: 0.9, changeFrequency: "monthly", lastmod: "2026-04-01" },
-  { url: "/search", priority: 0.7, changeFrequency: "daily", lastmod: null },
+  // /search removed — it has noindex via layout.jsx and /search? is blocked by robots.txt
   { url: "/about", priority: 0.5, changeFrequency: "monthly", lastmod: "2026-01-15" },
   { url: "/contact", priority: 0.5, changeFrequency: "yearly", lastmod: "2026-01-15" },
   { url: "/privacy", priority: 0.3, changeFrequency: "yearly", lastmod: "2026-01-15" },

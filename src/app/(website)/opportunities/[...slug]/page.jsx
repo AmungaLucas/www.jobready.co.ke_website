@@ -46,7 +46,24 @@ const OPP_TYPE_COLORS = {
 export const revalidate = 300;
 
 // ════════════════════════════════════════════════════════════
-// OPPORTUNITY DETAIL (unchanged)
+// PRE-RENDERING — tell Next.js which slugs to build at deploy
+// ════════════════════════════════════════════════════════════
+export async function generateStaticParams() {
+  try {
+    const opportunities = await db.opportunity.findMany({
+      where: { isActive: true, status: "PUBLISHED", publishedAt: { not: null } },
+      select: { slug: true },
+      take: 2000,
+      orderBy: { createdAt: "desc" },
+    });
+    return opportunities.map((o) => ({ slug: [o.slug] }));
+  } catch {
+    return [];
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// OPPORTUNITY DETAIL
 // ════════════════════════════════════════════════════════════
 async function getOpportunity(slug) {
   try {
