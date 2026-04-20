@@ -177,7 +177,6 @@ export async function generateMetadata({ params, searchParams }) {
         county: true, town: true, country: true, isRemote: true,
         salaryMin: true, salaryMax: true, salaryPeriod: true,
         positions: true, publishedAt: true, updatedAt: true,
-        noIndex: true,
         company: { select: { name: true, county: true } },
       },
     });
@@ -196,7 +195,6 @@ export async function generateMetadata({ params, searchParams }) {
       ogType: "article",
       publishedTime: job.publishedAt?.toISOString(),
       modifiedTime: job.updatedAt?.toISOString(),
-      noindex: job.noIndex === true,
     });
   } catch {
     return { title: "Job Not Found" };
