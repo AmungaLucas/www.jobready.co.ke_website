@@ -9,16 +9,13 @@ import { db } from "@/lib/db";
  *
  * For JOB_SEEKER:
  *   - applicationsCount, savedJobsCount, profileViewsCount, interviewsCount
- *   - recentApplications (last 5)
+ *   - recentSavedJobs (last 5)
  *
  * For EMPLOYER:
- *   - activeJobsCount, totalApplicationsCount, shortlistedCount, totalViewsCount
- *   - recentApplications (last 5)
- *   - jobsClosingSoon (next 7 days)
- *
- * Note: The current schema has no Applications table (v1 uses externalApplyUrl only)
- * and no role field on User. All users are treated as job seekers. Application-related
- * counts return 0.
+ *   - activeJobsCount, totalApplicationsCount, shortlistedCount, interviewsCount,
+ *     hiredCount, newThisWeek, profileViews
+ *   - recentApplications (last 5 — includes applicant name/email and job title)
+ *   - jobsClosingSoon (application deadline within 7 days)
  */
 export async function GET() {
   try {
@@ -32,9 +29,7 @@ export async function GET() {
     }
 
     const userId = session.user.id;
-
-    // Default to JOB_SEEKER since the User model has no role field
-    const role = "JOB_SEEKER";
+    const role = session.user.role || "JOB_SEEKER";
 
     if (role === "JOB_SEEKER") {
       // Fetch job seeker stats in parallel
@@ -102,14 +97,128 @@ export async function GET() {
       });
     }
 
-    // EMPLOYER path (for future use when employer accounts are added)
-    // All queries will fail gracefully with 0 counts since there's no
-    // employer-specific data in the current schema.
+    // ================================================================
+    // EMPLOYER path — query real data from jobs created by this user
+    // ================================================================
 
-    const activeJobsCount = 0;
-    const totalApplicationsCount = 0;
-    const shortlistedCount = 0;
-    const totalViewsCount = 0;
+    // Find all company IDs linked to this employer user
+    const companies = await db.company.findMany({
+      where: { createdBy: userId },
+      select: { id: true },
+    });
+    const companyIds = companies.map((c) => c.id);
+
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    // Run all independent queries in parallel
+    const [
+      activeJobsCount,
+      totalApplicationsCount,
+      shortlistedCount,
+      interviewsCount,
+      hiredCount,
+      newThisWeek,
+      profileViews,
+      recentApplications,
+      jobsClosingSoon,
+    ] = await Promise.all([
+      // 1. Active jobs count
+      db.job.count({
+        where: {
+          createdBy: userId,
+          status: "PUBLISHED",
+          isActive: true,
+        },
+      }),
+
+      // 2. Total applications for user's jobs
+      db.application.count({
+        where: { job: { createdBy: userId } },
+      }),
+
+      // 3. Shortlisted applications
+      db.application.count({
+        where: {
+          job: { createdBy: userId },
+          status: "SHORTLISTED",
+        },
+      }),
+
+      // 4. Interview-stage applications
+      db.application.count({
+        where: {
+          job: { createdBy: userId },
+          status: "INTERVIEW",
+        },
+      }),
+
+      // 5. Hired applications
+      db.application.count({
+        where: {
+          job: { createdBy: userId },
+          status: "HIRED",
+        },
+      }),
+
+      // 6. New applications this week (last 7 days)
+      db.application.count({
+        where: {
+          job: { createdBy: userId },
+          createdAt: { gte: sevenDaysAgo },
+        },
+      }),
+
+      // 7. Profile views — company pages for this employer's companies
+      db.pageView.count({
+        where: {
+          pageType: "COMPANY",
+          ...(companyIds.length > 0
+            ? { pageId: { in: companyIds } }
+            : { pageId: "__none__" }), // match nothing if no companies
+        },
+      }),
+
+      // 8. Recent applications (last 5) with applicant info and job title
+      db.application.findMany({
+        where: { job: { createdBy: userId } },
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+          job: {
+            select: { id: true, title: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+
+      // 9. Jobs closing soon — deadline within 7 days
+      db.job.findMany({
+        where: {
+          createdBy: userId,
+          status: "PUBLISHED",
+          isActive: true,
+          applicationDeadline: {
+            gte: now,
+            lte: sevenDaysFromNow,
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          applicationDeadline: true,
+          company: {
+            select: { name: true, slug: true, logo: true, logoColor: true },
+          },
+        },
+        orderBy: { applicationDeadline: "asc" },
+        take: 10,
+      }),
+    ]);
 
     return NextResponse.json({
       role: "EMPLOYER",
@@ -117,12 +226,21 @@ export async function GET() {
         activeJobsCount,
         totalApplicationsCount,
         shortlistedCount,
-        totalViewsCount,
+        interviewsCount,
+        hiredCount,
+        newThisWeek,
+        profileViews,
       },
       recent: {
-        applications: [],
+        applications: recentApplications.map((app) => ({
+          id: app.id,
+          status: app.status,
+          createdAt: app.createdAt,
+          user: app.user,
+          job: app.job,
+        })),
       },
-      jobsClosingSoon: [],
+      jobsClosingSoon,
     });
   } catch (error) {
     console.error("[GET /api/dashboard/stats] Error:", error);
