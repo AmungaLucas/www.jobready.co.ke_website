@@ -15,7 +15,7 @@ const OPP_TYPE = "FELLOWSHIP";
 const PAGE_TITLE = "Fellowships in Kenya";
 const BREADCRUMB_NAME = "Fellowships";
 const SLUG = "fellowships";
-const META_DESCRIPTION = `Find the latest fellowships in Kenya for professionals, researchers and graduate students. Apply now on ${siteConfig.companyName}.`;`
+const META_DESCRIPTION = `Find the latest fellowships in Kenya for professionals, researchers and graduate students. Apply now on ${siteConfig.companyName}.`;
 
 const PER_PAGE = 20;
 

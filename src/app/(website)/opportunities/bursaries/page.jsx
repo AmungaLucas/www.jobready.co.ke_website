@@ -15,7 +15,7 @@ const OPP_TYPE = "BURSARY";
 const PAGE_TITLE = "Bursaries in Kenya";
 const BREADCRUMB_NAME = "Bursaries";
 const SLUG = "bursaries";
-const META_DESCRIPTION = `Find the latest bursaries in Kenya for secondary and university students. Apply now on ${siteConfig.companyName}.`;`
+const META_DESCRIPTION = `Find the latest bursaries in Kenya for secondary and university students. Apply now on ${siteConfig.companyName}.`;
 
 const PER_PAGE = 20;
 

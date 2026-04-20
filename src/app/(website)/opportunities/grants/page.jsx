@@ -15,7 +15,7 @@ const OPP_TYPE = "GRANT";
 const PAGE_TITLE = "Grants in Kenya";
 const BREADCRUMB_NAME = "Grants";
 const SLUG = "grants";
-const META_DESCRIPTION = `Find the latest grants in Kenya for NGOs, startups, researchers and community projects. Apply now on ${siteConfig.companyName}.`;`
+const META_DESCRIPTION = `Find the latest grants in Kenya for NGOs, startups, researchers and community projects. Apply now on ${siteConfig.companyName}.`;
 
 const PER_PAGE = 20;
 

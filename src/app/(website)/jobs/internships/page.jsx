@@ -106,7 +106,7 @@ export async function generateMetadata({ searchParams }) {
   const title = q ? `Internships in Kenya — "${q}"` : PAGE_TITLE;
   const description = q
     ? `Search internship results for "${q}" in Kenya. Apply for the latest internship positions on ${siteConfig.companyName}.`
-    : "Browse the latest internship opportunities in Kenya. Gain hands-on experience at top companies. Apply now on ${siteConfig.companyName}.`;
+    : `Browse the latest internship opportunities in Kenya. Gain hands-on experience at top companies. Apply now on ${siteConfig.companyName}.`;
 
   const pathParams = new URLSearchParams();
   if (q) pathParams.set("q", q);

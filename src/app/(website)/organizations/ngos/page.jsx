@@ -8,7 +8,7 @@ export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const q = sp.q || "";
   const title = q ? `${q} — NGOs & Non-Profits in Kenya` : "NGOs & Non-Profits in Kenya";
-  const description = "Browse ngos in Kenya. View profiles and open positions on ${siteConfig.companyName}.`;
+  const description = `Browse ngos in Kenya. View profiles and open positions on ${siteConfig.companyName}.`;
   return generateMeta({ title, description, path: "/organizations/ngos" });
 }
 

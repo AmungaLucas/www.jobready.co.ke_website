@@ -8,7 +8,7 @@ export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const q = sp.q || "";
   const title = q ? `${q} — Private Sector Companies in Kenya` : "Private Sector Companies in Kenya";
-  const description = "Browse private sector in Kenya. View profiles and open positions on ${siteConfig.companyName}.`;
+  const description = `Browse private sector in Kenya. View profiles and open positions on ${siteConfig.companyName}.`;
   return generateMeta({ title, description, path: "/organizations/private" });
 }
 

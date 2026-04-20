@@ -15,7 +15,7 @@ const OPP_TYPE = "INTERNSHIP";
 const PAGE_TITLE = "Internships & Opportunities in Kenya";
 const BREADCRUMB_NAME = "Internships";
 const SLUG = "internships";
-const META_DESCRIPTION = `Find the latest internships and career opportunities in Kenya. Apply now on ${siteConfig.companyName}.`;`
+const META_DESCRIPTION = `Find the latest internships and career opportunities in Kenya. Apply now on ${siteConfig.companyName}.`;
 
 const PER_PAGE = 20;
 
