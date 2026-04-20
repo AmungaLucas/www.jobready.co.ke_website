@@ -105,8 +105,8 @@ export async function generateMetadata({ searchParams }) {
   const q = params.q || "";
   const title = q ? `Remote Jobs in Kenya — "${q}"` : PAGE_TITLE;
   const description = q
-    ? `Search remote job results for "${q}" in Kenya. Work from home with top employers on JobReady Kenya.`
-    : "Browse the latest remote jobs in Kenya. Work from home with flexible hours. Apply now on JobReady Kenya.";
+    ? `Search remote job results for "${q}" in Kenya. Work from home with top employers on ${siteConfig.companyName}.`
+    : "Browse the latest remote jobs in Kenya. Work from home with flexible hours. Apply now on ${siteConfig.companyName}.`;
 
   const pathParams = new URLSearchParams();
   if (q) pathParams.set("q", q);

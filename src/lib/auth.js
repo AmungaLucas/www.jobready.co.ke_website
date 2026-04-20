@@ -11,6 +11,7 @@ import {
   migrateExistingGoogleUsers,
 } from "@/lib/auth-identity";
 import { sendEmail, welcomeGoogleSignup } from "@/lib/email";
+import { siteConfig } from "@/config/site-config";
 
 // ---------------------------------------------------------------------------
 // One-time migration: populate googleId from AuthAccount table
@@ -230,7 +231,7 @@ export const authOptions = {
         // Send welcome email (non-blocking)
         sendEmail({
           to: email,
-          subject: "Welcome to JobReady!",
+          subject: `Welcome to ${siteConfig.shortName}!`,
           ...welcomeGoogleSignup({ name: dbUser.name, email }),
         }).catch((err) => console.error("[Auth] Google welcome email failed:", err.message));
 

@@ -110,7 +110,7 @@ export async function GET() {
       <link>${SITE_URL}/career-advice/${escapeXml(article.slug)}</link>
       <guid isPermaLink="true">${SITE_URL}/career-advice/${escapeXml(article.slug)}</guid>
       <category>${escapeXml(article.category?.name || "Career Advice")}</category>
-      <author>${escapeXml(article.author?.name || "JobReady Kenya")}</author>
+      <author>${escapeXml(article.author?.name || siteConfig.name)}</author>
       <description><![CDATA[${article.excerpt || ""}]]></description>
       <pubDate>${article.publishedAt?.toUTCString()}</pubDate>
     </item>`
@@ -120,13 +120,13 @@ export async function GET() {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>JobReady Kenya — Latest Jobs, Opportunities &amp; Career Advice</title>
+    <title>${escapeXml(siteConfig.name)} — Latest Jobs, Opportunities &amp; Career Advice</title>
     <link>${SITE_URL}</link>
     <description>Kenya's #1 job board. Latest jobs, internships, scholarships, career advice, and opportunities updated daily.</description>
     <language>en-ke</language>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <generator>JobReady.co.ke</generator>${jobItems}${oppItems}${articleItems}
+    <generator>${escapeXml(siteConfig.brandName)}</generator>${jobItems}${oppItems}${articleItems}
   </channel>
 </rss>`;
 

@@ -1381,7 +1381,7 @@ function NotificationSettings() {
       <CardHeader>
         <CardTitle className="text-lg">Email Notifications</CardTitle>
         <CardDescription>
-          Choose which emails you&apos;d like to receive from JobReady.co.ke
+          Choose which emails you&apos;d like to receive from {siteConfig.brandName}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1">
@@ -1409,7 +1409,7 @@ function NotificationSettings() {
           {
             key: "newFeatures",
             label: "Product Updates",
-            description: "Learn about new features and improvements on JobReady.co.ke",
+            description: `Learn about new features and improvements on ${siteConfig.brandName}`,
           },
           {
             key: "newsletter",

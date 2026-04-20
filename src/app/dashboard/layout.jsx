@@ -1,11 +1,12 @@
+import { siteConfig } from "@/config/site-config";
 import DashboardShell from "./_components/DashboardShell";
 
 export const metadata = {
   title: {
-    template: "%s | JobReady Dashboard",
-    default: "Dashboard | JobReady Kenya",
+    template: `%s | ${siteConfig.shortName} Dashboard`,
+    default: `Dashboard | ${siteConfig.companyName}`,
   },
-  description: "Manage your job applications, saved jobs, profile, and more on JobReady Kenya.",
+  description: `Manage your job applications, saved jobs, profile, and more on ${siteConfig.companyName}.`,
   robots: {
     index: false,
     follow: false,

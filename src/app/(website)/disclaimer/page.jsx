@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Disclaimer — JobReady Kenya",
+  title: `Disclaimer — ${siteConfig.companyName}`,
   description:
-    "Read the disclaimer for JobReady.co.ke. Understand the limitations of our job board, career advice, and CV writing services.",
+    `Read the disclaimer for ${siteConfig.brandName}. Understand the limitations of our job board, career advice, and CV writing services.`,
   path: "/disclaimer",
 });
 
@@ -64,7 +64,7 @@ export default function DisclaimerPage() {
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         We strongly advise job seekers to independently verify the legitimacy of
         any job listing and employer before sharing personal information,
-        attending interviews, or accepting employment offers. JobReady shall not
+        attending interviews, or accepting employment offers. {siteConfig.shortName} shall not
         be held liable for any losses, damages, or harm arising from interactions
         with employers or job listings found on the Platform.
       </p>

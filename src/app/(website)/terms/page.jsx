@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Terms of Service — JobReady Kenya",
+  title: `Terms of Service — ${siteConfig.companyName}`,
   description:
-    "Read the Terms of Service for JobReady.co.ke. Understand your rights and responsibilities when using our job board, CV writing services, and career resources.",
+    `Read the Terms of Service for ${siteConfig.brandName}. Understand your rights and responsibilities when using our job board, CV writing services, and career resources.`,
   path: "/terms",
 });
 
@@ -59,7 +59,7 @@ export default function TermsPage() {
       </ul>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         The Platform serves as an intermediary connecting job seekers with
-        employers. JobReady does not guarantee employment or the accuracy of
+        employers. {siteConfig.shortName} does not guarantee employment or the accuracy of
         third-party job listings, though we make reasonable efforts to verify
         listings before publication.
       </p>
@@ -155,7 +155,7 @@ export default function TermsPage() {
       </ul>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         When you apply for a job, your profile information and CV may be shared
-        with the hiring employer. JobReady is not a party to the employment
+        with the hiring employer. {siteConfig.shortName} is not a party to the employment
         relationship between you and any employer.
       </p>
 
@@ -166,7 +166,7 @@ export default function TermsPage() {
         6. CV Writing Services
       </h2>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
-        JobReady offers professional CV writing, cover letter, and LinkedIn
+        {siteConfig.shortName} offers professional CV writing, cover letter, and LinkedIn
         profile optimization services. By ordering these services, you agree to
         the following:
       </p>
@@ -254,7 +254,7 @@ export default function TermsPage() {
           You retain ownership of your personal content (CVs, profiles, etc.)
         </li>
         <li>
-          By submitting content, you grant JobReady a non-exclusive, worldwide,
+          By submitting content, you grant {siteConfig.shortName} a non-exclusive, worldwide,
           royalty-free license to use it for the purpose of providing the service
         </li>
       </ul>
@@ -282,7 +282,7 @@ export default function TermsPage() {
       </ul>
       <p className="text-gray-600 leading-relaxed text-[0.95rem] mb-4">
         Our total liability for any claim shall not exceed the amount you paid
-        to JobReady in the 12 months preceding the claim.
+        to {siteConfig.shortName} in the 12 months preceding the claim.
       </p>
 
       <h2

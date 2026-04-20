@@ -15,7 +15,7 @@ const OPP_TYPE = "SCHOLARSHIP";
 const PAGE_TITLE = "Scholarships in Kenya";
 const BREADCRUMB_NAME = "Scholarships";
 const SLUG = "scholarships";
-const META_DESCRIPTION = "Find the latest scholarships in Kenya for undergraduate, masters, PhD and postgraduate students. Apply now on JobReady Kenya.";
+const META_DESCRIPTION = `Find the latest scholarships in Kenya for undergraduate, masters, PhD and postgraduate students. Apply now on ${siteConfig.companyName}.`;
 
 const PER_PAGE = 20;
 

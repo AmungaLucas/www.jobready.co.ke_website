@@ -1,3 +1,4 @@
+import { siteConfig } from "@/config/site-config";
 import OrganizationFilterView from "../../_components/OrganizationFilterView";
 
 export const revalidate = 120;
@@ -7,7 +8,7 @@ export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const q = sp.q || "";
   const title = q ? `${q} — Religious Organizations in Kenya` : "Religious Organizations in Kenya";
-  const description = "Browse religious orgs in Kenya. View profiles and open positions on JobReady Kenya.";
+  const description = "Browse religious orgs in Kenya. View profiles and open positions on ${siteConfig.companyName}.`;
   return generateMeta({ title, description, path: "/organizations/religious" });
 }
 

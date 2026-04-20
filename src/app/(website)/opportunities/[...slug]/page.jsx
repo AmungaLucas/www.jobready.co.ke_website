@@ -202,18 +202,18 @@ export async function generateMetadata({ params, searchParams }) {
       where: { slug },
       include: { company: { select: { name: true } } },
     });
-    if (!opp) return { title: "Opportunity Not Found | JobReady Kenya" };
+    if (!opp) return { title: `Opportunity Not Found | ${siteConfig.companyName}` };
     const typeDisplay = OPP_TYPE_DISPLAY[opp.opportunityType] || opp.opportunityType?.replace(/_/g, " ") || "Opportunity";
     return generateMeta({
       title: `${opp.title} — ${typeDisplay}`,
-      description: `${opp.excerpt || `${opp.title} at ${opp.company?.name || "JobReady Kenya"}. Apply now on JobReady Kenya.`}`,
+      description: `${opp.excerpt || `${opp.title} at ${opp.company?.name || siteConfig.companyName}. Apply now on ${siteConfig.companyName}.`}`,
       path: `/opportunities/${slug}`,
       ogType: "article",
       publishedTime: opp.publishedAt?.toISOString(),
       modifiedTime: opp.updatedAt?.toISOString(),
     });
   } catch {
-    return { title: "Opportunity Not Found | JobReady Kenya" };
+    return { title: `Opportunity Not Found | ${siteConfig.companyName}` };
   }
 }
 
@@ -432,7 +432,7 @@ export default async function OpportunityCatchAllPage({ params, searchParams }) 
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{opp.title}</h1>
               <div className="text-sm text-gray-600 mt-1.5">
-                {company?.name ? <span className="font-medium">{company.name}</span> : <span className="font-medium">JobReady Kenya</span>}
+                {company?.name ? <span className="font-medium">{company.name}</span> : <span className="font-medium">{siteConfig.companyName}</span>}
               </div>
               <div className="text-sm text-gray-500 flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                 {postedDate && <span>📅 Posted: {postedDate}</span>}

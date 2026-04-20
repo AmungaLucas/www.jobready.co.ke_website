@@ -105,8 +105,8 @@ export async function generateMetadata({ searchParams }) {
   const q = params.q || "";
   const title = q ? `Entry Level Jobs in Kenya — "${q}"` : PAGE_TITLE;
   const description = q
-    ? `Search entry level job results for "${q}" in Kenya. Start your career journey on JobReady Kenya.`
-    : "Browse the latest entry level jobs in Kenya. No experience required — start your career today. Apply now on JobReady Kenya.";
+    ? `Search entry level job results for "${q}" in Kenya. Start your career journey on ${siteConfig.companyName}.`
+    : "Browse the latest entry level jobs in Kenya. No experience required — start your career today. Apply now on ${siteConfig.companyName}.`;
 
   const pathParams = new URLSearchParams();
   if (q) pathParams.set("q", q);

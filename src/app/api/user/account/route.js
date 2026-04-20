@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import crypto from "crypto";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -81,7 +82,7 @@ export async function POST(request) {
         const { html, text } = emailVerificationCodeTemplate(user.name, code);
         const result = await sendEmail({
           to: user.email,
-          subject: "Account Deletion Confirmation — JobReady",
+          subject: `Account Deletion Confirmation — ${siteConfig.shortName}`,
           html,
           text,
         });

@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { generateMeta, generateWebPageJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { siteConfig } from "@/config/site-config";
 import Link from "next/link";
 import {
   FiSearch,
@@ -12,9 +13,9 @@ import {
 } from "react-icons/fi";
 
 export const metadata = generateMeta({
-  title: "About JobReady — Kenya's #1 Job Board & Career Platform",
+  title: `About ${siteConfig.shortName} — Kenya's #1 Job Board & Career Platform`,
   description:
-    "Learn about JobReady.co.ke — Kenya's fastest-growing job board connecting over 50,000 job seekers with 10,000+ opportunities from 5,000+ companies. Founded in Kenya, built for Kenyans.",
+    `Learn about ${siteConfig.brandName} — Kenya's fastest-growing job board connecting over 50,000 job seekers with 10,000+ opportunities from 5,000+ companies. Founded in Kenya, built for Kenyans.`,
   path: "/about",
 });
 
@@ -74,7 +75,7 @@ const values = [
 ];
 
 const webPageJsonLd = generateWebPageJsonLd({
-  name: "About JobReady Kenya",
+  name: `About ${siteConfig.companyName}`,
   description:
     "Kenya's fastest-growing job board and career services platform. Connecting talented job seekers with real opportunities from verified employers.",
   url: "/about",
@@ -107,7 +108,7 @@ export default function AboutPage() {
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-[2.5rem] font-extrabold leading-tight mb-4 tracking-tight">
-              About JobReady.co.ke
+              About {siteConfig.brandName}
             </h1>
             <p className="text-base opacity-85 leading-relaxed max-w-xl mx-auto">
               Kenya&apos;s fastest-growing job board and career services platform.
@@ -146,7 +147,7 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed text-[0.95rem]">
                 <p>
-                  JobReady.co.ke was founded with a simple yet powerful vision:
+                  {siteConfig.brandName} was founded with a simple yet powerful vision:
                   to make job searching in Kenya easier, faster, and more
                   transparent. Born and raised in Nairobi, our team understands
                   the unique challenges Kenyan job seekers face — from outdated
@@ -162,13 +163,13 @@ export default function AboutPage() {
                 </p>
                 <p>
                   Our team of career coaches, CV writers, and tech experts work
-                  tirelessly to ensure that every interaction on JobReady.co.ke
+                  tirelessly to ensure that every interaction on {siteConfig.brandName}
                   moves you one step closer to your next career milestone.
                 </p>
               </div>
             </div>
             <div className="bg-gradient-to-br from-[#1a56db] to-[#1e3a8a] rounded-xl p-8 md:p-10 text-white">
-              <h3 className="text-lg font-bold mb-6">Why JobReady?</h3>
+              <h3 className="text-lg font-bold mb-6">Why {siteConfig.shortName}?</h3>
               <ul className="space-y-4">
                 {[
                   "Jobs verified directly with employers",
@@ -293,7 +294,7 @@ export default function AboutPage() {
             Ready to Find Your Next Opportunity?
           </h2>
           <p className="text-base opacity-85 max-w-lg mx-auto mb-6">
-            Join over 50,000 Kenyan job seekers who trust JobReady to connect
+            Join over 50,000 Kenyan job seekers who trust {siteConfig.shortName} to connect
             them with their dream careers. Your next job is just a click away.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

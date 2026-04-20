@@ -11,9 +11,9 @@ import {
 } from "react-icons/fi";
 
 export const metadata = generateMeta({
-  title: "Contact Us — JobReady Kenya",
+  title: `Contact Us — ${siteConfig.companyName}`,
   description:
-    "Get in touch with JobReady.co.ke. Reach us via email, phone, WhatsApp, or visit our Nairobi office. We're here to help you find your next opportunity.",
+    `Get in touch with ${siteConfig.brandName}. Reach us via email, phone, WhatsApp, or visit our Nairobi office. We're here to help you find your next opportunity.`,
   path: "/contact",
 });
 

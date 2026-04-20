@@ -1,3 +1,5 @@
+import { siteConfig } from "./site-config";
+
 export const hubConfig = [
   // === JOB HUBS ===
   {
@@ -7,7 +9,7 @@ export const hubConfig = [
     icon: "Monitor",
     description:
       "Browse 200+ technology, software development, data science & IT jobs in Kenya. Updated daily.",
-    metaTitle: "Technology & IT Jobs in Kenya 2026 | JobReady",
+    metaTitle: "Technology & IT Jobs in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Software, Data, Cybersecurity & more",
     filters: { category: "TECHNOLOGY", jobType: null, location: null },
   },
@@ -18,7 +20,7 @@ export const hubConfig = [
     icon: "Calculator",
     description:
       "Find banking, accounting, audit, financial analysis & insurance jobs in Kenya.",
-    metaTitle: "Finance & Accounting Jobs Kenya 2026 | JobReady",
+    metaTitle: "Finance & Accounting Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Banking, Audit, Tax & Financial Services",
     filters: { category: "FINANCE_ACCOUNTING" },
   },
@@ -29,7 +31,7 @@ export const hubConfig = [
     icon: "Wrench",
     description:
       "Civil, mechanical, electrical, chemical & biomedical engineering jobs across Kenya.",
-    metaTitle: "Engineering Jobs in Kenya 2026 | JobReady",
+    metaTitle: "Engineering Jobs in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Civil, Mechanical, Electrical & more",
     filters: { category: "ENGINEERING" },
   },
@@ -40,7 +42,7 @@ export const hubConfig = [
     icon: "Heart",
     description:
       "Nursing, pharmacy, medical doctor, lab technology & public health jobs in Kenya.",
-    metaTitle: "Healthcare & Medical Jobs Kenya 2026 | JobReady",
+    metaTitle: "Healthcare & Medical Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Nursing, Pharmacy, Clinical & Public Health",
     filters: { category: "HEALTHCARE" },
   },
@@ -51,7 +53,7 @@ export const hubConfig = [
     icon: "GraduationCap",
     description:
       "Teaching, lecturing, curriculum development & educational administration jobs in Kenya.",
-    metaTitle: "Education & Teaching Jobs Kenya 2026 | JobReady",
+    metaTitle: "Education & Teaching Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Teaching, Lecturing & Training",
     filters: { category: "EDUCATION" },
   },
@@ -62,7 +64,7 @@ export const hubConfig = [
     icon: "TrendingUp",
     description:
       "Business development, digital marketing, sales, PR & brand management jobs in Kenya.",
-    metaTitle: "Sales & Marketing Jobs Kenya 2026 | JobReady",
+    metaTitle: "Sales & Marketing Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Business Dev, Digital Marketing & Sales",
     filters: { category: "MARKETING_COMMUNICATIONS" },
   },
@@ -73,7 +75,7 @@ export const hubConfig = [
     icon: "Landmark",
     description:
       "Latest government of Kenya jobs, county government & public service commission vacancies.",
-    metaTitle: "Government Jobs in Kenya 2026 — GoK Vacancies | JobReady",
+    metaTitle: "Government Jobs in Kenya 2026 — GoK Vacancies | ${siteConfig.shortName}",
     heroSubtitle: "National Government, County & Parastatals",
     filters: { category: "GOVERNMENT_PUBLIC_SECTOR" },
   },
@@ -84,7 +86,7 @@ export const hubConfig = [
     icon: "UserPlus",
     description:
       "Find paid & unpaid internships across Kenya. Build your career with top companies.",
-    metaTitle: "Internships in Kenya 2026 — Latest Opportunities | JobReady",
+    metaTitle: "Internships in Kenya 2026 — Latest Opportunities | ${siteConfig.shortName}",
     heroSubtitle: "Kickstart your career with hands-on experience",
     filters: { jobType: "INTERNSHIP" },
   },
@@ -95,7 +97,7 @@ export const hubConfig = [
     icon: "Clock",
     description:
       "Browse part-time, freelance & flexible jobs in Kenya. Perfect for students & side hustles.",
-    metaTitle: "Part-Time Jobs in Kenya 2026 | JobReady",
+    metaTitle: "Part-Time Jobs in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Flexible work that fits your schedule",
     filters: { jobType: "PART_TIME" },
   },
@@ -106,7 +108,7 @@ export const hubConfig = [
     icon: "Globe",
     description:
       "Work from anywhere. Browse remote jobs available to Kenyan professionals.",
-    metaTitle: "Remote Jobs for Kenyans 2026 — Work From Home | JobReady",
+    metaTitle: "Remote Jobs for Kenyans 2026 — Work From Home | ${siteConfig.shortName}",
     heroSubtitle: "Work from anywhere in Kenya",
     filters: { isRemote: true },
   },
@@ -117,7 +119,7 @@ export const hubConfig = [
     icon: "MapPin",
     description:
       "Latest jobs in Nairobi city and surrounding areas. Updated daily.",
-    metaTitle: "Jobs in Nairobi 2026 — Latest Vacancies | JobReady",
+    metaTitle: "Jobs in Nairobi 2026 — Latest Vacancies | ${siteConfig.shortName}",
     heroSubtitle: "Westlands, CBD, Kilimani & more",
     filters: { location: "Nairobi" },
   },
@@ -128,7 +130,7 @@ export const hubConfig = [
     icon: "MapPin",
     description:
       "Find jobs in Mombasa — hospitality, logistics, tourism & more.",
-    metaTitle: "Jobs in Mombasa 2026 — Latest Vacancies | JobReady",
+    metaTitle: "Jobs in Mombasa 2026 — Latest Vacancies | ${siteConfig.shortName}",
     heroSubtitle: "Coast region's top opportunities",
     filters: { location: "Mombasa" },
   },
@@ -139,7 +141,7 @@ export const hubConfig = [
     icon: "MapPin",
     description:
       "Browse jobs in Kisumu and the greater Lake Victoria region.",
-    metaTitle: "Jobs in Kisumu 2026 — Latest Vacancies | JobReady",
+    metaTitle: "Jobs in Kisumu 2026 — Latest Vacancies | ${siteConfig.shortName}",
     heroSubtitle: "Western Kenya's growing job market",
     filters: { location: "Kisumu" },
   },
@@ -150,7 +152,7 @@ export const hubConfig = [
     icon: "MapPin",
     description:
       "Latest jobs in Nakuru county — manufacturing, agriculture & services.",
-    metaTitle: "Jobs in Nakuru 2026 — Latest Vacancies | JobReady",
+    metaTitle: "Jobs in Nakuru 2026 — Latest Vacancies | ${siteConfig.shortName}",
     heroSubtitle: "Rift Valley opportunities",
     filters: { location: "Nakuru" },
   },
@@ -161,7 +163,7 @@ export const hubConfig = [
     icon: "Rocket",
     description:
       "No experience needed. Browse entry-level positions and graduate trainee programs in Kenya.",
-    metaTitle: "Entry Level Jobs in Kenya 2026 — No Experience | JobReady",
+    metaTitle: "Entry Level Jobs in Kenya 2026 — No Experience | ${siteConfig.shortName}",
     heroSubtitle: "Start your career journey today",
     filters: { experienceLevel: "ENTRY_LEVEL" },
   },
@@ -172,7 +174,7 @@ export const hubConfig = [
     icon: "Briefcase",
     description:
       "Senior management, C-suite, director & executive positions across Kenya.",
-    metaTitle: "Management & Executive Jobs Kenya 2026 | JobReady",
+    metaTitle: "Management & Executive Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "C-Suite, Directors & Senior Leadership",
     filters: { experienceLevel: "SENIOR" },
   },
@@ -183,7 +185,7 @@ export const hubConfig = [
     icon: "Globe",
     description:
       "UN, USAID, World Bank & NGO jobs in Kenya. Development, humanitarian & charity roles.",
-    metaTitle: "NGO Jobs in Kenya 2026 — UN, USAID & Development | JobReady",
+    metaTitle: "NGO Jobs in Kenya 2026 — UN, USAID & Development | ${siteConfig.shortName}",
     heroSubtitle: "UN Agencies, International NGOs & Development",
     filters: { category: "NONPROFIT" },
   },
@@ -194,7 +196,7 @@ export const hubConfig = [
     icon: "Users",
     description:
       "HR, recruitment, talent management & training jobs across Kenya.",
-    metaTitle: "Human Resources Jobs Kenya 2026 | JobReady",
+    metaTitle: "Human Resources Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Recruitment, Talent & People Management",
     filters: { category: "HUMAN_RESOURCES" },
   },
@@ -205,7 +207,7 @@ export const hubConfig = [
     icon: "Palette",
     description:
       "Graphic design, UX/UI, video editing, animation & content creation jobs in Kenya.",
-    metaTitle: "Creative & Design Jobs Kenya 2026 | JobReady",
+    metaTitle: "Creative & Design Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Graphic Design, UX/UI, Video & Content",
     filters: { category: "CREATIVE_DESIGN" },
   },
@@ -216,7 +218,7 @@ export const hubConfig = [
     icon: "Scale",
     description:
       "Lawyers, paralegals, compliance officers & legal advisors jobs in Kenya.",
-    metaTitle: "Legal & Compliance Jobs Kenya 2026 | JobReady",
+    metaTitle: "Legal & Compliance Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Corporate Law, Compliance & Advisory",
     filters: { category: "LEGAL" },
   },
@@ -227,7 +229,7 @@ export const hubConfig = [
     icon: "Truck",
     description:
       "Procurement, warehousing, transport & supply chain management jobs in Kenya.",
-    metaTitle: "Logistics & Supply Chain Jobs Kenya 2026 | JobReady",
+    metaTitle: "Logistics & Supply Chain Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Procurement, Warehousing & Transport",
     filters: { category: "SUPPLY_CHAIN" },
   },
@@ -238,7 +240,7 @@ export const hubConfig = [
     icon: "Headphones",
     description:
       "Call center, customer support, helpdesk & customer success jobs in Kenya.",
-    metaTitle: "Customer Service Jobs Kenya 2026 | JobReady",
+    metaTitle: "Customer Service Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Call Center, Support & Client Relations",
     filters: { category: "CUSTOMER_SERVICE" },
   },
@@ -249,7 +251,7 @@ export const hubConfig = [
     icon: "Lightbulb",
     description:
       "Management consulting, strategy, IT consulting & advisory jobs in Kenya.",
-    metaTitle: "Consulting Jobs Kenya 2026 | JobReady",
+    metaTitle: "Consulting Jobs Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Strategy, Management & Advisory",
     filters: { category: "CONSULTING" },
   },
@@ -262,7 +264,7 @@ export const hubConfig = [
     icon: "Award",
     description:
       "Latest scholarships for Kenyan students — undergraduate, masters & PhD funding opportunities.",
-    metaTitle: "Scholarships for Kenyans 2026 — Fully Funded | JobReady",
+    metaTitle: "Scholarships for Kenyans 2026 — Fully Funded | ${siteConfig.shortName}",
     heroSubtitle: "Undergraduate, Masters & PhD Funding",
     filters: { opportunityType: "SCHOLARSHIP" },
   },
@@ -273,7 +275,7 @@ export const hubConfig = [
     icon: "Banknote",
     description:
       "Business grants, research funding, innovation grants & community development grants in Kenya.",
-    metaTitle: "Grants & Funding Opportunities in Kenya 2026 | JobReady",
+    metaTitle: "Grants & Funding Opportunities in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Business, Research & Community Grants",
     filters: { opportunityType: "GRANT" },
   },
@@ -284,7 +286,7 @@ export const hubConfig = [
     icon: "Star",
     description:
       "Professional fellowships, leadership programs & international exchange opportunities.",
-    metaTitle: "Fellowships for Kenyans 2026 | JobReady",
+    metaTitle: "Fellowships for Kenyans 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Leadership, Professional & Exchange Programs",
     filters: { opportunityType: "FELLOWSHIP" },
   },
@@ -295,7 +297,7 @@ export const hubConfig = [
     icon: "BookOpen",
     description:
       "County government bursaries, university bursaries & education financial aid in Kenya.",
-    metaTitle: "Bursaries in Kenya 2026 — County & University | JobReady",
+    metaTitle: "Bursaries in Kenya 2026 — County & University | ${siteConfig.shortName}",
     heroSubtitle: "County, University & Education Bursaries",
     filters: { opportunityType: "BURSARY" },
   },
@@ -306,7 +308,7 @@ export const hubConfig = [
     icon: "Trophy",
     description:
       "Hackathons, business pitch competitions, essay contests & innovation challenges.",
-    metaTitle: "Competitions & Awards in Kenya 2026 | JobReady",
+    metaTitle: "Competitions & Awards in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Hackathons, Pitch Contests & Innovation",
     filters: { opportunityType: "COMPETITION" },
   },
@@ -317,7 +319,7 @@ export const hubConfig = [
     icon: "Calendar",
     description:
       "Tech conferences, career fairs, networking events & workshops in Kenya.",
-    metaTitle: "Conferences & Career Events in Kenya 2026 | JobReady",
+    metaTitle: "Conferences & Career Events in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Tech Summits, Career Fairs & Workshops",
     filters: { opportunityType: "CONFERENCE" },
   },
@@ -328,7 +330,7 @@ export const hubConfig = [
     icon: "HeartHandshake",
     description:
       "Volunteer programs, community service & social impact opportunities in Kenya.",
-    metaTitle: "Volunteer Opportunities in Kenya 2026 | JobReady",
+    metaTitle: "Volunteer Opportunities in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Community Service & Social Impact",
     filters: { opportunityType: "VOLUNTEER" },
   },
@@ -339,7 +341,7 @@ export const hubConfig = [
     icon: "HardHat",
     description:
       "Skilled trades apprenticeships — electrical, plumbing, welding, carpentry & more.",
-    metaTitle: "Apprenticeships in Kenya 2026 | JobReady",
+    metaTitle: "Apprenticeships in Kenya 2026 | ${siteConfig.shortName}",
     heroSubtitle: "Skilled Trades & Hands-On Training",
     filters: { opportunityType: "APPRENTICESHIP" },
   },

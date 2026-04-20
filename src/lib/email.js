@@ -76,7 +76,7 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, sender
   const transport = getTransporter(smtpUser, smtpPass);
 
   const mailOptions = {
-    from: from || `"JobReady Kenya" <${smtpUser || siteConfig.email.noreply}>`,
+    from: from || `"${siteConfig.companyName}" <${smtpUser || siteConfig.email.noreply}>`,
     to,
     subject,
     replyTo: replyTo || siteConfig.email.support,
@@ -138,7 +138,7 @@ function wrapEmail(title, subtitle, bodyHtml) {
       </div>
       <div class="body">${bodyHtml}</div>
       <div class="footer">
-        <p><strong>JobReady Kenya</strong> — Kenya's #1 Job Board</p>
+        <p><strong>${siteConfig.companyName}</strong> — Kenya's #1 Job Board</p>
         <p>
           <a href="${BASE_URL}">${BASE_URL}</a> ·
           <a href="${BASE_URL}/privacy">Privacy</a> ·
@@ -146,7 +146,7 @@ function wrapEmail(title, subtitle, bodyHtml) {
           <a href="${BASE_URL}/contact">Contact</a>
         </p>
         <p style="margin-top:8px;color:#9ca3af;">
-          You're receiving this because you have an account on JobReady.co.ke.
+          You're receiving this because you have an account on ${siteConfig.brandName}.
           If you did not initiate this action, please ignore this email.
         </p>
       </div>
@@ -163,7 +163,7 @@ export function passwordResetTemplate(name, resetUrl) {
     "Use the link below to set a new password",
     `
       <p>Hello${name ? ` ${name}` : ""},</p>
-      <p>We received a request to reset the password for your JobReady account. Click the button below to choose a new password:</p>
+      <p>We received a request to reset the password for your ${siteConfig.shortName} account. Click the button below to choose a new password:</p>
       <p style="text-align:center;">
         <a href="${resetUrl}" class="btn">Reset Password</a>
       </p>
@@ -179,7 +179,7 @@ export function passwordResetTemplate(name, resetUrl) {
       </p>
     `
   );
-  return { html, text: `Reset your JobReady password: ${resetUrl}` };
+  return { html, text: `Reset your ${siteConfig.shortName} password: ${resetUrl}` };
 }
 
 /**
@@ -220,10 +220,10 @@ export function newsletterConfirmationTemplate(email, type) {
 
   const html = wrapEmail(
     "You're Subscribed!",
-    `${label} — JobReady Kenya`,
+    `${label} — ${siteConfig.companyName}`,
     `
-      <p>Welcome to JobReady!</p>
-      <p>You've been successfully subscribed to <strong>${label}</strong> on JobReady.co.ke.</p>
+      <p>Welcome to ${siteConfig.shortName}!</p>
+      <p>You've been successfully subscribed to <strong>${label}</strong> on ${siteConfig.brandName}.</p>
       <p>Here's what to expect:</p>
       <ul>
         <li>Curated ${type === "job_alerts" ? "job openings" : type === "opportunity_alerts" ? "opportunities" : "career insights"} delivered to your inbox</li>
@@ -239,7 +239,7 @@ export function newsletterConfirmationTemplate(email, type) {
       </p>
     `
   );
-  return { html, text: `You're subscribed to ${label} on JobReady.co.ke!` };
+  return { html, text: `You're subscribed to ${label} on ${siteConfig.brandName}!` };
 }
 
 /**
@@ -251,7 +251,7 @@ export function applicationReceiptTemplate({ userName, jobTitle, companyName, sl
     `You applied to ${jobTitle}`,
     `
       <p>Congratulations${userName ? ` ${userName}` : ""}!</p>
-      <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been successfully submitted through JobReady.co.ke.</p>
+      <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been successfully submitted through ${siteConfig.brandName}.</p>
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
         <p style="margin:0;color:#166534;font-weight:600;">
           Your application is now in the employer's review queue.
@@ -271,7 +271,7 @@ export function applicationReceiptTemplate({ userName, jobTitle, companyName, sl
       </p>
     `
   );
-  return { html, text: `Your application for ${jobTitle} at ${companyName} has been submitted via JobReady.co.ke.` };
+  return { html, text: `Your application for ${jobTitle} at ${companyName} has been submitted via ${siteConfig.brandName}.` };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -284,10 +284,10 @@ export function applicationReceiptTemplate({ userName, jobTitle, companyName, sl
  */
 export function welcomeCredentialSignup({ name, email, hasPhone }) {
   const html = wrapEmail(
-    "Welcome to JobReady! 👋",
+    `Welcome to ${siteConfig.shortName}! 👋`,
     "Your account has been created",
     `
-      <p>Welcome${name ? ` ${name}` : ""} to JobReady.co.ke!</p>
+      <p>Welcome${name ? ` ${name}` : ""} to ${siteConfig.brandName}!</p>
       <p>Your account has been successfully created. You're now part of Kenya's fastest-growing job board and career platform.</p>
 
       <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
@@ -326,7 +326,7 @@ export function welcomeCredentialSignup({ name, email, hasPhone }) {
       </p>
     `
   );
-  return { html, text: `Welcome to JobReady.co.ke! Verify your email and phone from your account settings. ${BASE_URL}/dashboard/settings` };
+  return { html, text: `Welcome to ${siteConfig.brandName}! Verify your email and phone from your account settings. ${BASE_URL}/dashboard/settings` };
 }
 
 /**
@@ -334,10 +334,10 @@ export function welcomeCredentialSignup({ name, email, hasPhone }) {
  */
 export function welcomeGoogleSignup({ name, email }) {
   const html = wrapEmail(
-    "Welcome to JobReady! 🎉",
+    `Welcome to ${siteConfig.shortName}! 🎉`,
     "Signed in with Google",
     `
-      <p>Welcome${name ? ` ${name}` : ""} to JobReady.co.ke!</p>
+      <p>Welcome${name ? ` ${name}` : ""} to ${siteConfig.brandName}!</p>
       <p>Your account has been created via Google sign-in. Your email is already verified — great start!</p>
 
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
@@ -380,7 +380,7 @@ export function welcomeGoogleSignup({ name, email }) {
       </ul>
     `
   );
-  return { html, text: `Welcome to JobReady.co.ke! Set a password and add your phone to complete your account. ${BASE_URL}/onboarding` };
+  return { html, text: `Welcome to ${siteConfig.brandName}! Set a password and add your phone to complete your account. ${BASE_URL}/onboarding` };
 }
 
 /**
@@ -394,10 +394,10 @@ export function accountCompleteEmail({ name, email, phone, hasPassword }) {
 
   const html = wrapEmail(
     "Your Account is Ready! ✅",
-    "All set on JobReady",
+    `All set on ${siteConfig.shortName}`,
     `
       <p>${name ? `Hi ${name}` : "Hello"}!</p>
-      <p>Your email has been verified and your account is now fully set up on JobReady.co.ke. You can sign in with your email anytime.</p>
+      <p>Your email has been verified and your account is now fully set up on ${siteConfig.brandName}. You can sign in with your email anytime.</p>
 
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
         <p style="margin:0;font-size:14px;color:#166534;font-weight:600;">
@@ -435,7 +435,7 @@ export function accountCompleteEmail({ name, email, phone, hasPassword }) {
       </p>
     `
   );
-  return { html, text: `Your JobReady account is ready! ${BASE_URL}/dashboard` };
+  return { html, text: `Your ${siteConfig.shortName} account is ready! ${BASE_URL}/dashboard` };
 }
 
 /**
@@ -474,7 +474,7 @@ export function emailVerifiedConfirmation({ name, email, phoneVerified }) {
       </p>
     `
   );
-  return { html, text: `Your email ${email} has been verified on JobReady.co.ke!` };
+  return { html, text: `Your email ${email} has been verified on ${siteConfig.brandName}!` };
 }
 
 /**
@@ -514,7 +514,7 @@ export function phoneVerifiedConfirmation({ name, phone, emailVerified }) {
       </p>
     `
   );
-  return { html, text: `Your phone ${phone} has been verified on JobReady.co.ke!` };
+  return { html, text: `Your phone ${phone} has been verified on ${siteConfig.brandName}!` };
 }
 
 /**
@@ -526,7 +526,7 @@ export function accountsMergedEmail({ name, email, mergedInto }) {
     "Your data has been combined",
     `
       <p>${name ? `Hi ${name}` : "Hello"}!</p>
-      <p>Great news! We've detected that you have multiple JobReady accounts and merged them into one. All your data has been safely combined.</p>
+      <p>Great news! We've detected that you have multiple ${siteConfig.shortName} accounts and merged them into one. All your data has been safely combined.</p>
 
       <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;">
         <p style="margin:0;font-size:14px;color:#1e40af;">
@@ -558,7 +558,7 @@ export function accountsMergedEmail({ name, email, mergedInto }) {
       </p>
     `
   );
-  return { html, text: `Your JobReady accounts have been merged. All data is now in one place.` };
+  return { html, text: `Your ${siteConfig.shortName} accounts have been merged. All data is now in one place.` };
 }
 
 /**
@@ -636,10 +636,10 @@ export function paymentConfirmationTemplate({ name, orderNumber, amount, receipt
 export function emailVerificationCodeTemplate(name, code) {
   const html = wrapEmail(
     "Verify Your Email Address",
-    "Confirm your JobReady account",
+    `Confirm your ${siteConfig.shortName} account`,
     `
       <p>Hello${name ? ` ${name}` : ""},</p>
-      <p>Please verify your email address to confirm your JobReady account and receive important notifications. Enter the code below:</p>
+      <p>Please verify your email address to confirm your ${siteConfig.shortName} account and receive important notifications. Enter the code below:</p>
       <div style="text-align:center;margin:24px 0;">
         <span style="display:inline-block;background:#f3f4f6;border-radius:8px;padding:12px 24px;font-size:28px;font-weight:700;letter-spacing:6px;color:#111827;">
           ${code}
@@ -650,7 +650,7 @@ export function emailVerificationCodeTemplate(name, code) {
       </p>
     `
   );
-  return { html, text: `Verify your JobReady email address. Code: ${code}` };
+  return { html, text: `Verify your ${siteConfig.shortName} email address. Code: ${code}` };
 }
 
 /**
@@ -662,7 +662,7 @@ export function emailLinkVerificationTemplate(name, code) {
     "Account linking request",
     `
       <p>Hello${name ? ` ${name}` : ""},</p>
-      <p>We received a request to link your email address to an existing JobReady account. To confirm this is your email, enter the code below:</p>
+      <p>We received a request to link your email address to an existing ${siteConfig.shortName} account. To confirm this is your email, enter the code below:</p>
       <div style="text-align:center;margin:24px 0;">
         <span style="display:inline-block;background:#f3f4f6;border-radius:8px;padding:12px 24px;font-size:28px;font-weight:700;letter-spacing:6px;color:#111827;">
           ${code}
@@ -673,7 +673,7 @@ export function emailLinkVerificationTemplate(name, code) {
       </p>
     `
   );
-  return { html, text: `Verify your email to link JobReady accounts. Code: ${code}` };
+  return { html, text: `Verify your email to link ${siteConfig.shortName} accounts. Code: ${code}` };
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────

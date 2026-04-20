@@ -6,7 +6,7 @@ export const testimonials = [
     initials: "SO",
     role: "Marketing Professional",
     rating: 5,
-    text: "I had been applying for jobs for 6 months without success. After JobReady rewrote my CV, I got 3 interview calls in the first week! The investment was worth every shilling.",
+    text: `I had been applying for jobs for 6 months without success. After ${siteConfig.shortName} rewrote my CV, I got 3 interview calls in the first week! The investment was worth every shilling.`,
     color: "bg-blue-500",
   },
   {
@@ -22,7 +22,7 @@ export const testimonials = [
     initials: "MW",
     role: "Recent Graduate",
     rating: 5,
-    text: "As a fresh graduate, I didn't know how to present myself. The JobReady team created an amazing CV that showcased my potential. I got my first job within 2 weeks!",
+    text: `As a fresh graduate, I didn't know how to present myself. The ${siteConfig.shortName} team created an amazing CV that showcased my potential. I got my first job within 2 weeks!`,
     color: "bg-violet-500",
   },
 ];
@@ -54,7 +54,7 @@ export const faqs = [
       "Yes! Our team has experience across all major industries in Kenya including banking, ICT, healthcare, education, engineering, government, and NGOs. Just mention your target industry when ordering.",
   },
   {
-    question: "What makes JobReady CVs different?",
+    question: `What makes ${siteConfig.shortName} CVs different?`,
     answer:
       "Our CVs are specifically designed for the Kenyan job market. We optimize for both ATS systems used by major employers and human recruiters. We understand what Kenyan hiring managers look for and tailor each CV accordingly.",
   },
@@ -89,7 +89,7 @@ export const howItWorks = [
 
 export function getWhatsAppLink(service, tier) {
   const message = encodeURIComponent(
-    `Hi JobReady, I'd like to order a ${tier || ""} ${service} service. Please share the details.`
+    `Hi ${siteConfig.shortName}, I'd like to order a ${tier || ""} ${service} service. Please share the details.`
   );
   return `https://wa.me/${siteConfig.whatsapp.number}?text=${message}`;
 }

@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Refund Policy — JobReady Kenya",
+  title: `Refund Policy — ${siteConfig.companyName}`,
   description:
-    "Read JobReady.co.ke's Refund Policy. Understand our refund terms for CV writing services, premium features, and M-Pesa payments.",
+    `Read ${siteConfig.brandName}'s Refund Policy. Understand our refund terms for CV writing services, premium features, and M-Pesa payments.`,
   path: "/refunds",
 });
 
@@ -28,7 +28,7 @@ export default function RefundsPage() {
         We are committed to providing high-quality services and customer
         satisfaction. However, because our services involve custom creative work
         and dedicated professional time, refunds are subject to the conditions
-        outlined below. By purchasing any service from JobReady, you acknowledge
+        outlined below. By purchasing any service from {siteConfig.shortName}, you acknowledge
         and agree to the terms of this policy.
       </p>
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { sendEmail, newsletterConfirmationTemplate } from "@/lib/email";
@@ -189,7 +190,7 @@ export async function POST(request) {
     // --- Send confirmation email (non-blocking) ---
     sendEmail({
       to: trimmedEmail,
-      subject: "You're subscribed! — JobReady Kenya",
+      subject: `You're subscribed! — ${siteConfig.companyName}`,
       ...newsletterConfirmationTemplate(trimmedEmail, subscriptionType),
     }).catch((err) =>
       console.error("[Newsletter] Confirmation email failed:", err.message)

@@ -1,5 +1,6 @@
 "use client";
 
+import { siteConfig } from "@/config/site-config";
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -885,7 +886,7 @@ function LoginForm() {
           <p className="text-sm text-gray-500">
             {profileLinkedOrders > 0
               ? `We linked ${profileLinkedOrders} order(s) to your account. Complete your profile below.`
-              : "Complete your profile to get the most out of JobReady."}
+              : "Complete your profile to get the most out of " + siteConfig.shortName + "."}
           </p>
         </div>
 
@@ -1001,7 +1002,7 @@ function LoginForm() {
       {/* Heading */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-        <p className="text-sm text-gray-500">Sign in to your JobReady account</p>
+        <p className="text-sm text-gray-500">Sign in to your {siteConfig.shortName} account</p>
       </div>
 
       {/* Tabs */}

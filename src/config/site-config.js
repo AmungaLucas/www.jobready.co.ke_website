@@ -27,11 +27,11 @@ function waLink(message) {
 
 // ─── Computed WhatsApp config ───────────────────────────────────────
 const whatsappMessages = {
-  general: "Hi JobReady, I'd like to enquire about your services. Please assist me.",
-  cvService: "Hi JobReady, I'd like to order a CV writing service. Please share the details.",
-  payment: "Hi JobReady, I need help with my payment.",
-  freeCvReview: "Hi JobReady, I saw the free CV review offer on your website. I'd like to get mine reviewed.",
-  employer: "Hi JobReady, I'd like to post a job / advertise on your platform. Please share the rates.",
+  general: `Hi ${BRAND_SHORT}, I'd like to enquire about your services. Please assist me.`,
+  cvService: `Hi ${BRAND_SHORT}, I'd like to order a CV writing service. Please share the details.`,
+  payment: `Hi ${BRAND_SHORT}, I need help with my payment.`,
+  freeCvReview: `Hi ${BRAND_SHORT}, I saw the free CV review offer on your website. I'd like to get mine reviewed.`,
+  employer: `Hi ${BRAND_SHORT}, I'd like to post a job / advertise on your platform. Please share the rates.`,
 };
 
 // ─── Email config ───────────────────────────────────────────────────

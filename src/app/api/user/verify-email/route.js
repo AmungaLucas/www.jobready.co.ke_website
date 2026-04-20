@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -217,7 +218,7 @@ export async function POST(request) {
         const mergedPhone = inheritPhone || user.phone;
         sendEmail({
           to: targetEmail,
-          subject: "Accounts Merged — Your JobReady data is combined",
+          subject: `Accounts Merged — Your ${siteConfig.shortName} data is combined`,
           ...accountsMergedEmail({ name: mergedName, email: targetEmail, mergedInto: { phone: mergedPhone } }),
         }).catch((err) => console.error("[Verify Email] Merge email failed:", err.message));
       } else {

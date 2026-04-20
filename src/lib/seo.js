@@ -26,7 +26,7 @@ export function generateMeta({
   noindex = false,
 } = {}) {
   const url = `${SITE_URL}${path}`;
-  const fullTitle = title ? `${title} | JobReady Kenya` : siteConfig.name;
+  const fullTitle = title ? `${title} | ${siteConfig.companyName}` : siteConfig.name;
   const image = ogImage || siteConfig.seo.ogImage;
 
   const meta = {
@@ -111,7 +111,7 @@ export function generateJobJsonLd(job) {
     employmentType: mapEmploymentType(job.employmentType),
     hiringOrganization: {
       "@type": "Organization",
-      name: company.name || "JobReady Kenya",
+      name: company.name || siteConfig.name,
       sameAs: socialUrls,
       logo,
     },
@@ -222,7 +222,7 @@ export function generateArticleJsonLd(article) {
       : undefined,
     author: {
       "@type": "Person",
-      name: author.name || "JobReady Kenya",
+      name: author.name || siteConfig.name,
       url: author.linkedinUrl || undefined,
       jobTitle: author.title || undefined,
     },
@@ -453,7 +453,7 @@ export function generateItemListJsonLd({ name, url, totalItems, items }) {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name,
-    description: `${name} on JobReady Kenya`,
+    description: `${name} on ${siteConfig.companyName}`,
     url: `${SITE_URL}${url}`,
     numberOfItems: totalItems,
     itemListElement: items.slice(0, 10).map((item) => ({
@@ -474,10 +474,10 @@ export function generateContactPageJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "ContactPage",
-    name: "Contact JobReady Kenya",
+    name: `Contact ${siteConfig.companyName}`,
     url: `${SITE_URL}/contact`,
     description:
-      "Get in touch with JobReady.co.ke via email, phone, WhatsApp, or visit our Nairobi office.",
+      `Get in touch with ${siteConfig.brandName} via email, phone, WhatsApp, or visit our Nairobi office.`,
     mainEntity: {
       "@type": "Organization",
       name: siteConfig.name,

@@ -1,7 +1,9 @@
+import { siteConfig } from "@/config/site-config";
+
 export default function manifest() {
   return {
-    name: "JobReady Kenya — Jobs, Internships & Scholarships",
-    short_name: "JobReady",
+    name: `${siteConfig.name} — Jobs, Internships & Scholarships`,
+    short_name: siteConfig.shortName,
     description:
       "Kenya's #1 job board. Find jobs, internships, scholarships & career services. Updated daily.",
     start_url: "/",

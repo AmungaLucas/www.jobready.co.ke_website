@@ -1,5 +1,6 @@
 "use client";
 
+import { siteConfig } from "@/config/site-config";
 import { useState, useRef, useMemo } from "react";
 import {
   Card,
@@ -62,7 +63,7 @@ const INITIAL_COMPANY = {
   instagram: "https://instagram.com/safaricom",
   tiktok: "https://tiktok.com/@safaricom",
   logo: "",
-  metaTitle: "Safaricom PLC - Careers | JobReady.co.ke",
+  metaTitle: `Safaricom PLC - Careers | ${siteConfig.brandName}`,
   metaDescription:
     "Join Safaricom PLC, East Africa's leading telecommunications company. Explore job opportunities and build your career with us.",
 };
@@ -551,7 +552,7 @@ export default function CompanyProfileForm() {
             <Label htmlFor="metaTitle">Meta Title</Label>
             <Input
               id="metaTitle"
-              placeholder="Company Name - Careers | JobReady.co.ke"
+              placeholder={`Company Name - Careers | ${siteConfig.brandName}`}
               value={form.metaTitle}
               onChange={(e) => updateField("metaTitle", e.target.value)}
             />

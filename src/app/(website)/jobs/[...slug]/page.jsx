@@ -137,7 +137,7 @@ export async function generateMetadata({ params, searchParams }) {
       },
     });
 
-    if (!job) return { title: "Job Not Found | JobReady Kenya" };
+    if (!job) return { title: `Job Not Found | ${siteConfig.companyName}` };
 
     const location = formatLocation(job);
     const salary = job.salaryMin
@@ -145,8 +145,8 @@ export async function generateMetadata({ params, searchParams }) {
       : "Competitive";
 
     return generateMeta({
-      title: `${job.title} at ${job.company?.name || "JobReady Kenya"}`,
-      description: `Apply for ${job.title} at ${job.company?.name || "a top company"}${location ? ` in ${location}` : ""}. ${formatJobType(job.employmentType)}. ${salary}. Apply now on JobReady Kenya.`,
+      title: `${job.title} at ${job.company?.name || siteConfig.companyName}`,
+      description: `Apply for ${job.title} at ${job.company?.name || "a top company"}${location ? ` in ${location}` : ""}. ${formatJobType(job.employmentType)}. ${salary}. Apply now on ${siteConfig.companyName}.`,
       path: `/jobs/${slug}`,
       ogType: "article",
       publishedTime: job.publishedAt?.toISOString(),
@@ -154,7 +154,7 @@ export async function generateMetadata({ params, searchParams }) {
       noindex: job.noIndex === true,
     });
   } catch {
-    return { title: "Job Not Found | JobReady Kenya" };
+    return { title: `Job Not Found | ${siteConfig.companyName}` };
   }
 }
 

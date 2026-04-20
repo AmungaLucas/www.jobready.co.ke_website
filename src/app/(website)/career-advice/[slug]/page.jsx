@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatDate, formatReadingTime } from "@/lib/format";
 import { generateMeta, generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { siteConfig } from "@/config/site-config";
 import { sanitizeHtml } from "@/lib/sanitize";
 
 // ─── Client Components ──────────────────────────────────
@@ -110,12 +111,12 @@ export async function generateMetadata({ params }) {
     });
 
     if (!article || !article.isPublished) {
-      return { title: "Article Not Found | JobReady Kenya" };
+      return { title: `Article Not Found | ${siteConfig.companyName}` };
     }
 
     return generateMeta({
       title: article.metaTitle || article.title,
-      description: article.metaDescription || article.excerpt || `Read "${article.title}" on JobReady Kenya.`,
+      description: article.metaDescription || article.excerpt || `Read "${article.title}" on ${siteConfig.companyName}.`,
       path: `/career-advice/${slug}`,
       ogType: "article",
       ogImage: article.ogImage || article.featuredImage || undefined,
@@ -123,7 +124,7 @@ export async function generateMetadata({ params }) {
       modifiedTime: article.updatedAt?.toISOString(),
     });
   } catch {
-    return { title: "Article Not Found | JobReady Kenya" };
+    return { title: `Article Not Found | ${siteConfig.companyName}` };
   }
 }
 

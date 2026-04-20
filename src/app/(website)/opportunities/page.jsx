@@ -138,12 +138,12 @@ export async function generateMetadata({ searchParams }) {
   const where = buildWhereClause(sp);
 
   let title = "Opportunities";
-  let description = "Browse scholarships, grants, internships, fellowships and more on JobReady Kenya.";
+  let description = `Browse scholarships, grants, internships, fellowships and more on ${siteConfig.companyName}.`;
 
   if (type && OPP_TYPE_DISPLAY[type]) {
     const typeDisplay = OPP_TYPE_DISPLAY[type];
     title = `${typeDisplay} Opportunities`;
-    description = `Find the latest ${typeDisplay.toLowerCase()} opportunities in Kenya. Apply now on JobReady Kenya.`;
+    description = `Find the latest ${typeDisplay.toLowerCase()} opportunities in Kenya. Apply now on ${siteConfig.companyName}.`;
   }
 
   if (q) {
@@ -236,7 +236,7 @@ export default async function OpportunitiesPage({ searchParams }) {
 
   const collectionJsonLd = generateCollectionPageJsonLd({
     name: collectionName,
-    description: "Browse scholarships, grants, internships, fellowships and more on JobReady Kenya.",
+    description: `Browse scholarships, grants, internships, fellowships and more on ${siteConfig.companyName}.`,
     url: "/opportunities",
     totalItems: total,
   });

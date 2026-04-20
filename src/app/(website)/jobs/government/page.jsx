@@ -169,8 +169,8 @@ export async function generateMetadata({ searchParams }) {
   const q = params.q || "";
   const title = q ? `Government Jobs in Kenya — "${q}"` : PAGE_TITLE;
   const description = q
-    ? `Search government job results for "${q}" in Kenya. Apply for the latest government positions on JobReady Kenya.`
-    : "Browse the latest government jobs in Kenya. County, ministry, and public service vacancies updated daily. Apply now on JobReady Kenya.";
+    ? `Search government job results for "${q}" in Kenya. Apply for the latest government positions on ${siteConfig.companyName}.`
+    : "Browse the latest government jobs in Kenya. County, ministry, and public service vacancies updated daily. Apply now on ${siteConfig.companyName}.`;
 
   const pathParams = new URLSearchParams();
   if (q) pathParams.set("q", q);

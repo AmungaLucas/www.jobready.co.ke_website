@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendEmail, emailLinkVerificationTemplate } from "@/lib/email";
@@ -104,7 +105,7 @@ export async function POST(request) {
 
     const result = await sendEmail({
       to: normalizedEmail,
-      subject: "Verify your email to link accounts — JobReady",
+      subject: `Verify your email to link accounts — ${siteConfig.shortName}`,
       html,
       text,
     });

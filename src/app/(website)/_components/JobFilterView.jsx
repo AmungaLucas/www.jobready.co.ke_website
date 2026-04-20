@@ -420,8 +420,8 @@ export function createJobFilterMetadata(config) {
       ? `${config.breadcrumbName} Jobs in Kenya — "${q}"`
       : config.pageTitle;
     const description = q
-      ? `Search ${config.breadcrumbName.toLowerCase()} job results for "${q}" in Kenya. Apply for the latest positions on JobReady Kenya.`
-      : `Browse the latest ${config.breadcrumbName.toLowerCase()} jobs in Kenya. Updated daily. Apply now on JobReady Kenya.`;
+      ? `Search ${config.breadcrumbName.toLowerCase()} job results for "${q}" in Kenya. Apply for the latest positions on ${siteConfig.companyName}.`
+      : `Browse the latest ${config.breadcrumbName.toLowerCase()} jobs in Kenya. Updated daily. Apply now on ${siteConfig.companyName}.`;
 
     const pathParams = new URLSearchParams();
     if (q) pathParams.set("q", q);

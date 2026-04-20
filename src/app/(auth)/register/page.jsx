@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/useSession";
+import { siteConfig } from "@/config/site-config";
 import {
   FiUser,
   FiMail,
@@ -188,7 +189,7 @@ function RegisterForm() {
           Create your account
         </h1>
         <p className="text-sm text-gray-500">
-          Join thousands of Kenyan job seekers on JobReady
+          Join thousands of Kenyan job seekers on {siteConfig.shortName}
         </p>
       </div>
 

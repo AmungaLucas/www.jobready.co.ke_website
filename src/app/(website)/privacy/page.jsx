@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Privacy Policy — JobReady Kenya",
+  title: `Privacy Policy — ${siteConfig.companyName}`,
   description:
-    "Read JobReady.co.ke's Privacy Policy. Learn how we collect, use, and protect your personal data in compliance with the Kenya Data Protection Act 2019.",
+    `Read ${siteConfig.brandName}'s Privacy Policy. Learn how we collect, use, and protect your personal data in compliance with the Kenya Data Protection Act 2019.`,
   path: "/privacy",
 });
 

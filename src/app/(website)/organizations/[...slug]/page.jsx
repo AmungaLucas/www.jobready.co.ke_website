@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getInitials, buildLocation } from "@/lib/normalize";
 import { generateMeta, generateOrganizationJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { siteConfig } from "@/config/site-config";
 import { parseOrganizationFilters, generateOrgComboTitle, generateOrgComboDescription } from "@/lib/filter-parser";
 import { sanitizeHtml } from "@/lib/sanitize";
 import OptimizedImage, { AvatarImage } from "@/components/OptimizedImage";
@@ -91,13 +92,13 @@ export async function generateMetadata({ params, searchParams }) {
   const slug = segments[0];
   try {
     const company = await db.company.findUnique({ where: { slug }, select: { name: true, industry: true, county: true } });
-    if (!company) return { title: "Company Not Found | JobReady Kenya" };
+    if (!company) return { title: `Company Not Found | ${siteConfig.companyName}` };
     return generateMeta({
       title: `${company.name} — Jobs & Company Profile`,
-      description: `View open positions at ${company.name}${company.industry ? ` in ${company.industry}` : ""} on JobReady Kenya.`,
+      description: `View open positions at ${company.name}${company.industry ? ` in ${company.industry}` : ""} on ${siteConfig.companyName}.`,
       path: `/organizations/${slug}`,
     });
-  } catch { return { title: "Company Not Found | JobReady Kenya" }; }
+  } catch { return { title: `Company Not Found | ${siteConfig.companyName}` }; }
 }
 
 // ════════════════════════════════════════════════════════════

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
@@ -85,7 +86,7 @@ export async function POST(request) {
 
     await sendEmail({
       to: trimmedEmail,
-      subject: "Reset Your JobReady Password",
+      subject: `Reset Your ${siteConfig.shortName} Password`,
       ...passwordResetTemplate(user.name, resetUrl),
     });
 

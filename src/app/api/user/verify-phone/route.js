@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import { db } from "@/lib/db";
 import { normalizePhone, findUserByPhone, isPlaceholderEmail } from "@/lib/auth-identity";
 import { getServerSession } from "next-auth";
@@ -216,7 +217,7 @@ export async function POST(request) {
       if (mergedEmail && !isPlaceholderEmail(mergedEmail)) {
         sendEmail({
           to: mergedEmail,
-          subject: "Accounts Merged — Your JobReady data is combined",
+          subject: `Accounts Merged — Your ${siteConfig.shortName} data is combined`,
           ...accountsMergedEmail({ name: mergedName, email: mergedEmail, mergedInto: { phone: normalizedPhone } }),
         }).catch((err) => console.error("[Verify Phone] Merge email failed:", err.message));
       }

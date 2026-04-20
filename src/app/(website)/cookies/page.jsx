@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Cookie Policy — JobReady Kenya",
+  title: `Cookie Policy — ${siteConfig.companyName}`,
   description:
-    "Learn how JobReady.co.ke uses cookies and similar technologies. Understand the types of cookies we use, their purposes, and how to manage your cookie preferences.",
+    `Learn how ${siteConfig.brandName} uses cookies and similar technologies. Understand the types of cookies we use, their purposes, and how to manage your cookie preferences.`,
   path: "/cookies",
 });
 

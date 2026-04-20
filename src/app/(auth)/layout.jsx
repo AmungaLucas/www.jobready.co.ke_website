@@ -1,10 +1,12 @@
+import { siteConfig } from "@/config/site-config";
+
 export const metadata = {
   title: {
-    template: "%s | JobReady Kenya",
-    default: "Sign In | JobReady Kenya",
+    template: `%s | ${siteConfig.companyName}`,
+    default: `Sign In | ${siteConfig.companyName}`,
   },
   description:
-    "Sign in to your JobReady Kenya account to access jobs, save listings, and manage your applications.",
+    `Sign in to your ${siteConfig.companyName} account to access jobs, save listings, and manage your applications.`,
   robots: {
     index: false,
     follow: false,

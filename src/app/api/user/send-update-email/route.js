@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendEmail, emailVerificationCodeTemplate } from "@/lib/email";
@@ -126,7 +127,7 @@ export async function POST(request) {
 
     const result = await sendEmail({
       to: normalized,
-      subject: "Confirm your email address — JobReady",
+      subject: `Confirm your email address — ${siteConfig.shortName}`,
       html,
       text,
     });

@@ -91,7 +91,7 @@ export async function generateMetadata({ searchParams }) {
         ? "Career Advice & Job Search Tips"
         : `Career Advice — Page ${currentPage}`,
       description:
-        "Expert career advice, CV writing tips, interview preparation guides, and job search strategies for Kenyan job seekers. Stay ahead with JobReady Kenya.",
+        `Expert career advice, CV writing tips, interview preparation guides, and job search strategies for Kenyan job seekers. Stay ahead with ${siteConfig.companyName}.`,
       path: currentPage === 1 ? "/career-advice" : `/career-advice?page=${currentPage}`,
       noindex: currentPage > 10, // Don't index very deep pagination pages
     }),

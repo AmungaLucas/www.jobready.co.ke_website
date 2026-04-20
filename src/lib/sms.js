@@ -1,6 +1,7 @@
+import { siteConfig } from "@/config/site-config";
+
 /**
- * SMS service utility for JobReady.co.ke
- *
+ * SMS service utility
  * Uses Talk-Sasa BulkSMS API v3 (OAuth 2.0)
  * Docs: https://bulksms.talksasa.com/api/v3/
  *
@@ -122,6 +123,6 @@ export async function sendSMS({ to, message, senderId }) {
  * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
 export async function sendOTP(phone, otp) {
-  const message = `Your JobReady.co.ke verification code is ${otp}. Valid for 10 minutes. Do not share this code.`;
+  const message = `Your ${siteConfig.brandName} verification code is ${otp}. Valid for 10 minutes. Do not share this code.`;
   return sendSMS({ to: phone, message });
 }

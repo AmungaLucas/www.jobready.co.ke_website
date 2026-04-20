@@ -194,10 +194,10 @@ export async function generateMetadata({ searchParams }) {
     : `Jobs in Kenya${filterSuffix} — Page ${currentPage}`;
 
   const description = q
-    ? `Search results for "${q}" — ${filters.join(", ")} jobs. Browse and apply for the latest opportunities on JobReady Kenya.`
+    ? `Search results for "${q}" — ${filters.join(", ")} jobs. Browse and apply for the latest opportunities on ${siteConfig.companyName}.`
     : filters.length > 0
-      ? `Browse ${filters.join(", ")} jobs in Kenya. Find and apply for the latest opportunities on JobReady Kenya.`
-      : "Browse the latest jobs in Kenya. Full-time, part-time, internship, contract, and remote positions updated daily. Apply now on JobReady Kenya.";
+      ? `Browse ${filters.join(", ")} jobs in Kenya. Find and apply for the latest opportunities on ${siteConfig.companyName}.`
+      : `Browse the latest jobs in Kenya. Full-time, part-time, internship, contract, and remote positions updated daily. Apply now on ${siteConfig.companyName}.`;
 
   const pathParams = new URLSearchParams();
   if (q) pathParams.set("q", q);
@@ -278,7 +278,7 @@ export default async function JobsPage({ searchParams }) {
   const listUrl = `/jobs${hasActiveFilters(params) ? `?${new URLSearchParams(params).toString()}` : ""}`;
   const collectionPageJsonLd = generateCollectionPageJsonLd({
     name: `Jobs in Kenya${filterLabels.length > 0 ? ` — ${filterLabels.join(", ")}` : ""}`,
-    description: `${total} jobs available on JobReady Kenya`,
+    description: `${total} jobs available on ${siteConfig.companyName}`,
     url: listUrl,
     totalItems: total,
   });

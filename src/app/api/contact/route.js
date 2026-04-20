@@ -70,7 +70,7 @@ export async function POST(request) {
     // --- Send notification email to support (non-blocking) ---
     const emailResult = await sendEmail({
       to: siteConfig.email.support,
-      subject: `[JobReady Contact] ${trimmedSubject}`,
+      subject: `[${siteConfig.shortName} Contact] ${trimmedSubject}`,
       replyTo: trimmedEmail,
       ...contactFormTemplate({
         name: trimmedName,

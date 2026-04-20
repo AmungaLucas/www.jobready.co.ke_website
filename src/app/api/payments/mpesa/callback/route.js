@@ -1,3 +1,5 @@
+import { siteConfig } from "@/config/site-config";
+
 /**
  * POST /api/payments/mpesa/callback
  *
@@ -443,7 +445,7 @@ export async function POST(request) {
 
         const emailResult = await sendEmail({
           to: order.email,
-          subject: `Payment Confirmed — ${order.orderNumber} | JobReady.co.ke`,
+          subject: `Payment Confirmed — ${order.orderNumber} | ${siteConfig.brandName}`,
           html,
           text,
           senderType: "payments",

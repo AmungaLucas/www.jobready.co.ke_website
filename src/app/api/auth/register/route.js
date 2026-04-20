@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteConfig } from "@/config/site-config";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
@@ -107,7 +108,7 @@ export async function POST(request) {
     // --- Send welcome email (non-blocking) ---
     sendEmail({
       to: trimmedEmail,
-      subject: "Welcome to JobReady!",
+      subject: `Welcome to ${siteConfig.shortName}!`,
       ...welcomeCredentialSignup({ name: trimmedName, email: trimmedEmail, hasPhone: !!normalizedPhone }),
     }).catch((err) => console.error("[Register] Welcome email failed:", err.message));
 

@@ -5,9 +5,9 @@ import { siteConfig } from "@/config/site-config";
 import ContactInfoCard from "@/app/(website)/_components/ContactInfoCard";
 
 export const metadata = generateMeta({
-  title: "Data Protection Notice — JobReady Kenya",
+  title: `Data Protection Notice — ${siteConfig.companyName}`,
   description:
-    "JobReady.co.ke's Data Protection Notice. Learn how we comply with the Kenya Data Protection Act 2019, your data rights, and how to contact our DPO.",
+    `${siteConfig.brandName}'s Data Protection Notice. Learn how we comply with the Kenya Data Protection Act 2019, your data rights, and how to contact our DPO.`,
   path: "/data-protection",
 });
 

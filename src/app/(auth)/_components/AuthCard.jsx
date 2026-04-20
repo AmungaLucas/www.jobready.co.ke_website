@@ -1,4 +1,11 @@
+import { siteConfig } from "@/config/site-config";
+
 export default function AuthCard({ children, showLogo = true }) {
+  // Parse brand for display (e.g. "JobNet.co.ke" → "JobNet" + ".co.ke")
+  const brandParts = siteConfig.brandName.split(".");
+  const shortName = siteConfig.shortName;
+  const suffix = "." + brandParts.slice(1).join(".");
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8 sm:py-12">
       {/* Subtle background pattern */}
@@ -23,7 +30,7 @@ export default function AuthCard({ children, showLogo = true }) {
                 />
               </svg>
               <span className="text-2xl font-extrabold text-[#1a56db]">
-                JobReady<span className="text-gray-800">.co.ke</span>
+                {shortName}<span className="text-gray-800">{suffix}</span>
               </span>
             </a>
           </div>

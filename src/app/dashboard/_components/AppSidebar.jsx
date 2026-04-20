@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
+import { siteConfig } from "@/config/site-config";
 import {
   Sidebar,
   SidebarContent,
@@ -114,8 +115,8 @@ export default function AppSidebar({ user, isLoading }) {
                   </svg>
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-sidebar-foreground">JobReady</span>
-                  <span className="text-xs text-sidebar-muted-foreground">.co.ke</span>
+                  <span className="font-semibold text-sidebar-foreground">{siteConfig.shortName}</span>
+                  <span className="text-xs text-sidebar-muted-foreground">{siteConfig.brandName.replace(siteConfig.shortName, '')}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
