@@ -21,6 +21,41 @@ import { siteConfig } from "@/config/site-config";
 const PLACEHOLDER_DOMAIN = siteConfig.emailDomain;
 
 // ---------------------------------------------------------------------------
+// 0. validatePasswordStrength(password)
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate password strength. Enforces minimum requirements:
+ *   - At least 8 characters
+ *   - At least one uppercase letter
+ *   - At least one lowercase letter
+ *   - At least one digit
+ *
+ * Returns { valid: boolean, error: string|null }
+ */
+export function validatePasswordStrength(password) {
+  if (!password || typeof password !== "string") {
+    return { valid: false, error: "Password is required" };
+  }
+  if (password.length < 8) {
+    return { valid: false, error: "Password must be at least 8 characters" };
+  }
+  if (password.length > 128) {
+    return { valid: false, error: "Password must be at most 128 characters" };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: "Password must contain at least one uppercase letter" };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: "Password must contain at least one lowercase letter" };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: "Password must contain at least one digit" };
+  }
+  return { valid: true, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // 1. normalizePhone(phone)
 // ---------------------------------------------------------------------------
 

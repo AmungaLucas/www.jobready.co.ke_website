@@ -105,9 +105,10 @@ export async function POST(request) {
             console.log(`[STK Query] Extracted receipt: ${mpesaReceiptNumber}, amount: ${mpesaAmount}`);
           }
 
-          // Payment is still PENDING — safe to update with the final status
-          await db.payment.update({
-            where: { id: paymentId },
+          // SECURITY: Use atomic updateMany with where: { status: "PENDING" }
+          // to prevent race conditions with the callback endpoint.
+          const updateResult = await db.payment.updateMany({
+            where: { id: paymentId, status: "PENDING" },
             data: {
               status,
               resultDesc,
@@ -118,76 +119,84 @@ export async function POST(request) {
             },
           });
 
-          console.log(`[STK Query] Payment ${paymentId} updated to ${status} (code: ${resultCode})`);
+          if (updateResult.count === 0) {
+            // Callback already updated this payment
+            console.log(
+              `[STK Query] Payment ${paymentId} was already updated by callback — not overwriting`
+            );
+          } else {
+            console.log(`[STK Query] Payment ${paymentId} updated to ${status} (code: ${resultCode})`);
+          }
 
-          // If success, also update the order
-          if (status === "SUCCESS") {
-            const order = await db.order.findUnique({
-              where: { id: existingPayment.orderId },
-            });
-            if (order) {
-              const paidAmount = mpesaAmount || existingPayment.amount;
-              const newPaidAmount = order.paidAmount + paidAmount;
-              const newBalanceDue = order.totalAmount - newPaidAmount;
-              const newPaymentStatus =
-                newBalanceDue <= 0
-                  ? "PAID"
-                  : order.paidAmount > 0
-                  ? "PARTIALLY_PAID"
-                  : "UNPAID";
-
-              // Determine order status: CONFIRMED when payment is received
-              const newOrderStatus =
-                order.status === "PENDING" ? "CONFIRMED" : order.status;
-
-              await db.order.update({
-                where: { id: order.id },
-                data: {
-                  paidAmount: newPaidAmount,
-                  balanceDue: Math.max(0, newBalanceDue),
-                  paymentStatus: newPaymentStatus,
-                  status: newOrderStatus,
-                  ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
-                },
+          // If success, also update the order within a transaction
+          if (status === "SUCCESS" && updateResult.count > 0) {
+            await db.$transaction(async (tx) => {
+              const order = await tx.order.findUnique({
+                where: { id: existingPayment.orderId },
               });
+              if (order) {
+                const paidAmount = mpesaAmount || existingPayment.amount;
+                const newPaidAmount = order.paidAmount + paidAmount;
+                const newBalanceDue = order.totalAmount - newPaidAmount;
+                const newPaymentStatus =
+                  newBalanceDue <= 0
+                    ? "PAID"
+                    : order.paidAmount > 0
+                    ? "PARTIALLY_PAID"
+                    : "UNPAID";
 
-              await db.orderActivity.create({
-                data: {
-                  orderId: order.id,
-                  action: "PAYMENT_RECEIVED",
-                  description: `Payment of KSh ${paidAmount.toLocaleString()} confirmed via STK Query${mpesaReceiptNumber ? ` — Receipt: ${mpesaReceiptNumber}` : ""}`,
-                  metadata: {
-                    paymentId,
-                    checkoutRequestId,
-                    resultCode,
-                    mpesaReceiptNumber,
-                    transactionDate,
-                  },
-                },
-              });
+                const newOrderStatus =
+                  order.status === "PENDING" ? "CONFIRMED" : order.status;
 
-              // Create notification for the user
-              if (order.userId) {
-                await db.notification.create({
+                await tx.order.update({
+                  where: { id: order.id },
                   data: {
-                    userId: order.userId,
-                    type: "PAYMENT",
-                    title: "Payment Received ✓",
-                    message: `KSh ${paidAmount.toLocaleString()} received for order ${order.orderNumber}${mpesaReceiptNumber ? ` (Receipt: ${mpesaReceiptNumber})` : ""}. ${newPaymentStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newBalanceDue).toLocaleString()}`}`,
-                    data: {
-                      orderId: order.id,
-                      orderNumber: order.orderNumber,
+                    paidAmount: newPaidAmount,
+                    balanceDue: Math.max(0, newBalanceDue),
+                    paymentStatus: newPaymentStatus,
+                    status: newOrderStatus,
+                    ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
+                  },
+                });
+
+                await tx.orderActivity.create({
+                  data: {
+                    orderId: order.id,
+                    action: "PAYMENT_RECEIVED",
+                    description: `Payment of KSh ${paidAmount.toLocaleString()} confirmed via STK Query${mpesaReceiptNumber ? ` — Receipt: ${mpesaReceiptNumber}` : ""}`,
+                    metadata: {
                       paymentId,
-                      amount: paidAmount,
+                      checkoutRequestId,
+                      resultCode,
                       mpesaReceiptNumber,
-                      paymentStatus: newPaymentStatus,
+                      transactionDate,
                     },
                   },
                 });
-              }
 
-              console.log(`[STK Query] Order ${order.orderNumber}: status=${newOrderStatus}, paymentStatus=${newPaymentStatus}, receipt=${mpesaReceiptNumber}`);
-            }
+                // Create notification for the user
+                if (order.userId) {
+                  await tx.notification.create({
+                    data: {
+                      userId: order.userId,
+                      type: "PAYMENT",
+                      title: "Payment Received ✓",
+                      message: `KSh ${paidAmount.toLocaleString()} received for order ${order.orderNumber}${mpesaReceiptNumber ? ` (Receipt: ${mpesaReceiptNumber})` : ""}. ${newPaymentStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newBalanceDue).toLocaleString()}`}`,
+                      data: {
+                        orderId: order.id,
+                        orderNumber: order.orderNumber,
+                        paymentId,
+                        amount: paidAmount,
+                        mpesaReceiptNumber,
+                        paymentStatus: newPaymentStatus,
+                      },
+                    },
+                  });
+                }
+
+                console.log(`[STK Query] Order ${order.orderNumber}: status=${newOrderStatus}, paymentStatus=${newPaymentStatus}, receipt=${mpesaReceiptNumber}`);
+              }
+            });
           }
         } else if (existingPayment) {
           // Payment already has a final status (e.g., SUCCESS from callback) — don't overwrite

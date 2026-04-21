@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { setUserPassword, getMissingProfileFields } from "@/lib/auth-identity";
+import { setUserPassword, getMissingProfileFields, validatePasswordStrength } from "@/lib/auth-identity";
 
 /**
  * POST /api/auth/set-password
@@ -36,9 +36,10 @@ export async function POST(request) {
       );
     }
 
-    if (password.length < 8) {
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.valid) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
+        { error: passwordCheck.error },
         { status: 400 }
       );
     }

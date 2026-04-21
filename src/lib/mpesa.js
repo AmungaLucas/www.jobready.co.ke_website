@@ -10,7 +10,8 @@
  */
 
 // ─── Config ──────────────────────────────────────────────
-const SHORTCODE = process.env.NEXT_PUBLIC_MPESA_SHORTCODE || "174379";
+// Use server-only env var to avoid exposing Business Shortcode in client bundles
+const SHORTCODE = process.env.MPESA_SHORTCODE || "174379";
 const CONSUMER_KEY = process.env.MPESA_CONSUMER_KEY || "";
 const CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET || "";
 const PASSKEY = process.env.MPESA_PASSKEY || "";

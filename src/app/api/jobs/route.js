@@ -3,25 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateSlug } from "@/lib/slug";
-
-// ─── Value mapping: Title Case display → UPPER_SNAKE_CASE (DB canonical) ─────────
-// The DB now stores UPPER_SNAKE_CASE values. This helper normalises incoming
-// legacy Title Case values from the frontend so queries match correctly.
-function mapEmploymentType(val) {
-  if (!val) return undefined;
-  // Already UPPER_SNAKE — return as-is
-  if (/^[A-Z][A-Z0-9_]*$/.test(val)) return val;
-  // Common legacy mappings
-  const legacy = {
-    "Full-time": "FULL_TIME",
-    "Part-time": "PART_TIME",
-    Contract: "CONTRACT",
-    Internship: "INTERNSHIP",
-    Freelance: "FREELANCE",
-    Volunteer: "VOLUNTEER",
-  };
-  return legacy[val] || val;
-}
+import { toDbFormat } from "@/lib/employment";
 
 // ─── GET /api/jobs ────────────────────────────────────────────
 // List / search jobs with filters and pagination
@@ -78,7 +60,7 @@ export async function GET(request) {
       conditions.push({ categories: { string_contains: `"${category}"` } });
     }
     if (jobType) {
-      const mappedType = mapEmploymentType(jobType);
+      const mappedType = toDbFormat(jobType);
       conditions.push({ employmentType: mappedType });
     }
     if (experienceLevel) {
@@ -307,7 +289,7 @@ export async function POST(request) {
     }
 
     // Map employment type to Title Case
-    const mappedJobType = mapEmploymentType(jobType);
+    const mappedJobType = toDbFormat(jobType);
 
     // Build categories JSON array from category string
     const categories = Array.isArray(category) ? category : [category];

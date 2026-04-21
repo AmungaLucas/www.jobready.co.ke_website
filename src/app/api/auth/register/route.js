@@ -11,6 +11,7 @@ import {
   createUser,
   linkWalkInOrders,
   getMissingProfileFields,
+  validatePasswordStrength,
 } from "@/lib/auth-identity";
 
 export async function POST(request) {
@@ -51,9 +52,10 @@ export async function POST(request) {
       }
     }
 
-    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.valid) {
       return NextResponse.json(
-        { error: "Password must be between 8 and 128 characters" },
+        { error: passwordCheck.error },
         { status: 400 }
       );
     }

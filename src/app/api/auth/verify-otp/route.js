@@ -9,6 +9,7 @@ import {
   linkWalkInOrders,
   getMissingProfileFields,
   cleanupOrphanedGhosts,
+  validatePasswordStrength,
 } from "@/lib/auth-identity";
 import { checkOtpAttempts, recordOtpFailure, clearOtpFailures } from "@/lib/rate-limit";
 
@@ -111,9 +112,10 @@ export async function POST(request) {
     }
 
     if (password) {
-      if (password.length < 8) {
+      const passwordCheck = validatePasswordStrength(password);
+      if (!passwordCheck.valid) {
         return NextResponse.json(
-          { error: "Password must be at least 8 characters" },
+          { error: passwordCheck.error },
           { status: 400 }
         );
       }

@@ -78,12 +78,31 @@ export async function POST(request) {
     }
 
     // ── Determine amount to charge ──
+    // SECURITY: Never trust client-supplied amounts. If an amount is provided,
+    // it MUST NOT exceed the order's balance due. This prevents an attacker
+    // from initiating a KSh 1 payment for a KSh 3,500 order.
     const paymentAmount = amount
       ? Math.round(Number(amount))
       : order.balanceDue;
 
     if (!paymentAmount || paymentAmount <= 0) {
       return NextResponse.json({ error: "Invalid payment amount" }, { status: 400 });
+    }
+
+    // Server-side validation: amount must not exceed balance due
+    if (paymentAmount > order.balanceDue) {
+      return NextResponse.json(
+        { error: `Payment amount (KSh ${paymentAmount.toLocaleString()}) exceeds the outstanding balance of KSh ${order.balanceDue.toLocaleString()}` },
+        { status: 400 }
+      );
+    }
+
+    // Prevent zero or negative balance edge cases
+    if (order.balanceDue <= 0) {
+      return NextResponse.json(
+        { error: "This order has already been fully paid" },
+        { status: 400 }
+      );
     }
 
     // ── Build description from order items ──

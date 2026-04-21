@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site-config";
+import { toGoogleJobsFormat } from "@/lib/employment";
 
 const SITE_URL = siteConfig.url;
 
@@ -114,7 +115,7 @@ export function generateJobJsonLd(job) {
         ? new Date(job.createdAt).toISOString()
         : new Date().toISOString(),
     url: `${SITE_URL}/jobs/${job.slug}`,
-    employmentType: mapEmploymentType(job.employmentType),
+    employmentType: toGoogleJobsFormat(job.employmentType),
     hiringOrganization: {
       "@type": "Organization",
       name: company.name || siteConfig.name,
@@ -634,30 +635,7 @@ export function generateLocalBusinessJsonLd() {
 
 // ─── Internal Helpers ───────────────────────────────────────────
 
-/**
- * Map internal employment type to Google's expected format.
- */
-function mapEmploymentType(type) {
-  const mapping = {
-    // Canonical UPPER_SNAKE_CASE values
-    FULL_TIME: "FULL_TIME",
-    PART_TIME: "PART_TIME",
-    CONTRACT: "CONTRACTOR",
-    INTERNSHIP: "INTERN",
-    FREELANCE: "CONTRACTOR",
-    VOLUNTEER: "VOLUNTEER",
-    TEMPORARY: "TEMPORARY",
-    PERMANENT: "FULL_TIME",
-    // Legacy Title Case display values (backward compat)
-    "Full-time": "FULL_TIME",
-    "Part-time": "PART_TIME",
-    "Contract": "CONTRACTOR",
-    "Internship": "INTERN",
-    "Freelance": "CONTRACTOR",
-    "Volunteer": "VOLUNTEER",
-  };
-  return mapping[type] || "FULL_TIME";
-}
+// mapEmploymentType moved to @/lib/employment (toGoogleJobsFormat)
 
 /**
  * Parse employee size string to min/max numbers.

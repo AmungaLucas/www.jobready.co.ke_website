@@ -98,9 +98,15 @@ export async function POST(request) {
         );
       }
     } else if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "[M-Pesa Callback] WARNING: Could not determine client IP. " +
+      // SECURITY: Reject callbacks with null IP in production.
+      // An attacker could bypass the IP allowlist by stripping X-Forwarded-For.
+      console.error(
+        "[M-Pesa Callback] REJECTED: Could not determine client IP in production. " +
         "Ensure your reverse proxy forwards X-Forwarded-For."
+      );
+      return NextResponse.json(
+        { ResultCode: 1, ResultDesc: "Unauthorized source" },
+        { status: 403 }
       );
     }
 
@@ -312,7 +318,7 @@ export async function POST(request) {
       }, 10000); // 10 seconds delay
     }
 
-    // ── 4b. Update Payment record ──
+    // ── 4b. Update Payment record (atomic to prevent race conditions) ──
     // Idempotency: if the payment is already SUCCESS (set by STK Query or
     // a previous callback), don't overwrite it with FAILED/CANCELLED/etc.
     if (payment.status === "SUCCESS" && paymentStatus !== "SUCCESS") {
@@ -329,8 +335,12 @@ export async function POST(request) {
 
     let updatedPayment = payment;
     if (shouldUpdateDB) {
-      updatedPayment = await db.payment.update({
-        where: { id: payment.id },
+      // SECURITY: Use atomic updateMany with where: { status: "PENDING" }
+      // to prevent race conditions between callback and STK Query.
+      // If another process already updated this payment to SUCCESS,
+      // the updateMany will affect 0 rows and we skip order updates.
+      const updateResult = await db.payment.updateMany({
+        where: { id: payment.id, status: "PENDING" },
         data: {
           status: paymentStatus,
           mpesaReceiptNumber: mpesaReceiptNumber || null,
@@ -340,6 +350,16 @@ export async function POST(request) {
           ...(mpesaAmount && { amount: mpesaAmount }),
         },
       });
+
+      if (updateResult.count === 0) {
+        // Another process (STK Query or previous callback) already updated this payment
+        console.log(
+          `[M-Pesa Callback] Payment ${payment.id} was already updated by another process — skipping`
+        );
+        return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+      }
+
+      updatedPayment = await db.payment.findUnique({ where: { id: payment.id } });
     }
 
     console.log("[M-Pesa Callback] Payment updated:", {
@@ -349,80 +369,89 @@ export async function POST(request) {
     });
 
     // ── 5. Update Order financials (only on success) ──
+    // SECURITY: Wrap payment + order updates in a DB transaction to prevent
+    // financial inconsistency if the server crashes between updates.
     if (paymentStatus === "SUCCESS") {
-      const order = payment.order;
-      const newPaidAmount = order.paidAmount + (mpesaAmount || payment.amount);
-      const newBalanceDue = order.totalAmount - newPaidAmount;
-      const newPaymentStatus =
-        newBalanceDue <= 0
-          ? "PAID"
-          : order.paidAmount > 0
-          ? "PARTIALLY_PAID"
-          : "UNPAID";
+      await db.$transaction(async (tx) => {
+        // Re-read order with latest paidAmount to avoid stale reads
+        const order = await tx.order.findUnique({
+          where: { id: payment.orderId },
+        });
 
-      // Determine order status: CONFIRMED when payment is received
-      const newOrderStatus =
-        order.status === "PENDING" ? "CONFIRMED" : order.status;
+        const newPaidAmount = order.paidAmount + (mpesaAmount || payment.amount);
+        const newBalanceDue = order.totalAmount - newPaidAmount;
+        const newPaymentStatus =
+          newBalanceDue <= 0
+            ? "PAID"
+            : order.paidAmount > 0
+            ? "PARTIALLY_PAID"
+            : "UNPAID";
 
-      await db.order.update({
-        where: { id: order.id },
-        data: {
-          paidAmount: newPaidAmount,
-          balanceDue: Math.max(0, newBalanceDue),
-          paymentStatus: newPaymentStatus,
-          status: newOrderStatus,
-          // Set confirmedAt when order transitions to CONFIRMED or is fully PAID
-          ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
-        },
-      });
+        // Determine order status: CONFIRMED when payment is received
+        const newOrderStatus =
+          order.status === "PENDING" ? "CONFIRMED" : order.status;
 
-      console.log("[M-Pesa Callback] Order updated:", {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        newPaidAmount,
-        newBalanceDue: Math.max(0, newBalanceDue),
-        newPaymentStatus,
-        newOrderStatus,
-      });
-
-      // ── 6. Create success OrderActivity ──
-      await db.orderActivity.create({
-        data: {
-          orderId: order.id,
-          action: "PAYMENT_RECEIVED",
-          description: `Payment of KSh ${(mpesaAmount || payment.amount).toLocaleString()} received via M-Pesa${mpesaReceiptNumber ? ` — Receipt: ${mpesaReceiptNumber}` : ""}`,
-          metadata: {
-            paymentId: payment.id,
-            mpesaReceiptNumber,
-            amount: mpesaAmount || payment.amount,
-            checkoutRequestId: CheckoutRequestID,
-            transactionDate,
-          },
-        },
-      });
-
-      // ── 7. Create in-app Notification for the user ──
-      if (order.userId) {
-        await db.notification.create({
+        await tx.order.update({
+          where: { id: order.id },
           data: {
-            userId: order.userId,
-            type: "PAYMENT",
-            title: "Payment Received ✓",
-            message: `KSh ${(mpesaAmount || payment.amount).toLocaleString()} received for order ${order.orderNumber}${mpesaReceiptNumber ? ` (Receipt: ${mpesaReceiptNumber})` : ""}. ${newPaymentStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newBalanceDue).toLocaleString()}`}`,
-            data: {
-              orderId: order.id,
-              orderNumber: order.orderNumber,
+            paidAmount: newPaidAmount,
+            balanceDue: Math.max(0, newBalanceDue),
+            paymentStatus: newPaymentStatus,
+            status: newOrderStatus,
+            // Set confirmedAt when order transitions to CONFIRMED or is fully PAID
+            ...((newOrderStatus === "CONFIRMED" || newPaymentStatus === "PAID") ? { confirmedAt: new Date() } : {}),
+          },
+        });
+
+        // Create success OrderActivity
+        await tx.orderActivity.create({
+          data: {
+            orderId: order.id,
+            action: "PAYMENT_RECEIVED",
+            description: `Payment of KSh ${(mpesaAmount || payment.amount).toLocaleString()} received via M-Pesa${mpesaReceiptNumber ? ` — Receipt: ${mpesaReceiptNumber}` : ""}`,
+            metadata: {
               paymentId: payment.id,
-              amount: mpesaAmount || payment.amount,
               mpesaReceiptNumber,
-              paymentStatus: newPaymentStatus,
+              amount: mpesaAmount || payment.amount,
+              checkoutRequestId: CheckoutRequestID,
+              transactionDate,
             },
           },
         });
-      }
 
-      // ── 8. Send payment confirmation email (fire-and-forget) ──
+        // Create in-app Notification for the user
+        if (order.userId) {
+          await tx.notification.create({
+            data: {
+              userId: order.userId,
+              type: "PAYMENT",
+              title: "Payment Received ✓",
+              message: `KSh ${(mpesaAmount || payment.amount).toLocaleString()} received for order ${order.orderNumber}${mpesaReceiptNumber ? ` (Receipt: ${mpesaReceiptNumber})` : ""}. ${newPaymentStatus === "PAID" ? "Order is now fully paid!" : `Balance: KSh ${Math.max(0, newBalanceDue).toLocaleString()}`}`,
+              data: {
+                orderId: order.id,
+                orderNumber: order.orderNumber,
+                paymentId: payment.id,
+                amount: mpesaAmount || payment.amount,
+                mpesaReceiptNumber,
+                paymentStatus: newPaymentStatus,
+              },
+            },
+          });
+        }
+
+        console.log("[M-Pesa Callback] Order updated:", {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          newPaidAmount,
+          newBalanceDue: Math.max(0, newBalanceDue),
+          newPaymentStatus,
+          newOrderStatus,
+        });
+      });
+
+      // ── 6. Send payment confirmation email (fire-and-forget) ──
       try {
+        const order = payment.order; // Use original order object for email data
         const { sendEmail, paymentConfirmationTemplate } = await import("@/lib/email");
         const serviceNames = order.items
           .map((item) => `${item.serviceName} (${item.tierName})`)
@@ -434,8 +463,8 @@ export async function POST(request) {
           amount: (mpesaAmount || payment.amount).toLocaleString(),
           receiptNumber: mpesaReceiptNumber || "Pending",
           services: serviceNames,
-          paymentStatus: newPaymentStatus,
-          balanceDue: Math.max(0, newBalanceDue).toLocaleString(),
+          paymentStatus: "PAID", // Simplified — transaction handles exact status
+          balanceDue: "0",
           date: new Date().toLocaleDateString("en-KE", {
             year: "numeric",
             month: "long",

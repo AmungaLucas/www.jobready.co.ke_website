@@ -6,15 +6,17 @@
  *
  * Strategy:
  *  1. Remove <script>, <iframe>, <object>, <embed>, <form>, <meta>,
- *     <link>, <style> tags and their contents entirely.
- *  2. Strip all event-handler attributes (onclick, onerror, onload, …).
- *  3. Strip javascript: and data: URIs from href/src attributes.
+ *     <link>, <style>, <noscript>, <template>, <svg>, <math> tags
+ *     and their contents entirely.
+ *  2. Strip all event-handler attributes (onclick, onerror, onload, …)
+ *     including backtick-quoted variants.
+ *  3. Strip javascript:, data:, vbscript: URIs from href/src attributes.
  *  4. Remove any remaining tags not on the whitelist.
  *  5. Strip non-whitelisted attributes from allowed tags.
+ *  6. Strip HTML comments.
  *
- * This content originates from the admin-authored blog/job CMS,
- * so a whitelist-based approach provides adequate XSS protection
- * without needing a full DOM parser.
+ * SECURITY NOTE: This sanitizer handles admin-authored CMS content.
+ * For untrusted user input, consider migrating to isomorphic-dompurify.
  */
 
 // ─── Tag / attribute whitelists ────────────────────────────────────
@@ -31,14 +33,17 @@ const ALLOWED_TAGS = new Set([
 
 const ALLOWED_ATTRS = new Set([
   "href", "src", "alt", "title", "class", "id",
-  "target", "rel", "style", "width", "height",
+  "target", "rel", "width", "height",
   "loading", "decoding", "referrerpolicy",
+  // Note: "style" intentionally removed to prevent CSS-based data exfiltration
 ]);
 
 // Tags whose *entire content* should be removed (not just the tags)
+// Includes SVG and MathML to prevent namespace confusion XSS vectors
 const DANGEROUS_TAGS = new Set([
   "script", "iframe", "object", "embed", "form",
   "meta", "link", "style", "noscript", "template",
+  "svg", "math", "base",
 ]);
 
 /**
@@ -52,42 +57,56 @@ export function sanitizeHtml(html) {
 
   let output = html;
 
+  // ─── 0. Strip HTML comments (before tag processing to prevent comment-based bypasses) ──
+  output = output.replace(/<!--[\s\S]*?-->/g, "");
+
   // ─── 1. Remove dangerous tags and their content ────────────────
-  // Match opening tag, closing tag, and everything in between (non-greedy)
+  // Handle unclosed tags: also match opening tags without closing counterparts
   for (const tag of DANGEROUS_TAGS) {
-    const re = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, "gi");
+    // Match <tag ...>...</tag> (with content)
+    const re = new RegExp(`<${tag}[\\s>][\\s\\S]*?<\\/${tag}>`, "gi");
     output = output.replace(re, "");
-    // Self-closing variants
-    const reSelf = new RegExp(`<${tag}[^>]*/?>`, "gi");
+    // Self-closing variants: <tag ... />
+    const reSelf = new RegExp(`<${tag}[\\s>][^>]*/?>`, "gi");
     output = output.replace(reSelf, "");
+    // Unclosed opening tags: <tag ...> (no closing tag at all)
+    const reOpen = new RegExp(`<${tag}[\\s>][^>]*>`, "gi");
+    output = output.replace(reOpen, "");
   }
 
   // ─── 2. Strip event-handler attributes ─────────────────────────
-  // Match on*="..." and on*='...' inside any tag
+  // Match on*="...", on*='...', and on*=`...` (backtick-quoted variants)
+  // Also handle bare on* attributes without values
   output = output.replace(
-    /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*')/gi,
+    /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|`[^`]*`)/gi,
+    ""
+  );
+  // Bare on* attributes (e.g., <div onclick>)
+  output = output.replace(
+    /\s+on\w+(?=\s|>|\/>)/gi,
     ""
   );
 
-  // ─── 3. Neutralise javascript: / data: URIs in href & src ───────
+  // ─── 3. Neutralise javascript: / data: / vbscript: URIs ─────────
   output = output.replace(
     /(href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi,
     (_, attr, d1, d2) => {
       const val = d1 ?? d2 ?? "";
+      // Remove any URI scheme that could execute code
       const cleaned = val.replace(/^\s*(javascript|data|vbscript)\s*:/i, "");
       return `${attr}="${cleaned}"`;
     }
   );
 
   // ─── 4. Remove tags not on the whitelist ────────────────────────
-  // Strategy: process the string tag by tag.
   output = stripDisallowedTags(output);
 
   // ─── 5. Strip non-whitelisted attributes on allowed tags ────────
   output = stripDisallowedAttrs(output);
 
-  // ─── 6. Remove HTML comments ──────────────────────────────────
-  output = output.replace(/<!--[\s\S]*?-->/g, "");
+  // ─── 6. Final safety pass: remove any residual dangerous patterns ──
+  // Remove null bytes and control characters
+  output = output.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, "");
 
   return output.trim();
 }
@@ -100,16 +119,13 @@ export function sanitizeHtml(html) {
  * Content inside disallowed tags is kept (only the tag itself is stripped).
  */
 function stripDisallowedTags(html) {
-  // Match any HTML tag: <tagname ...> or </tagname> or <tagname ... />
   return html.replace(
     /<\/?([a-zA-Z][a-zA-Z0-9-]*)((?:\s+[^>]*?)?)(\/?)>/g,
     (_, tagName, attrs, selfClose) => {
       const name = tagName.toLowerCase();
       if (ALLOWED_TAGS.has(name)) {
-        // Keep the tag — reconstruct it
         return `<${name}${attrs}${selfClose}>`;
       }
-      // Strip the tag, keep any content around it
       return "";
     }
   );
@@ -119,12 +135,10 @@ function stripDisallowedTags(html) {
  * For every allowed tag, keep only attributes in ALLOWED_ATTRS.
  */
 function stripDisallowedAttrs(html) {
-  // Match allowed opening tags and process their attributes
   const allowedPattern = ALLOWED_TAGS
     ? Array.from(ALLOWED_TAGS).join("|")
     : "a";
 
-  // Match only opening tags of allowed elements
   const tagRe = new RegExp(
     `<(?:${allowedPattern})((?:\\s+[^>]*?)?)(\\/?)>`,
     "gi"
@@ -135,19 +149,16 @@ function stripDisallowedAttrs(html) {
       return `<${selfClose}>`;
     }
 
-    // Parse attributes — split on whitespace, handle quoted values
     const cleaned = parseAndFilterAttrs(attrStr);
     return `<${cleaned}${selfClose}>`;
   });
 }
 
 /**
- * Parse an attribute string like ' href="..." class="foo" onclick="bar" '
- * and return only the allowed attributes.
+ * Parse an attribute string and return only the allowed attributes.
  */
 function parseAndFilterAttrs(attrStr) {
   const result = [];
-  // Match attribute name=value pairs (including bare boolean attrs)
   const attrRe = /\s+([a-zA-Z_:][\w:.-]*)\s*(?:=\s*(?:"([^"]*)"|'([^']*)'|(\S+)))?/g;
 
   let match;

@@ -1,25 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ipRateLimit } from "@/lib/rate-limit";
-
-// ─── Value mapping: Title Case display → UPPER_SNAKE_CASE (DB canonical) ─────────
-// The DB now stores UPPER_SNAKE_CASE values. This helper normalises incoming
-// legacy Title Case values from the frontend so queries match correctly.
-function mapEmploymentType(val) {
-  if (!val) return undefined;
-  // Already UPPER_SNAKE — return as-is
-  if (/^[A-Z][A-Z0-9_]*$/.test(val)) return val;
-  // Common legacy mappings
-  const legacy = {
-    "Full-time": "FULL_TIME",
-    "Part-time": "PART_TIME",
-    Contract: "CONTRACT",
-    Internship: "INTERNSHIP",
-    Freelance: "FREELANCE",
-    Volunteer: "VOLUNTEER",
-  };
-  return legacy[val] || val;
-}
+import { toDbFormat } from "@/lib/employment";
 
 /**
  * GET /api/search
@@ -96,7 +78,7 @@ export async function GET(request) {
           { status: "PUBLISHED" },
           ...(category ? [{ categories: { string_contains: `"${category}"` } }] : []),
           ...(location ? [{ OR: [{ county: { contains: location } }, { town: { contains: location } }] }] : []),
-          ...(jobType ? [{ employmentType: mapEmploymentType(jobType) }] : []),
+          ...(jobType ? [{ employmentType: toDbFormat(jobType) }] : []),
           ...(experienceLevel ? [{ experienceLevel }] : []),
           ...(remote === "true" ? [{ isRemote: true }] : []),
         ],

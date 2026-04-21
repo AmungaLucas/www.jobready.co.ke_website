@@ -195,7 +195,7 @@ export async function POST(request, { params }) {
       coverLetterValue = coverLetter.trim() || null;
     }
 
-    // Create application in a transaction
+    // Create application in a transaction (also increments job applicantCount)
     const application = await db.$transaction(async (tx) => {
       // Create the application record
       const app = await tx.application.create({
@@ -228,6 +228,16 @@ export async function POST(request, { params }) {
               email: true,
               avatar: true,
             },
+          },
+        },
+      });
+
+      // Increment the job's applicantCount denormalized counter
+      await tx.job.update({
+        where: { id: job.id },
+        data: {
+          applicantCount: {
+            increment: 1,
           },
         },
       });
