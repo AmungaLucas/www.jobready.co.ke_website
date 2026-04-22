@@ -123,7 +123,7 @@ export async function PATCH(request) {
           where: {
             phone: normalizedPhone,
             code: otp,
-            purpose: "auth",
+            purpose: "AUTH",
             verified: false,
             expiresAt: { gte: new Date() },
           },

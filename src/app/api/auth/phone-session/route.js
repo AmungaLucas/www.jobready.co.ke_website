@@ -60,7 +60,7 @@ export async function POST(request) {
     const grantRecord = await db.otp.findFirst({
       where: {
         code: sessionGrantToken,
-        purpose: "session_grant",
+        purpose: "SESSION_GRANT",
         verified: false,
         expiresAt: { gte: new Date() },
       },

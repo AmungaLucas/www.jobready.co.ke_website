@@ -64,7 +64,7 @@ export async function POST(request) {
       where: {
         phone: normalizedPhone,
         code: otp,
-        purpose: "phone_verify",
+        purpose: "PHONE_VERIFY",
         verified: false,
         expiresAt: { gte: new Date() },
       },

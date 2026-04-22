@@ -11,7 +11,7 @@ import { authOptions } from "@/lib/auth";
  *
  * Sends a 6-digit verification code to the current user's email address.
  * Used when the user's email is registered but not yet verified.
- * The code is stored in the Otp table with purpose "email_verify".
+ * The code is stored in the Otp table with purpose "EMAIL_VERIFY".
  *
  * Rate limited: one code per 60 seconds.
  */
@@ -60,7 +60,7 @@ export async function POST(request) {
     const recentOtp = await db.otp.findFirst({
       where: {
         phone: email,
-        purpose: "email_verify",
+        purpose: "EMAIL_VERIFY",
         createdAt: { gte: new Date(Date.now() - 60 * 1000) },
       },
       orderBy: { createdAt: "desc" },
@@ -81,7 +81,7 @@ export async function POST(request) {
       data: {
         phone: email,
         code,
-        purpose: "email_verify",
+        purpose: "EMAIL_VERIFY",
         verified: false,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       },

@@ -48,7 +48,7 @@ export async function POST(request) {
     }
 
     // --- Check OTP attempt lockout (5 fails → 30 min lockout) ---
-    const otpCheck = await checkOtpAttempts(normalizedPhone, "auth", 5);
+    const otpCheck = await checkOtpAttempts(normalizedPhone, "AUTH", 5);
     if (!otpCheck.allowed) {
       return NextResponse.json(
         { error: "Too many failed attempts. Please wait 30 minutes before trying again." },
@@ -62,7 +62,7 @@ export async function POST(request) {
       where: {
         phone: normalizedPhone,
         code: otp,
-        purpose: "auth",
+        purpose: "AUTH",
         verified: false,
         expiresAt: { gte: now },
       },
@@ -70,7 +70,7 @@ export async function POST(request) {
     });
 
     if (!otpRecord) {
-      await recordOtpFailure(normalizedPhone, "auth");
+      await recordOtpFailure(normalizedPhone, "AUTH");
       return NextResponse.json(
         { error: "No valid OTP found for this phone number. Please request a new one." },
         { status: 404 }
@@ -84,7 +84,7 @@ export async function POST(request) {
     });
 
     // Clear failed attempt counter on success
-    await clearOtpFailures(normalizedPhone, "auth");
+    await clearOtpFailures(normalizedPhone, "AUTH");
 
     // --- Validate optional profile fields ---
     let normalizedEmail = null;
@@ -154,7 +154,7 @@ export async function POST(request) {
       data: {
         phone: user.phone || user.email || user.id,
         code: sessionGrantToken,
-        purpose: "session_grant",
+        purpose: "SESSION_GRANT",
         verified: false,
         expiresAt: new Date(Date.now() + 60 * 1000), // 60 seconds only
       },

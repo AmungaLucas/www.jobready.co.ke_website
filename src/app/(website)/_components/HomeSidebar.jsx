@@ -194,7 +194,7 @@ function NewsletterSignup() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), type: "career_tips" }),
+        body: JSON.stringify({ email: email.trim(), type: "CAREER_TIPS" }),
       });
       const data = await res.json();
       if (res.ok) {

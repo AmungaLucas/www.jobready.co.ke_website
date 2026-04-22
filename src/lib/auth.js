@@ -38,7 +38,7 @@ async function upsertGoogleAuthAccount(userId, account) {
     where: { providerAccountId: account.providerAccountId },
     create: {
       userId,
-      provider: "google",
+      provider: "GOOGLE",
       providerAccountId: account.providerAccountId,
       accessToken: account.access_token || null,
       refreshToken: account.refresh_token || null,
@@ -172,7 +172,7 @@ export const authOptions = {
     //   3. No user found → create new user with googleId
     async signIn({ user, account, profile }) {
       // Only handle Google OAuth
-      if (account?.provider !== "google") {
+      if (account?.provider !== "GOOGLE") {
         return true;
       }
 

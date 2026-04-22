@@ -12,7 +12,7 @@ import { encode } from "next-auth/jwt";
  * into the email owner's account.
  *
  * Flow:
- *   1. Validate OTP (purpose: "email_link", stored in Otp.phone field)
+ *   1. Validate OTP (purpose: "EMAIL_LINK", stored in Otp.phone field)
  *   2. Find the email owner (the surviving account)
  *   3. Transfer all data from current user → email owner
  *   4. Set phone number on email owner (if current user has one)
@@ -58,7 +58,7 @@ export async function POST(request) {
       where: {
         phone: normalizedEmail,
         code,
-        purpose: "email_link",
+        purpose: "EMAIL_LINK",
         verified: false,
         expiresAt: { gte: new Date() },
       },

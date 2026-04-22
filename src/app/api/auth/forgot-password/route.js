@@ -65,7 +65,7 @@ export async function POST(request) {
     await db.authAccount.deleteMany({
       where: {
         userId: user.id,
-        provider: "reset",
+        provider: "RESET",
       },
     });
 
@@ -73,7 +73,7 @@ export async function POST(request) {
     await db.authAccount.create({
       data: {
         userId: user.id,
-        provider: "reset",
+        provider: "RESET",
         providerAccountId: resetAccountId,
         accessToken: resetToken,
         expiresAt: tokenExpiry,

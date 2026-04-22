@@ -12,7 +12,7 @@ import { authOptions } from "@/lib/auth";
  * Sends a 6-digit verification code to the given email address.
  * Used when a phone-only user tries to link an email that already
  * belongs to another account. The code is stored in the Otp table
- * with purpose "email_link" (reuses the phone field for the email).
+ * with purpose "EMAIL_LINK" (reuses the phone field for the email).
  *
  * Rate limited: one code per email per 60 seconds.
  */
@@ -70,7 +70,7 @@ export async function POST(request) {
     const recentOtp = await db.otp.findFirst({
       where: {
         phone: normalizedEmail,
-        purpose: "email_link",
+        purpose: "EMAIL_LINK",
         createdAt: { gte: new Date(Date.now() - 60 * 1000) },
       },
       orderBy: { createdAt: "desc" },
@@ -91,7 +91,7 @@ export async function POST(request) {
       data: {
         phone: normalizedEmail,
         code,
-        purpose: "email_link",
+        purpose: "EMAIL_LINK",
         verified: false,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       },

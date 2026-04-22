@@ -89,7 +89,7 @@ export async function POST(request) {
     // (orphaned records or records already linked to this user)
     const googleAuthAccount = await db.authAccount.findFirst({
       where: {
-        provider: "google",
+        provider: "GOOGLE",
         OR: [
           { userId: null },
           { userId: user.id },

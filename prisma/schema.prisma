@@ -5,7 +5,8 @@
 // + SEO + DPA Compliance + Analytics + CMS + Google Jobs
 //
 // Design Decisions:
-//   - Enums stored as String, validated in app code against data.js
+//   - Enums enforced at DB level via Prisma enum types (v3 change)
+//   - All enum values UPPER_SNAKE_CASE for consistency
 //   - Location stored as structured fields (country, county, town) plus display string
 //   - No JobCategory table (driven by hub-config.js / org_data.js)
 //   - Json type for array fields (MySQL JSON columns)
@@ -15,6 +16,16 @@
 //   - Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
 //   - Opportunities linked to Company (optional FK)
 //   - socialLinks JSON on Company for dynamic social media profiles
+//
+// v3 Changes (DB-Level Enums):
+//   - All string-validated enums replaced with Prisma enum types
+//   - MySQL ENUM columns enforce valid values at DB level
+//   - CompanySize values: "1-10"→SIZE_1_10, "1000+"→SIZE_1000_PLUS
+//   - Normalized lowercase enums to UPPER_SNAKE_CASE:
+//     AuthProvider, OtpPurpose, ReactionType, NewsletterType, WhatsAppContext
+//   - Shared enums: JobStatus (Job + Opportunity), EmploymentType (Job + JobAlert),
+//     OrganizationIndustry (Company + Job)
+//   - 29 enum types defined, 0 new tables
 //
 // v2 Changes (SEO + Google Jobs):
 //   - Job: added publishedAt (CRITICAL for Google Jobs datePosted),
@@ -38,6 +49,322 @@ datasource db {
 }
 
 // ============================================================
+// ENUM DEFINITIONS — 29 DB-Level Enums
+// ============================================================
+// Grouped by domain. Shared enums reused across models.
+
+// ── Auth & Users ──────────────────────────────────────────────
+
+enum UserRole {
+  JOB_SEEKER
+  EMPLOYER
+  ADMIN
+}
+
+enum AuthProvider {
+  GOOGLE
+  EMAIL
+  PHONE
+  RESET
+}
+
+enum OtpPurpose {
+  AUTH
+  RESET
+  VERIFY
+  EMAIL_LINK
+  SESSION_GRANT
+  EMAIL_UPDATE
+  EMAIL_VERIFY
+  PHONE_VERIFY
+  ACCOUNT_DELETE
+}
+
+// ── Organization ──────────────────────────────────────────────
+
+enum OrganizationType {
+  PRIVATE
+  SMALL_BUSINESS
+  STARTUP
+  CORPORATE
+  NGO
+  INTERNATIONAL_ORG
+  NATIONAL_GOV
+  COUNTY_GOV
+  STATE_CORPORATION
+  EDUCATION
+  FOUNDATION
+  RELIGIOUS_ORG
+}
+
+enum OrganizationIndustry {
+  AGRICULTURE
+  AUTOMOTIVE
+  AVIATION
+  BANKING
+  CONSTRUCTION
+  CONSULTING
+  CONSUMER_GOODS
+  EDUCATION
+  ENERGY
+  ENVIRONMENT
+  FINTECH
+  FOOD_BEVERAGE
+  GOVERNMENT_PUBLIC_ADMIN
+  HEALTHCARE
+  HOSPITALITY_TOURISM
+  HUMAN_RESOURCES
+  INFORMATION_TECHNOLOGY
+  INSURANCE
+  INTERNATIONAL_DEVELOPMENT
+  LEGAL
+  LOGISTICS_SUPPLY_CHAIN
+  MANUFACTURING
+  MARKETING_ADVERTISING
+  MEDIA_ENTERTAINMENT
+  MINING
+  NON_PROFIT
+  PHARMACEUTICAL
+  REAL_ESTATE
+  RESEARCH
+  RETAIL
+  SECURITY_DEFENSE
+  SPORTS
+  TELECOMMUNICATIONS
+  TEXTILES_APPAREL
+  WATER_SANITATION
+}
+
+enum CompanySize {
+  SIZE_1_10
+  SIZE_11_50
+  SIZE_51_200
+  SIZE_201_500
+  SIZE_501_1000
+  SIZE_1000_PLUS
+  SIZE_5000_10000
+  SIZE_10000_PLUS
+}
+
+// ── Jobs ──────────────────────────────────────────────────────
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  INTERNSHIP
+  VOLUNTEER
+  FREELANCE
+  PERMANENT
+}
+
+enum ExperienceLevel {
+  ENTRY_LEVEL
+  JUNIOR
+  MID_LEVEL
+  SENIOR
+  LEAD
+  MANAGER
+  DIRECTOR
+  EXECUTIVE
+}
+
+enum SalaryPeriod {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  ANNUALLY
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+  FILLED
+  EXPIRED
+}
+
+// ── Opportunities ─────────────────────────────────────────────
+
+enum OpportunityType {
+  INTERNSHIP
+  SPONSORSHIP
+  BURSARY
+  SCHOLARSHIP
+  UNIVERSITY_ADMISSION
+  VOLUNTEER
+  TRAINING
+  GRANT
+  CERTIFICATION
+  FUNDING
+  FELLOWSHIP
+  APPRENTICESHIP
+  WORKSHOP
+  CONFERENCE
+  COMPETITION
+  AWARD
+  RESIDENCY
+  MENTORSHIP
+  ACCELERATOR
+  INCUBATOR
+  BOOTCAMP
+  EXCHANGE
+  RESEARCH
+}
+
+// ── Content / Blog ────────────────────────────────────────────
+
+enum SitePageStatus {
+  PUBLISHED
+  DRAFT
+  ARCHIVED
+}
+
+enum FaqCategory {
+  SERVICES
+  PAYMENTS
+  PRIVACY
+  GENERAL
+}
+
+enum ReactionType {
+  HELPFUL
+  LOVE
+  INSIGHTFUL
+  MIND_BLOWING
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  JOB_MATCH
+  PAYMENT
+  SYSTEM
+}
+
+// ── Services & Commerce ───────────────────────────────────────
+
+enum ServiceType {
+  CV_WRITING
+  COVER_LETTER
+  LINKEDIN_PROFILE
+}
+
+enum ServiceTierLevel {
+  BASIC
+  PROFESSIONAL
+  PREMIUM
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  DELIVERED
+  REVISION
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum MpesaPaymentStatus {
+  PENDING
+  SUCCESS
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+  REFUNDED
+}
+
+enum OrderActivityAction {
+  STATUS_CHANGE
+  PAYMENT_RECEIVED
+  NOTE_ADDED
+}
+
+// ── Compliance ────────────────────────────────────────────────
+
+enum DataRequestType {
+  ACCESS
+  CORRECTION
+  DELETION
+  OBJECTION
+  PORTABILITY
+}
+
+enum DataRequestStatus {
+  RECEIVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+// ── Analytics ─────────────────────────────────────────────────
+
+enum PageType {
+  JOB
+  ARTICLE
+  COMPANY
+  OPPORTUNITY
+  HUB
+  BLOG
+}
+
+enum WhatsAppPageType {
+  JOB
+  SERVICE
+  HOMEPAGE
+  OPPORTUNITY
+  BLOG
+  COMPANY
+  CV_SERVICES
+}
+
+enum WhatsAppContext {
+  APPLY_BUTTON
+  SERVICE_INQUIRY
+  FLOAT_BUTTON
+}
+
+// ── Newsletter ────────────────────────────────────────────────
+
+enum NewsletterType {
+  CAREER_TIPS
+  JOB_ALERTS
+  OPPORTUNITY_ALERTS
+  EMPLOYER_UPDATES
+}
+
+// ── Applications ──────────────────────────────────────────────
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  INTERVIEW
+  REJECTED
+  HIRED
+}
+
+// ── Ads ───────────────────────────────────────────────────────
+
+enum AdPosition {
+  HOME_TOP
+  SIDEBAR_1
+  ARTICLE_INLINE
+  SEARCH_TOP
+}
+
+
+// ============================================================
 // 1. USERS — Job Seekers
 // ============================================================
 // Only job seekers register for v1. Admin & employer dashboards
@@ -52,7 +379,7 @@ model User {
   passwordHash   String?                              // null = OAuth-only user
 
   // Role
-  role           String    @default("JOB_SEEKER")      // "JOB_SEEKER", "EMPLOYER", "ADMIN"
+  role           UserRole  @default(JOB_SEEKER)
 
   // Profile
   avatar         String?                              // Avatar URL or color
@@ -90,22 +417,21 @@ model User {
 // 2. AUTH ACCOUNTS — Multi-provider auth
 // ============================================================
 // Now only used for: Google OAuth token storage, NextAuth compatibility
-// Supports: Google OAuth (token storage), NextAuth compatibility
 // One user can have multiple auth methods linked
 
 model AuthAccount {
-  id               String    @id @default(cuid())
+  id               String      @id @default(cuid())
   userId           String?
-  user             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider         String                              // "google" | "email" | "phone"
-  providerAccountId String   @unique                   // Google sub, phone number, email
-  accessToken      String?   @db.Text                    // OAuth token (Google tokens can be very long)
-  refreshToken     String?   @db.Text                    // OAuth refresh token
-  idToken          String?   @db.Text                    // OpenID token
+  user             User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider         AuthProvider                           // GOOGLE | EMAIL | PHONE
+  providerAccountId String     @unique                   // Google sub, phone number, email
+  accessToken      String?     @db.Text                    // OAuth token (Google tokens can be very long)
+  refreshToken     String?     @db.Text                    // OAuth refresh token
+  idToken          String?     @db.Text                    // OpenID token
   expiresAt        DateTime?
-  scope            String?   @db.Text                    // OAuth scopes granted
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  scope            String?     @db.Text                    // OAuth scopes granted
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   @@map("auth_accounts")
 }
@@ -116,13 +442,13 @@ model AuthAccount {
 // Replaces using AuthAccount for OTP. Stores phone OTPs for auth, reset, verify.
 
 model Otp {
-  id               String    @id @default(cuid())
-  phone            String                      // Target phone number (normalized 2547XXXXXXXX)
-  code             String                      // 6-digit OTP
-  purpose          String    @default("auth")  // "auth" | "reset" | "verify"
-  verified         Boolean   @default(false)   // Whether this OTP was used
-  expiresAt        DateTime                    // OTP expiry time
-  createdAt        DateTime  @default(now())
+  id               String     @id @default(cuid())
+  phone            String                       // Target phone number (normalized 2547XXXXXXXX)
+  code             String                       // 6-digit OTP
+  purpose          OtpPurpose @default(AUTH)    // AUTH | RESET | VERIFY
+  verified         Boolean    @default(false)   // Whether this OTP was used
+  expiresAt        DateTime                     // OTP expiry time
+  createdAt        DateTime   @default(now())
 
   @@index([phone, purpose])    // For lookup: find latest OTP by phone + purpose
   @@map("otps")
@@ -135,65 +461,60 @@ model Otp {
 // Company Profile page, Search Results sidebar
 
 model Company {
-  id              String    @id @default(cuid())
+  id              String              @id @default(cuid())
   name            String
-  slug            String    @unique                    // "safaricom-plc"
-  logo            String?                              // Logo URL
-  logoColor       String?                              // Fallback gradient "#00a254,#00c853"
-  description     String    @db.MediumText             // About section (rich text)
+  slug            String              @unique                    // "safaricom-plc"
+  logo            String?                                        // Logo URL
+  logoColor       String?                                        // Fallback gradient "#00a254,#00c853"
+  description     String              @db.MediumText             // About section (rich text)
+
   // Classification
-  organizationType String?   @map("organization_type")  // organizationType enum:
-                                                // "PRIVATE", "SMALL_BUSINESS", "STARTUP", "NGO",
-                                                // "INTERNATIONAL_ORG", "NATIONAL_GOV", "COUNTY_GOV",
-                                                // "STATE_CORPORATION", "EDUCATION", "FOUNDATION",
-                                                // "RELIGIOUS_ORG"
-  industry        String                               // organizationIndustry enum:
-                                                // "BANKING", "INFORMATION_TECHNOLOGY", etc. (36 values)
-  size            String?                              // companySize enum:
-                                                // "1-10", "11-50", "51-200", "201-500",
-                                                // "501-1000", "1000+"
-                                                // Google Jobs numberOfEmployees
+  organizationType OrganizationType?  @map("organization_type")
+  industry        OrganizationIndustry                          // 35 industries
+  size            CompanySize?                                   // Google Jobs numberOfEmployees
 
   // Created by (store user ID or email, no relation)
   createdBy       String?
 
   // Location
-  county          String?                              // "Nairobi" — maps to organizationLocation[].regions[]
-  town            String?                              // "Westlands" (manual input for specific area)
-  country         String    @default("Kenya")
+  county          String?                                        // "Nairobi"
+  town            String?                                        // "Westlands"
+  country         String              @default("Kenya")
   website         String?
 
-  // Social links (dynamic — stored as JSON array)
-  socialLinks     Json?                                // [{platform: "LINKEDIN", url: "https://..."}, ...]
+  // Social links (stored as LongText JSON string)
+  socialLinks     String?   @db.LongText                        // [{platform: "LINKEDIN", url: "https://..."}, ...]
 
   // Public contact
-  contactEmail    String?                              // Public contact email
-  phoneNumber     String?                              // Public phone number
+  contactEmail    String?                                        // Public contact email
+  phoneNumber     String?                                        // Public phone number
 
   // Status
-  isVerified      Boolean   @default(false)             // Green verified badge
-  isFeatured      Boolean   @default(false)             // "Trusted By" section
-  isActive        Boolean   @default(true)
+  isVerified      Boolean             @default(false)             // Green verified badge
+  isFeatured      Boolean             @default(false)             // "Trusted By" section
+  isActive        Boolean             @default(true)
 
   // SEO
   metaTitle       String?
   metaDescription String?
   ogImage         String?
+  noIndex         Boolean             @default(false)
+  aiMeta          String?             @db.LongText
 
   // Denormalized counters (updated via triggers/cron)
-  jobCount        Int       @default(0)
-  opportunityCount Int      @default(0)                 // Denormalized counter for opportunities
+  jobCount        Int                 @default(0)
+  opportunityCount Int                @default(0)
 
   // Timestamps
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   // Relations
   jobs            Job[]
   opportunities   Opportunity[]
 
-  @@index([organizationType])                    // For gov/NGO/private filtering
-  @@index([industry])                              // Already exists conceptually, now explicit
+  @@index([organizationType])
+  @@index([industry])
   @@index([county])
   @@map("companies")
 }
@@ -202,86 +523,70 @@ model Company {
 // 4. JOBS — Core Job Listings
 // ============================================================
 // Mobile-first, SEO-optimized. Google Jobs structured data via JSON-LD.
-// Salary fields exist but optional (salaryMin, salaryMax, salaryCurrency, salaryPeriod)
-// categories is now a JSON array (was single string "category")
-// Column naming: mix of camelCase (id, title, slug, ...) and snake_case (is_remote, employment_type, ...)
-//
-// v2 ADDITIONS:
-//   publishedAt    — CRITICAL: Google Jobs requires datePosted
-//   featuredImage  — Hero image for featured job cards on homepage
-//   industry       — Google Jobs industry field; also powers "Jobs by Industry" filtering
-//   viewCount      — Analytics counter (powers "Trending Now" section)
-//   applicantCount — Shows "24 applicants" on cards (denormalized from applications count)
-//   createdBy      — Admin user who created the job
-//
-// v2 REMOVALS:
-//   applicationUrl, applicationEmail — covered by howToApply
-//   source, sourceUrl — replaced by createdBy
-//
-// NOT added (lives in structured description via markdown template):
-//   educationRequirements, skills, qualifications, benefits, experienceDetails
-//   → Google reads these from well-structured description headings + bullets
+// categories is a JSON array (was single string "category")
 
 model Job {
-  id                  String    @id @default(cuid())
-  title               String                           // "Senior Accountant — Financial Reporting"
-  slug                String    @unique                // "senior-accountant-safaricom-2026"
-  description         String    @db.LongText           // Full job description (HTML/Markdown)
-  categories          Json?                            // JSON array: ["TECHNOLOGY", "FINANCE_ACCOUNTING"]
-  shortDescription    String?   @map("short_description") @db.Text  // 2-line excerpt for cards
-  featuredImage       String?   @map("featured_image")            // NEW: Hero image URL for featured cards
+  id                  String              @id @default(cuid())
+  title               String                                        // "Senior Accountant — Financial Reporting"
+  slug                String              @unique                    // "senior-accountant-safaricom-2026"
+  description         String              @db.LongText               // Full job description (HTML/Markdown)
+  categories          Json?                                         // JSON array: ["TECHNOLOGY", "FINANCE_ACCOUNTING"]
+  shortDescription    String?             @map("short_description") @db.Text
+  featuredImage       String?             @map("featured_image")
 
   // Company
-  companyId           String                           // FK to companies.id
-  company             Company   @relation(fields: [companyId], references: [id])
+  companyId           String                                        // FK to companies.id
+  company             Company             @relation(fields: [companyId], references: [id])
 
   // Location
-  country             String?                          // Structured: "Kenya"
-  county              String?                          // Structured: "Nairobi" — maps to organizationLocation[].regions[]
-  town                String?                          // Specific area/town within county
-  isRemote            Boolean   @default(false)  @map("is_remote")
+  country             String?                                       // "Kenya"
+  county              String?                                       // "Nairobi"
+  town                String?                                       // Specific area
+  isRemote            Boolean             @default(false) @map("is_remote")
 
   // Salary
-  salaryMin           Int?       @map("salary_min")      // Minimum salary (e.g. 80000)
-  salaryMax           Int?       @map("salary_max")      // Maximum salary (e.g. 120000)
-  salaryCurrency      String    @default("KES") @map("salary_currency")
-  salaryPeriod        String    @default("MONTHLY") @map("salary_period")  // salaryPeriod enum: "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "ANNUALLY"
-  isSalaryNegotiable  Boolean   @default(false) @map("is_salary_negotiable")
+  salaryMin           Int?                @map("salary_min")
+  salaryMax           Int?                @map("salary_max")
+  salaryCurrency      String              @default("KES") @map("salary_currency")
+  salaryPeriod        SalaryPeriod        @default(MONTHLY) @map("salary_period")
+  isSalaryNegotiable  Boolean             @default(false) @map("is_salary_negotiable")
 
   // Classification
-  employmentType      String    @map("employment_type")  // "FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "FREELANCE", "VOLUNTEER"
-  experienceLevel     String    @map("experience_level") // "ENTRY_LEVEL", "MID_LEVEL", "SENIOR", "JUNIOR", "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE"
-  industry            String?                              // NEW: "Banking", "Telecommunications", etc.
-                                                // Google Jobs industry field + powers "Jobs by Industry" filtering
+  employmentType      EmploymentType      @map("employment_type")
+  experienceLevel     ExperienceLevel     @map("experience_level")
+  industry            OrganizationIndustry?                          // Google Jobs industry + filtering
 
   // Vacancy
-  positions           Int       @default(1)              // Number of open positions
+  positions           Int                 @default(1)
 
   // Deadline & Application
-  applicationDeadline DateTime? @map("application_deadline")
-  howToApply          String?   @map("how_to_apply") @db.Text
+  applicationDeadline DateTime?           @map("application_deadline")
+  howToApply          String?             @map("how_to_apply") @db.Text
 
   // Created by (store user ID or email, no relation)
   createdBy           String?
 
   // Status
-  isFeatured          Boolean   @default(false) @map("is_featured")
-  isActive            Boolean   @default(true)  @map("is_active")
-  status              String    @default("DRAFT")        // jobStatus enum: "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED", "FILLED", "EXPIRED"
+  isFeatured          Boolean             @default(false) @map("is_featured")
+  isActive            Boolean             @default(true)  @map("is_active")
+  status              JobStatus           @default(DRAFT)
 
   // Tags & SEO
-  tags                Json?                            // ["tag1", "tag2"]
-  metaTitle           String?   @map("meta_title")
-  metaDescription     String?   @map("meta_description")
-  noIndex             Boolean   @default(false) @map("no_index")  // Per-job noindex: admin toggle, cron jobs, API
+  tags                Json?                                         // ["tag1", "tag2"]
+  metaTitle           String?             @map("meta_title")
+  metaDescription     String?             @map("meta_description")
+  noIndex             Boolean             @default(false) @map("no_index")
+  templateName        String?
+  templateId          String?
+
   // Analytics counters
-  viewCount           Int       @default(0) @map("view_count")       // NEW: Page views (powers "Trending Now")
-  applicantCount      Int       @default(0) @map("applicant_count")  // NEW: Denormalized from applications table
+  viewCount           Int                 @default(0) @map("view_count")
+  applicantCount      Int                 @default(0) @map("applicant_count")
 
   // Timestamps
-  publishedAt         DateTime? @map("published_at")      // NEW: CRITICAL for Google Jobs datePosted
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  publishedAt         DateTime?           @map("published_at")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   // Relations
   savedBy             SavedJob[]
@@ -295,9 +600,9 @@ model Job {
   @@index([isFeatured])
   @@index([status])
   @@index([country])
-  @@index([industry])                                // For industry filtering
-  @@index([createdBy])                               // Admin filtering
-  @@index([isActive, publishedAt])                   // For "Latest Jobs" sorted by publish date
+  @@index([industry])
+  @@index([createdBy])
+  @@index([isActive, publishedAt])
   @@map("jobs")
 }
 
@@ -305,36 +610,26 @@ model Job {
 // 5. OPPORTUNITIES — Scholarships, Grants, Internships, etc.
 // ============================================================
 // Similar to jobs but for non-traditional opportunities.
-// Types from data.js: 23 opportunity types.
-// May be linked to a registered company (optional FK).
-//
-// v2 ADDITIONS:
-//   featuredImage — Hero image for opportunity cards
-//   createdBy     — Admin user who created the opportunity
-//
-// v2 REMOVALS:
-//   category (merged into opportunityType), provider, value, currency,
-//   targetAudience, fieldOfInterest, source, sourceUrl, externalApplyUrl
-//   → All moved to structured description (markdown template)
+// 23 opportunity types. Optional FK to Company.
 
 model Opportunity {
-  id                String    @id @default(cuid())
-  title             String                               // "Aga Khan Foundation Scholarship 2026"
-  slug              String    @unique                    // "aga-khan-foundation-scholarship-2026"
-  description       String    @db.LongText               // Full description
-  excerpt           String?                              // 2-line excerpt for cards
-  featuredImage     String?   @map("featured_image")     // NEW: Hero image URL for cards
+  id                String            @id @default(cuid())
+  title             String                                      // "Aga Khan Foundation Scholarship 2026"
+  slug              String            @unique                    // "aga-khan-foundation-scholarship-2026"
+  description       String            @db.LongText               // Full description
+  excerpt           String?                                     // 2-line excerpt for cards
+  featuredImage     String?           @map("featured_image")
 
   // Company (optional — may not be a registered employer)
   companyId         String?
-  company           Company?  @relation(fields: [companyId], references: [id])
+  company           Company?          @relation(fields: [companyId], references: [id])
 
   // Classification
-  opportunityType   String                               // "SCHOLARSHIP", "GRANT", "FELLOWSHIP", etc.
+  opportunityType   OpportunityType
 
   // Deadline & Application
   deadline          DateTime?
-  howToApply        String?   @db.Text                   // Rich text instructions
+  howToApply        String?           @db.Text
 
   // Created by (store user ID or email, no relation)
   createdBy         String?
@@ -343,22 +638,23 @@ model Opportunity {
   tags              Json?
 
   // Status
-  status            String    @default("DRAFT")           // jobStatus enum: "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED", "FILLED", "EXPIRED"
-  isFeatured        Boolean   @default(false)
-  isActive          Boolean   @default(true)
+  status            JobStatus         @default(DRAFT)
+  isFeatured        Boolean           @default(false)
+  isActive          Boolean           @default(true)
 
   // SEO
   metaTitle         String?
   metaDescription   String?
   ogImage           String?
+  noIndex           Boolean           @default(false)
 
   // Analytics
-  viewCount         Int       @default(0)
+  viewCount         Int               @default(0)
 
   // Timestamps
   publishedAt       DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([opportunityType])
   @@index([companyId])
@@ -455,19 +751,19 @@ model BlogArticle {
   category        BlogCategory @relation(fields: [categoryId], references: [id])
 
   // Reading stats
-  readingTime     Int       @default(5)                 // Minutes
+  readingTime     Int       @default(5)
   viewsCount      Int       @default(0)
   wordCount       Int       @default(0)
 
   // State
-  isFeatured      Boolean   @default(false)             // Featured card on blog listing
+  isFeatured      Boolean   @default(false)
   isPublished     Boolean   @default(false)
 
   // SEO
   metaTitle       String?
   metaDescription String?
   ogImage         String?
-  canonicalUrl    String?                              // Canonical URL for syndicated content
+  canonicalUrl    String?
 
   // Timestamps
   publishedAt     DateTime?
@@ -489,15 +785,14 @@ model BlogArticle {
 // ============================================================
 // 10. AUTHORS — Career Coaches / Writers
 // ============================================================
-// From blog article prototype: Grace Wanjiku — Senior Career Coach
 
 model Author {
   id              String    @id @default(cuid())
   name            String                               // "Grace Wanjiku"
   slug            String    @unique                    // "grace-wanjiku"
   title           String?                              // "Senior Career Coach"
-  bio             String?   @db.Text                    // Bio paragraph for author card
-  avatar          String?                              // Avatar URL
+  bio             String?   @db.Text
+  avatar          String?
 
   // Social
   twitterUrl      String?
@@ -526,20 +821,20 @@ model Author {
 // + DPA compliance page (ODPC registration as marketing edge)
 
 model SitePage {
-  id              String    @id @default(cuid())
-  title           String                               // "Privacy Policy"
-  slug            String    @unique                    // "privacy-policy"
-  content         String    @db.LongText               // Full HTML content
-  metaTitle       String?                              // SEO title
+  id              String          @id @default(cuid())
+  title           String                                    // "Privacy Policy"
+  slug            String          @unique                    // "privacy-policy"
+  content         String          @db.LongText               // Full HTML content
+  metaTitle       String?                                    // SEO title
   metaDescription String?
 
-  // Status: "PUBLISHED" | "DRAFT" | "ARCHIVED"
-  status          String    @default("DRAFT")
+  // Status
+  status          SitePageStatus  @default(DRAFT)
 
-  lastReviewedAt  DateTime?                            // Legal review date
+  lastReviewedAt  DateTime?                                  // Legal review date
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([status])
   @@map("site_pages")
@@ -551,15 +846,15 @@ model SitePage {
 // Displayed on service pages, legal pages, etc.
 
 model Faq {
-  id              String    @id @default(cuid())
+  id              String      @id @default(cuid())
   question        String
-  answer          String    @db.Text
-  category        String?                              // "SERVICES", "PAYMENTS", "PRIVACY", "GENERAL"
-  sortOrder       Int       @default(0)
-  isActive        Boolean   @default(true)
+  answer          String      @db.Text
+  category        FaqCategory?
+  sortOrder       Int         @default(0)
+  isActive        Boolean     @default(true)
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([category])
   @@map("faqs")
@@ -568,7 +863,6 @@ model Faq {
 // ============================================================
 // 13. SAVED JOBS — User Bookmarks
 // ============================================================
-// Heart/bookmark icon on job cards
 
 model SavedJob {
   id              String    @id @default(cuid())
@@ -586,15 +880,14 @@ model SavedJob {
 // ============================================================
 // 14. SAVED ARTICLES — User Bookmarks
 // ============================================================
-// Bookmark icon on article cards
 
 model SavedArticle {
-  id              String    @id @default(cuid())
+  id              String      @id @default(cuid())
   userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   articleId       String
   article         BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime    @default(now())
 
   @@unique([userId, articleId])
   @@index([userId])
@@ -608,23 +901,23 @@ model SavedArticle {
 // Seen in: Homepage sidebar, Search Results, Blog sidebars
 
 model JobAlert {
-  id              String    @id @default(cuid())
+  id              String          @id @default(cuid())
   userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  query           String?                              // "accounting jobs"
-  location        String?                              // "Nairobi"
-  jobType         String?                              // "FULL_TIME" etc.
-  category        String?                              // "TECHNOLOGY" etc.
-  isActive        Boolean   @default(true)
+  query           String?                                   // "accounting jobs"
+  location        String?                                   // "Nairobi"
+  jobType         EmploymentType?                            // FULL_TIME, PART_TIME, etc.
+  category        String?                                   // Free-form category (26 job categories)
+  isActive        Boolean         @default(true)
 
   // Email tracking
   lastSentAt      DateTime?
-  emailOpenCount  Int       @default(0)
-  emailClickCount Int       @default(0)
+  emailOpenCount  Int             @default(0)
+  emailClickCount Int             @default(0)
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([userId])
   @@index([isActive])
@@ -634,20 +927,20 @@ model JobAlert {
 // ============================================================
 // 16. ARTICLE REACTIONS — Emoji Reactions
 // ============================================================
-// 👍 Helpful, ❤️ Love it, 💡 Insightful, 🤯 Mind-blowing
+// HELPFUL, LOVE, INSIGHTFUL, MIND_BLOWING
 // Anonymous users identified by browser fingerprint/cookie
 
 model ArticleReaction {
-  id              String    @id @default(cuid())
+  id              String       @id @default(cuid())
   articleId       String
-  article         BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  userId          String?                              // null = anonymous
-  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reactionType    String                               // "helpful", "love", "insightful", "mind_blowing"
-  fingerprint     String                               // Browser fingerprint (logged-in: userId, anon: cookie hash)
+  article         BlogArticle  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId          String?                                  // null = anonymous
+  user            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactionType    ReactionType
+  fingerprint     String                                  // Browser fingerprint
   ipAddress       String?
 
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime     @default(now())
 
   // One reaction type per fingerprint per article
   @@unique([articleId, fingerprint, reactionType])
@@ -661,17 +954,17 @@ model ArticleReaction {
 // Order updates, job alert matches, system messages
 
 model Notification {
-  id              String    @id @default(cuid())
+  id              String          @id @default(cuid())
   userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type            String                               // "ORDER_UPDATE", "JOB_MATCH", "PAYMENT", "SYSTEM"
+  type            NotificationType
   title           String
   message         String
-  data            Json?                                // {"orderId": "xxx", "status": "CONFIRMED"}
-  isRead          Boolean   @default(false)
+  data            Json?                                   // {"orderId": "xxx", "status": "CONFIRMED"}
+  isRead          Boolean         @default(false)
 
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime        @default(now())
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -686,21 +979,21 @@ model Notification {
 // LinkedIn Profile: Basic KSh 800, Premium KSh 1,500
 
 model ServiceTier {
-  id              String    @id @default(cuid())
-  serviceType     String                               // "CV_WRITING", "COVER_LETTER", "LINKEDIN_PROFILE"
-  tier            String                               // "BASIC", "PROFESSIONAL", "PREMIUM"
-  name            String                               // "Professional CV"
-  description     String    @db.Text                   // What's included
-  price           Int                                  // 500, 1500, 3500
-  currency        String    @default("KES")
-  features        Json?                                // ["ATS-optimized", "Cover letter included", "LinkedIn review"]
-  deliveryDays    Int       @default(3)
-  revisionCount   Int       @default(1)
-  isActive        Boolean   @default(true)
-  sortOrder       Int       @default(0)
+  id              String          @id @default(cuid())
+  serviceType     ServiceType
+  tier            ServiceTierLevel
+  name            String                                    // "Professional CV"
+  description     String          @db.Text                  // What's included
+  price           Int                                      // 500, 1500, 3500
+  currency        String          @default("KES")
+  features        Json?                                     // ["ATS-optimized", "Cover letter included", ...]
+  deliveryDays    Int             @default(3)
+  revisionCount   Int             @default(1)
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Relations
   orderItems      OrderItem[]
@@ -718,36 +1011,35 @@ model ServiceTier {
 // Partial payment support via paidAmount/balanceDue
 
 model Order {
-  id              String    @id @default(cuid())
-  orderNumber     String    @unique                    // "JR-20260404-XXXX"
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique                    // "JR-20260404-XXXX"
 
   // Customer (nullable for walk-in WhatsApp orders)
   userId          String?
-  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  email           String                               // Always required for invoicing
-  phone           String                               // Always required
-  fullName        String                               // Customer name
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email           String                                   // Always required for invoicing
+  phone           String                                   // Always required
+  fullName        String                                   // Customer name
 
-  // Status: "PENDING", "CONFIRMED", "IN_PROGRESS", "DELIVERED",
-  //         "REVISION", "COMPLETED", "CANCELLED"
-  status          String    @default("PENDING")
+  // Status
+  status          OrderStatus   @default(PENDING)
 
   // Financials (partial payment support)
-  totalAmount     Int                                  // Total in KES
-  paidAmount      Int       @default(0)                 // Amount paid so far
-  balanceDue      Int                                  // Remaining amount (totalAmount - paidAmount)
+  totalAmount     Int                                      // Total in KES
+  paidAmount      Int           @default(0)                 // Amount paid so far
+  balanceDue      Int                                      // Remaining amount (totalAmount - paidAmount)
 
-  // Payment status: "UNPAID", "PARTIALLY_PAID", "PAID", "REFUNDED"
-  paymentStatus   String    @default("UNPAID")
+  // Payment status
+  paymentStatus   PaymentStatus @default(UNPAID)
 
   // Notes
-  notes           String?                              // Customer instructions
+  notes           String?                                  // Customer instructions
 
   // Timestamps
-  confirmedAt     DateTime?                            // User confirmed + sent info
+  confirmedAt     DateTime?                                // User confirmed + sent info
   completedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   // Relations
   items           OrderItem[]
@@ -767,20 +1059,20 @@ model Order {
 // ============================================================
 
 model OrderItem {
-  id              String    @id @default(cuid())
+  id              String      @id @default(cuid())
   orderId         String
-  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   serviceTierId   String
   serviceTier     ServiceTier @relation(fields: [serviceTierId], references: [id])
 
-  serviceName     String                               // "CV Writing" (snapshot at order time)
-  tierName        String                               // "Professional" (snapshot)
-  price           Int                                  // Unit price
-  quantity        Int       @default(1)
-  subtotal        Int                                  // price × quantity
+  serviceName     String                                // "CV Writing" (snapshot at order time)
+  tierName        String                                // "Professional" (snapshot)
+  price           Int                                   // Unit price
+  quantity        Int         @default(1)
+  subtotal        Int                                   // price × quantity
 
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime    @default(now())
 
   @@index([orderId])
   @@map("order_items")
@@ -790,30 +1082,34 @@ model OrderItem {
 // 21. PAYMENTS — M-Pesa STK Push Payment Records
 // ============================================================
 // Callback handled by Express server on hosting platform.
-// Next.js initiates STK Push, Express server receives callback.
 // One order can have multiple payment attempts.
 
 model Payment {
-  id                    String    @id @default(cuid())
-  orderId               String
-  order                 Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id                    String             @id @default(cuid())
+  orderId               String?
+  order                 Order?             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  companyId             String?
+
+  // Payment type & description
+  type                  String             @default("ORDER")
+  description           String?
 
   // M-Pesa fields
-  checkoutRequestId     String    @unique              // Daraja checkout request ID
-  mpesaReceiptNumber    String?   @unique              // "SHK7Y4XB2Z" — actual payment receipt
-  phoneNumber           String                               // "254708374149"
+  checkoutRequestId     String             @unique              // Daraja checkout request ID
+  mpesaReceiptNumber    String?            @unique              // "SHK7Y4XB2Z"
+  phoneNumber           String                                  // "254708374149"
 
-  amount                Int                                  // Amount in KES
+  amount                Int                                     // Amount in KES
 
-  // Status: "PENDING", "SUCCESS", "FAILED", "CANCELLED", "TIMEOUT", "REFUNDED"
-  status                String    @default("PENDING")
-  resultDesc            String?                              // Safaricom result description
-  resultCode            String?                              // Safaricom result code
+  // Status
+  status                MpesaPaymentStatus @default(PENDING)
+  resultDesc            String?                                 // Safaricom result description
+  resultCode            String?                                 // Safaricom result code
 
   // Raw M-Pesa callback data (for audit/debug)
   mpesaCallbackData     Json?
 
-  createdAt             DateTime  @default(now())
+  createdAt             DateTime           @default(now())
 
   @@index([orderId])
   @@index([status])
@@ -827,18 +1123,18 @@ model Payment {
 // Tracks every status change for order tracking in dashboard
 
 model OrderActivity {
-  id              String    @id @default(cuid())
+  id              String              @id @default(cuid())
   orderId         String
-  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order           Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  action          String                               // "STATUS_CHANGE", "PAYMENT_RECEIVED", "NOTE_ADDED"
-  description     String                               // Human-readable description
-  metadata        Json?                                // {"from": "PENDING", "to": "CONFIRMED"}
+  action          OrderActivityAction
+  description     String                                      // Human-readable description
+  metadata        Json?                                       // {"from": "PENDING", "to": "CONFIRMED"}
 
   // Performed by (null = system action)
-  performedBy     String?                              // Admin/coach user ID
+  performedBy     String?                                     // Admin/coach user ID
 
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime            @default(now())
 
   @@index([orderId])
   @@map("order_activity")
@@ -857,7 +1153,7 @@ model OrderAttachment {
   fileName        String                               // "cv_senior_accountant.docx"
   filePath        String                               // Server file path
   fileSize        Int?                                 // Bytes
-  fileType        String?                              // "application/pdf", "application/vnd.openxmlformats..."
+  fileType        String?                              // MIME type
 
   // Uploaded by (null = customer uploaded via dashboard)
   uploadedBy      String?                              // Admin/coach user ID
@@ -872,17 +1168,16 @@ model OrderAttachment {
 // 24. NEWSLETTER SUBSCRIPTIONS
 // ============================================================
 // "Weekly Career Tips" / "Job Alerts" newsletter forms
-// Seen in: Homepage, Blog, Blog Article, Search Results
 
 model NewsletterSubscription {
-  id                String     @id @default(cuid())
-  email             String     @unique
+  id                String         @id @default(cuid())
+  email             String         @unique
   userId            String?                                // Link to user if logged in
-  user              User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  type              String     @default("career_tips")      // "career_tips" | "job_alerts"
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type              NewsletterType @default(CAREER_TIPS)
 
-  isActive          Boolean    @default(true)
-  subscribedAt      DateTime   @default(now())
+  isActive          Boolean        @default(true)
+  subscribedAt      DateTime       @default(now())
   unsubscribedAt    DateTime?
 
   @@index([isActive])
@@ -893,22 +1188,21 @@ model NewsletterSubscription {
 // 25. DATA REQUESTS — DPA Compliance (Kenya Data Protection Act 2019)
 // ============================================================
 // ODPC registration as marketing advantage
-// Types: "ACCESS", "CORRECTION", "DELETION", "OBJECTION", "PORTABILITY"
 
 model DataRequest {
-  id                String     @id @default(cuid())
-  email             String                                  // Requester email
-  requestType       String                                  // "ACCESS", "DELETION", etc.
+  id                String            @id @default(cuid())
+  email             String                                    // Requester email
+  requestType       DataRequestType
 
-  // Status: "RECEIVED", "PROCESSING", "COMPLETED", "REJECTED"
-  status            String     @default("RECEIVED")
+  // Status
+  status            DataRequestStatus @default(RECEIVED)
 
-  dataRequested     Json?                                   // Description of what data requested
+  dataRequested     Json?                                     // Description of what data requested
   processedAt       DateTime?
-  responseNote      String?                                 // Admin response
+  responseNote      String?                                   // Admin response
 
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([email])
   @@index([status])
@@ -922,7 +1216,7 @@ model DataRequest {
 
 model PageView {
   id              String    @id @default(cuid())
-  pageType        String                               // "JOB", "ARTICLE", "COMPANY", "OPPORTUNITY", "HUB", "BLOG"
+  pageType        PageType
   pageId          String?                              // Entity ID
   sessionId       String?                              // Browser session ID
   ipAddress       String?
@@ -942,14 +1236,14 @@ model PageView {
 // Track WhatsApp click-throughs across the site
 
 model WhatsAppClick {
-  id              String    @id @default(cuid())
-  pageType        String                               // "JOB", "SERVICE", "HOMEPAGE", etc.
-  pageId          String?                              // Entity ID
-  sessionId       String?                              // Browser session ID
-  phoneNumber     String?                              // If known
-  context         String?                              // "apply_button", "service_inquiry", "float_button"
+  id              String            @id @default(cuid())
+  pageType        WhatsAppPageType
+  pageId          String?                                // Entity ID
+  sessionId       String?                                // Browser session ID
+  phoneNumber     String?                                // If known
+  context         WhatsAppContext?
 
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime          @default(now())
 
   @@index([pageType])
   @@index([createdAt])
@@ -962,25 +1256,25 @@ model WhatsAppClick {
 // Tracks user applications to jobs with status tracking
 
 model Application {
-  id              String    @id @default(cuid())
+  id              String            @id @default(cuid())
   jobId           String
-  job             Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job             Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Application content
-  coverLetter     String?   @db.Text                 // Cover letter text
-  cvUrl           String?                              // Uploaded CV file URL
+  coverLetter     String?           @db.Text                 // Cover letter text
+  cvUrl           String?                                     // Uploaded CV file URL
 
-  // Status: "PENDING", "SHORTLISTED", "INTERVIEW", "REJECTED", "HIRED"
-  status          String    @default("PENDING")
+  // Status
+  status          ApplicationStatus @default(PENDING)
 
   // Employer notes
-  employerNotes   String?   @db.Text                 // Internal notes from employer
+  employerNotes   String?           @db.Text                 // Internal notes from employer
 
   // Timestamps
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@unique([userId, jobId])
   @@index([jobId])
@@ -996,28 +1290,84 @@ model Application {
 // Google AdSense integration
 
 model AdPlacement {
-  id              String    @id @default(cuid())
-  name            String                               // "Homepage Leaderboard"
-  position        String                               // "HOME_TOP", "SIDEBAR_1", "ARTICLE_INLINE"
-  adCode          String    @db.MediumText             // AdSense code snippet
-  isActive        Boolean   @default(true)
+  id              String      @id @default(cuid())
+  name            String                                // "Homepage Leaderboard"
+  position        AdPosition
+  adCode          String      @db.MediumText             // AdSense code snippet
+  isActive        Boolean     @default(true)
 
   // Performance tracking
-  impressionCount Int       @default(0)
-  clickCount      Int       @default(0)
+  impressionCount Int         @default(0)
+  clickCount      Int         @default(0)
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([position])
   @@map("ad_placements")
 }
 
 // ============================================================
-// END OF SCHEMA — 30 TABLES
+// END OF SCHEMA — 30 TABLES + 29 ENUMS
 // ============================================================
 
 /*
+  ENUM-TO-MODEL MAPPING (v3)
+  ════════════════════════════
+
+  UserRole             → User.role
+  AuthProvider         → AuthAccount.provider
+  OtpPurpose           → Otp.purpose
+  OrganizationType     → Company.organizationType
+  OrganizationIndustry → Company.industry, Job.industry
+  CompanySize          → Company.size
+  EmploymentType       → Job.employmentType, JobAlert.jobType
+  ExperienceLevel      → Job.experienceLevel
+  SalaryPeriod         → Job.salaryPeriod
+  JobStatus            → Job.status, Opportunity.status
+  OpportunityType      → Opportunity.opportunityType
+  SitePageStatus       → SitePage.status
+  FaqCategory          → Faq.category
+  ReactionType         → ArticleReaction.reactionType
+  NotificationType     → Notification.type
+  ServiceType          → ServiceTier.serviceType
+  ServiceTierLevel     → ServiceTier.tier
+  OrderStatus          → Order.status
+  PaymentStatus        → Order.paymentStatus
+  MpesaPaymentStatus   → Payment.status
+  OrderActivityAction  → OrderActivity.action
+  DataRequestType      → DataRequest.requestType
+  DataRequestStatus    → DataRequest.status
+  PageType             → PageView.pageType
+  WhatsAppPageType     → WhatsAppClick.pageType
+  WhatsAppContext      → WhatsAppClick.context
+  NewsletterType       → NewsletterSubscription.type
+  ApplicationStatus    → Application.status
+  AdPosition           → AdPlacement.position
+
+  NORMALIZED VALUES (lowercase → UPPER_SNAKE_CASE):
+  ──────────────────────────────────────────────────
+  AuthProvider:   google→GOOGLE, email→EMAIL, phone→PHONE, reset→RESET
+  OtpPurpose:     auth→AUTH, reset→RESET, verify→VERIFY,
+                  email_link→EMAIL_LINK, session_grant→SESSION_GRANT,
+                  email_update→EMAIL_UPDATE, email_verify→EMAIL_VERIFY,
+                  phone_verify→PHONE_VERIFY, account_delete→ACCOUNT_DELETE
+  ReactionType:   helpful→HELPFUL, love→LOVE, insightful→INSIGHTFUL, mind_blowing→MIND_BLOWING
+  NewsletterType: career_tips→CAREER_TIPS, job_alerts→JOB_ALERTS,
+                  opportunity_alerts→OPPORTUNITY_ALERTS, employer_updates→EMPLOYER_UPDATES
+  WhatsAppContext: apply_button→APPLY_BUTTON, service_inquiry→SERVICE_INQUIRY, float_button→FLOAT_BUTTON
+
+  SPECIAL MAPPINGS (invalid identifiers → valid):
+  ──────────────────────────────────────────────────
+  CompanySize:    "1-10"→SIZE_1_10, "11-50"→SIZE_11_50, "51-200"→SIZE_51_200,
+                  "201-500"→SIZE_201_500, "501-1000"→SIZE_501_1000, "1000+"→SIZE_1000_PLUS
+
+  SHARED ENUMS:
+  ─────────────
+  JobStatus            → Job.status + Opportunity.status
+  EmploymentType       → Job.employmentType + JobAlert.jobType
+  OrganizationIndustry → Company.industry + Job.industry
+
   ENTITY RELATIONSHIP MAP
   ════════════════════════
 
@@ -1032,7 +1382,6 @@ model AdPlacement {
 
   Company ────── 1:N ──→ Job
   Company ────── 1:N ──→ Opportunity (optional FK)
-  Opportunity ─── N:1 ──→ Company (nullable)
 
   BlogCategory ─ 1:N ──→ BlogArticle
   Author ─────── 1:N ──→ BlogArticle
@@ -1043,8 +1392,8 @@ model AdPlacement {
   Order ──────── 1:N ──→ OrderActivity
   Order ──────── 1:N ──→ OrderAttachment
 
-  TABLE COUNT: 30 tables
-  ───────────────────────
+  TABLE COUNT: 30 tables + 29 enums
+  ───────────────────────────────────
    1. users
    2. auth_accounts
    3. otps
@@ -1055,51 +1404,24 @@ model AdPlacement {
    8. blog_tags
    9. article_tags (junction)
   10. blog_articles
-   11. authors
-   12. site_pages
-   13. faqs
-   14. saved_jobs
-   15. saved_articles
-   16. job_alerts
-   17. article_reactions
-   18. notifications
-   19. service_tiers
-   20. orders
-   21. order_items
-   22. payments
-   23. order_activity
-   24. order_attachments
-   25. newsletter_subscriptions
-   26. data_requests
-   27. page_views
-   28. whatsapp_clicks
-   29. applications
-   30. ad_placements
-
-  ──────────────────────────────────────────
-  v2 CHANGES (SEO + Google Jobs)
-  ──────────────────────────────────────────
-
-  JOB (6 additions):
-    + publishedAt      DateTime?   — CRITICAL: Google Jobs datePosted
-    + featuredImage    String?     — Hero image for featured cards
-    + industry         String?     — Google Jobs industry + filtering
-    + viewCount        Int=0       — Analytics (powers Trending Now)
-    + applicantCount   Int=0       — Shows "24 applicants" on cards
-    + sourceUrl        String?     — Original source for scraped jobs
-    + @@index(industry)
-    + @@index(isActive, publishedAt)
-
-  OPPORTUNITY (4 additions, 1 removal):
-    + featuredImage    String?     — Hero image for cards
-    + provider         String?     — Org name when no Company FK
-    + value            Int?        — Scholarship/bursary amount
-    + currency         String?     — For value field
-    - opportunityCount Int=0       — REMOVED: was dead placeholder
-
-  COMPANY (1 addition):
-    + size             String?     — Google Jobs numberOfEmployees
-
-  TOTAL: +11 columns, -1 column, +2 indexes, 0 new tables
-  All additive, all nullable/defaulted, zero breaking changes.
+  11. authors
+  12. site_pages
+  13. faqs
+  14. saved_jobs
+  15. saved_articles
+  16. job_alerts
+  17. article_reactions
+  18. notifications
+  19. service_tiers
+  20. orders
+  21. order_items
+  22. payments
+  23. order_activity
+  24. order_attachments
+  25. newsletter_subscriptions
+  26. data_requests
+  27. page_views
+  28. whatsapp_clicks
+  29. applications
+  30. ad_placements
 */

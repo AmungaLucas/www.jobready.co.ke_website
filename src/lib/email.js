@@ -211,10 +211,10 @@ export function contactFormTemplate({ name, email, subject, message }) {
  */
 export function newsletterConfirmationTemplate(email, type) {
   const typeLabels = {
-    job_alerts: "Job Alerts",
-    career_tips: "Career Tips",
-    opportunity_alerts: "Opportunity Alerts",
-    employer_updates: "Employer Updates",
+    JOB_ALERTS: "Job Alerts",
+    CAREER_TIPS: "Career Tips",
+    OPPORTUNITY_ALERTS: "Opportunity Alerts",
+    EMPLOYER_UPDATES: "Employer Updates",
   };
   const label = typeLabels[type] || "Newsletter";
 
@@ -226,7 +226,7 @@ export function newsletterConfirmationTemplate(email, type) {
       <p>You've been successfully subscribed to <strong>${label}</strong> on ${siteConfig.brandName}.</p>
       <p>Here's what to expect:</p>
       <ul>
-        <li>Curated ${type === "job_alerts" ? "job openings" : type === "opportunity_alerts" ? "opportunities" : "career insights"} delivered to your inbox</li>
+        <li>Curated ${type === "JOB_ALERTS" ? "job openings" : type === "OPPORTUNITY_ALERTS" ? "opportunities" : "career insights"} delivered to your inbox</li>
         <li>Tips and resources to advance your career</li>
         <li>No spam — only relevant, high-quality content</li>
       </ul>

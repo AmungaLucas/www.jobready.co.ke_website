@@ -43,7 +43,7 @@ export async function POST(request) {
     // --- Find the reset token in AuthAccount ---
     const resetAccount = await db.authAccount.findFirst({
       where: {
-        provider: "reset",
+        provider: "RESET",
         accessToken: token,
       },
       include: {
@@ -100,7 +100,7 @@ export async function POST(request) {
       await tx.authAccount.deleteMany({
         where: {
           userId: resetAccount.userId,
-          provider: "reset",
+          provider: "RESET",
         },
       });
     });

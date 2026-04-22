@@ -155,7 +155,7 @@ export async function ipRateLimit(request, key, limit, windowMs) {
  * for that identifier.
  *
  * @param {string} identifier — phone number or email
- * @param {string} purpose — OTP purpose (e.g. "auth", "email_link", "email_verify")
+ * @param {string} purpose — OTP purpose (e.g. "AUTH", "EMAIL_LINK", "EMAIL_VERIFY")
  * @param {number} maxAttempts — max failed attempts before lockout (default: 5)
  * @returns {{ allowed: boolean, attemptsRemaining: number, lockedUntil: Date|null }}
  */

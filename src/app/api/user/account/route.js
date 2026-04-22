@@ -51,7 +51,7 @@ export async function POST(request) {
       const recentOtp = await db.otp.findFirst({
         where: {
           phone: user.email,
-          purpose: "account_delete",
+          purpose: "ACCOUNT_DELETE",
           createdAt: { gte: new Date(Date.now() - 60 * 1000) },
         },
         orderBy: { createdAt: "desc" },
@@ -70,7 +70,7 @@ export async function POST(request) {
         data: {
           phone: user.email,
           code,
-          purpose: "account_delete",
+          purpose: "ACCOUNT_DELETE",
           verified: false,
           expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
         },
@@ -192,7 +192,7 @@ export async function DELETE(request) {
         where: {
           phone: user.email,
           code: deleteCode,
-          purpose: "account_delete",
+          purpose: "ACCOUNT_DELETE",
           verified: false,
           expiresAt: { gte: new Date() },
         },

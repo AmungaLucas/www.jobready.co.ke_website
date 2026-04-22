@@ -95,7 +95,7 @@ export async function POST(request) {
     const recentOtp = await db.otp.findFirst({
       where: {
         phone: normalized,
-        purpose: "email_update",
+        purpose: "EMAIL_UPDATE",
         createdAt: { gte: new Date(Date.now() - 60 * 1000) },
       },
       orderBy: { createdAt: "desc" },
@@ -116,7 +116,7 @@ export async function POST(request) {
       data: {
         phone: normalized,
         code,
-        purpose: "email_update",
+        purpose: "EMAIL_UPDATE",
         verified: false,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       },

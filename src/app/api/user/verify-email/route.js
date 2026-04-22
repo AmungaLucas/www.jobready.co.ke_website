@@ -17,13 +17,13 @@ import {
  * Verifies a 6-digit code sent to the user's email.
  *
  * Two purposes:
- *   - "email_verify": marks emailVerified = true on the current email
- *   - "email_update": replaces placeholder email with the verified new email
+ *   - "EMAIL_VERIFY": marks emailVerified = true on the current email
+ *   - "EMAIL_UPDATE": replaces placeholder email with the verified new email
  *     If the new email belongs to another user, merges that user into the
  *     current one (transfers data + deletes the other account).
  *
  * Body: { code: "123456", newEmail?: "user@example.com" }
- *   newEmail is required when purpose was "email_update"
+ *   newEmail is required when purpose was "EMAIL_UPDATE"
  */
 export async function POST(request) {
   try {
@@ -59,10 +59,10 @@ export async function POST(request) {
     }
 
     // Determine purpose: if newEmail is provided, this is an email update (placeholder → real)
-    const purpose = newEmail ? "email_update" : "email_verify";
+    const purpose = newEmail ? "EMAIL_UPDATE" : "EMAIL_VERIFY";
 
     // ── email_update: replacing placeholder (with optional merge) ──
-    if (purpose === "email_update") {
+    if (purpose === "EMAIL_UPDATE") {
       const targetEmail = newEmail.toLowerCase().trim();
 
       if (!isPlaceholderEmail(user.email)) {
@@ -77,7 +77,7 @@ export async function POST(request) {
         where: {
           phone: targetEmail,
           code,
-          purpose: "email_update",
+          purpose: "EMAIL_UPDATE",
           verified: false,
           expiresAt: { gte: new Date() },
         },
@@ -262,7 +262,7 @@ export async function POST(request) {
       where: {
         phone: user.email,
         code,
-        purpose: "email_verify",
+        purpose: "EMAIL_VERIFY",
         verified: false,
         expiresAt: { gte: new Date() },
       },

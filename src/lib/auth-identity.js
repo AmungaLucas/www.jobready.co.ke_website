@@ -374,7 +374,7 @@ export async function migrateExistingGoogleUsers() {
 
   // Find all Google auth accounts
   const googleAccounts = await db.authAccount.findMany({
-    where: { provider: "google" },
+    where: { provider: "GOOGLE" },
     include: { user: true },
   });
 

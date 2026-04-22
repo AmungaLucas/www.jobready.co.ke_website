@@ -2,6 +2,7 @@ export const organizationType = [
     { value: "PRIVATE", label: "Private Sector Companies" },
     { value: "SMALL_BUSINESS", label: "Small & Medium Businesses (SMEs)" },
     { value: "STARTUP", label: "Startups & Emerging Companies" },
+    { value: "CORPORATE", label: "Corporate Organizations" },
     { value: "NGO", label: "Non-Governmental Organizations (NGOs)" },
     { value: "INTERNATIONAL_ORG", label: "International Organizations & UN Agencies" },
     { value: "NATIONAL_GOV", label: "National Government" },
@@ -13,12 +14,14 @@ export const organizationType = [
 ];
 
 export const companySize = [
-    { value: "1-10", label: "1-10 employees" },
-    { value: "11-50", label: "11-50 employees" },
-    { value: "51-200", label: "51-200 employees" },
-    { value: "201-500", label: "201-500 employees" },
-    { value: "501-1000", label: "501-1000 employees" },
-    { value: "1000+", label: "1000+ employees" }
+    { value: "SIZE_1_10", label: "1-10 employees" },
+    { value: "SIZE_11_50", label: "11-50 employees" },
+    { value: "SIZE_51_200", label: "51-200 employees" },
+    { value: "SIZE_201_500", label: "201-500 employees" },
+    { value: "SIZE_501_1000", label: "501-1000 employees" },
+    { value: "SIZE_1000_PLUS", label: "1000+ employees" },
+    { value: "SIZE_5000_10000", label: "5000-10000 employees" },
+    { value: "SIZE_10000_PLUS", label: "10000+ employees" }
 ];
 
 export const salaryPeriod = [

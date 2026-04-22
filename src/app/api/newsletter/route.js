@@ -5,10 +5,10 @@ import { presets, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { sendEmail, newsletterConfirmationTemplate } from "@/lib/email";
 
 const VALID_TYPES = [
-  "job_alerts",
-  "career_tips",
-  "opportunity_alerts",
-  "employer_updates",
+  "JOB_ALERTS",
+  "CAREER_TIPS",
+  "OPPORTUNITY_ALERTS",
+  "EMPLOYER_UPDATES",
 ];
 
 /**
@@ -96,8 +96,8 @@ export async function GET(request) {
  * Subscribe to newsletter. Public route — no auth required.
  *
  * Body: { email: string, type?: string }
- *   type: "job_alerts" | "career_tips" | "opportunity_alerts" | "employer_updates"
- *         Defaults to "career_tips"
+ *   type: "JOB_ALERTS" | "CAREER_TIPS" | "OPPORTUNITY_ALERTS" | "EMPLOYER_UPDATES"
+ *         Defaults to "CAREER_TIPS"
  *
  * Rate limited: 5 subscriptions per minute per IP
  *
@@ -138,7 +138,7 @@ export async function POST(request) {
 
     // Validate type if provided
     const subscriptionType =
-      type && VALID_TYPES.includes(type) ? type : "career_tips";
+      type && VALID_TYPES.includes(type) ? type : "CAREER_TIPS";
 
     // Check if already subscribed
     const existing = await db.newsletterSubscription.findUnique({
