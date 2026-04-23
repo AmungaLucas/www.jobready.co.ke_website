@@ -45,6 +45,9 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
 
+  // Standalone output for production deployment
+  output: "standalone",
+
   // Tree-shake heavy icon/utility libraries to only import used members
   experimental: {
     optimizePackageImports: [
